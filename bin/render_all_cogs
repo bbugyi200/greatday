@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+
+#################################################################################
+# Render any kooky.cogs that exist in this project.
+#
+# Usage
+# -----
+# render_all_cogs [--check]
+#
+# Optional Arguments:
+# -------------------
+# -c | --check
+#     Fail with a non-zero exit code if any files containing kooky.cogs changed
+#     after running this script. 
+#################################################################################
+
+BIN="$(dirname "$0")"
+ROOT="$(dirname "${BIN}")"
+
+source "${ROOT}"/lib/bugyi.sh
+
+readonly COG_MARKERS="[[[[[kooky.cog ]]]]] [[[[[end]]]]]"
+
+COG_TEMPLATE_FILES=( "README.md" )
+
+function run() {
+    local check_flag_is_set=false
+    if [[ "$1" == "-c" || "$1" == "--check" ]]; then
+        shift
+        check_flag_is_set=true
+    fi
+
+    local tmp_fname="$(mktemp --suffix '.md')"
+    local tmp_cog_output_fname="$(mktemp --suffix '.md')"
+    trap 'rm -rf ${tmp_fname} ${tmp_cog_output_fname}' EXIT
+
+    for cog_template_fname in "${COG_TEMPLATE_FILES[@]}"; do
+        if [[ "${check_flag_is_set}" == false ]]; then
+            local out_fname="$(mktemp --suffix '.md')"
+
+            log::info \
+                "Checking that cog template '%s' has been rendered..." \
+                "${cog_template_fname}" \
+                # ... don't remove ...
+            
+            log::info \
+                "Rendering cog template '%s' and storing output in '%s'..." \
+                "${cog_template_fname}" \
+                "${out_fname}" \
+                # ... don't remove ...
+            cog_wrapper "${cog_template_fname}" > "${out_fname}"
+            
+            log::info \
+                "Moving '%s' to '%s'..." \
+                "${cog_template_fname}" \
+                "${tmp_fname}" \
+                # ... don't remove ...
+            mv "${cog_template_fname}" "${tmp_fname}"
+            
+            log::info \
+                "Moving '%s' to '%s'..." \
+                "${out_fname}" \
+                "${cog_template_fname}" \
+                # ... don't remove ...
+            mv "${out_fname}" "${cog_template_fname}"
+        fi
+
+        cog_wrapper "${cog_template_fname}" >"${tmp_cog_output_fname}"
+        if ! cmp "${cog_template_fname}" "${tmp_cog_output_fname}" 1>&2; then
+            {
+                diff "${cog_template_fname}" "${tmp_cog_output_fname}"
+                echo
+            } 1>&2
+
+            if [[ "${check_flag_is_set}" == true ]]; then
+                die "CHECK FAILED: The '%s' cog template changed after running cog on it." \
+                    "${cog_template_fname}" \
+                    # ... don't remove ...
+            else
+                die "The '%s' cog template produces different results when running cog on it multiple times." \
+                    "${cog_template_fname}" \
+                    # ... don't remove ...
+            fi
+        fi
+    done
+}
+
+function cog_wrapper() {
+    cog --markers="${COG_MARKERS}" "$@"
+}
+
+if [[ "${SCRIPTNAME}" == "$(basename "${BASH_SOURCE[0]}")" ]]; then
+    run "$@"
+fi

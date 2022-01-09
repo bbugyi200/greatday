@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+#################################################################################
+# This script runs miscellaneous linting tasks / commands.
+#
+# Examples
+# --------
+# quick-lints 
+#################################################################################
+
+BIN="$(dirname "$0")"
+ROOT="$(dirname "${BIN}")"
+
+source "${ROOT}"/lib/bugyi.sh
+
+function run() {
+    printf -- "\n---------- Running 'quick-lints' Script ----------\n"
+    log::info "Running 'render_all_cogs' script to verify that any existing cogs have been rendered..."
+    "${BIN}"/render_all_cogs --check
+}
+
+if [[ "${SCRIPTNAME}" == "$(basename "${BASH_SOURCE[0]}")" ]]; then
+    run "$@"
+fi

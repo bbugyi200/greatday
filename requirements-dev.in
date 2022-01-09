@@ -1,0 +1,29 @@
+### Tests
+pytest
+pytest-cov
+pytest-mock
+syrupy
+tox
+tox-pyenv
+-e file:.#egg=greatday>=0.dev
+
+### Lint
+black
+cogapp ~= 3.3
+flake8
+isort
+mypy != 0.920, != 0.921, != 0.930  # workaround for https://github.com/samuelcolvin/pydantic/pull/3175
+pydocstyle[toml]
+pylint
+
+### Docs
+m2r2
+sphinx
+sphinx-rtd-theme
+sphinx-autodoc-typehints
+
+### Misc
+bump2version
+cruft[pyproject]
+pip-tools
+setuptools_scm
