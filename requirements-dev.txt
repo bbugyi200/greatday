@@ -207,7 +207,7 @@ sphinx==4.3.2
     #   -r requirements-dev.in
     #   sphinx-autodoc-typehints
     #   sphinx-rtd-theme
-sphinx-autodoc-typehints==1.15.1
+sphinx-autodoc-typehints==1.15.2
     # via -r requirements-dev.in
 sphinx-rtd-theme==1.0.0
     # via -r requirements-dev.in
