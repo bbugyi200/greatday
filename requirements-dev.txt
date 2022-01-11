@@ -27,7 +27,9 @@ bolton-clack==0.2.9
     #   -r requirements.in
     #   greatday
 bolton-eris==0.2.2
-    # via bolton-clack
+    # via
+    #   bolton-clack
+    #   todotxt-python
 bolton-ion==0.1.0
     # via bolton-eris
 bolton-logrus==0.1.0
@@ -43,6 +45,7 @@ bolton-typist==0.1.2
     # via
     #   bolton-clack
     #   bolton-eris
+    #   todotxt-python
 bump2version==1.0.1
     # via -r requirements-dev.in
 certifi==2021.10.8
@@ -83,7 +86,7 @@ flake8==4.0.1
     # via -r requirements-dev.in
 gitdb==4.0.9
     # via gitpython
-gitpython==3.1.25
+gitpython==3.1.26
     # via cruft
 idna==3.3
     # via requests
@@ -204,7 +207,7 @@ sphinx==4.3.2
     #   -r requirements-dev.in
     #   sphinx-autodoc-typehints
     #   sphinx-rtd-theme
-sphinx-autodoc-typehints==1.14.1
+sphinx-autodoc-typehints==1.15.1
     # via -r requirements-dev.in
 sphinx-rtd-theme==1.0.0
     # via -r requirements-dev.in
@@ -226,6 +229,10 @@ syrupy==1.5.0
     # via -r requirements-dev.in
 text-unidecode==1.3
     # via python-slugify
+todotxt-python==0.2.0
+    # via
+    #   -r requirements.in
+    #   greatday
 toml==0.10.2
     # via
     #   cruft

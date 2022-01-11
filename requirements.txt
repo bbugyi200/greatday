@@ -7,7 +7,9 @@
 bolton-clack==0.2.9
     # via -r requirements.in
 bolton-eris==0.2.2
-    # via bolton-clack
+    # via
+    #   bolton-clack
+    #   todotxt-python
 bolton-ion==0.1.0
     # via bolton-eris
 bolton-logrus==0.1.0
@@ -22,11 +24,14 @@ bolton-typist==0.1.2
     # via
     #   bolton-clack
     #   bolton-eris
+    #   todotxt-python
 pydantic==1.9.0
     # via bolton-clack
 pyyaml==6.0
     # via bolton-clack
 structlog==21.5.0
     # via bolton-logrus
+todotxt-python==0.2.0
+    # via -r requirements.in
 typing-extensions==4.0.1
     # via pydantic
