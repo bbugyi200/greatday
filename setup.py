@@ -93,7 +93,7 @@ setup(
     description=DESCRIPTION,
     entry_points={
         "console_scripts": [
-            "greatday = greatday.cli:main",
+            "greatday = greatday.__main__:main",
         ]
     },
     include_package_data=True,

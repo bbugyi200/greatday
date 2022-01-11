@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from greatday.cli import main
+from greatday.__main__ import main
 
 
 def test_main() -> None:

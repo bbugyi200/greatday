@@ -28,3 +28,5 @@ def run(cfg: Config) -> int:
 
 
 main = clack.main_factory("greatday", run)
+if __name__ == "__main__":
+    main()
