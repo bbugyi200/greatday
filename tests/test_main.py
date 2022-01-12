@@ -7,4 +7,4 @@ from greatday.__main__ import main
 
 def test_main() -> None:
     """Tests main() function."""
-    assert main([""]) == 0
+    assert main(["", "start"]) == 0
