@@ -29,7 +29,7 @@ bolton-clack==0.3.1
 bolton-eris==0.2.2
     # via
     #   bolton-clack
-    #   todotxt-python
+    #   magodo
 bolton-ion==0.1.0
     # via bolton-eris
 bolton-logrus==0.1.0
@@ -45,7 +45,7 @@ bolton-typist==0.1.2
     # via
     #   bolton-clack
     #   bolton-eris
-    #   todotxt-python
+    #   magodo
 bump2version==1.0.1
     # via -r requirements-dev.in
 certifi==2021.10.8
@@ -111,6 +111,10 @@ lazy-object-proxy==1.7.1
     # via astroid
 m2r2==0.3.2
     # via -r requirements-dev.in
+magodo==0.4.1
+    # via
+    #   -r requirements.in
+    #   greatday
 markupsafe==2.0.1
     # via jinja2
 mccabe==0.6.1
@@ -229,10 +233,6 @@ syrupy==1.5.0
     # via -r requirements-dev.in
 text-unidecode==1.3
     # via python-slugify
-todotxt-python==0.3.1
-    # via
-    #   -r requirements.in
-    #   greatday
 toml==0.10.2
     # via
     #   cruft
