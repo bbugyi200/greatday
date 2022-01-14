@@ -48,6 +48,18 @@ If you don't have pip installed, this [Python installation guide][10] can guide
 you through the process.
 
 
+<!-- [[[[[kooky.cog
+from pathlib import Path
+
+lines = Path("./docs/design/design.md").read_text().split("\n")
+if any(L.strip() for L in lines):
+    fixed_lines = [L.replace("(.", "(./docs/design") if L.startswith("![") else L for L in lines]
+    print("## Design Diagrams\n")
+    print("\n".join(fixed_lines))
+]]]]] -->
+<!-- [[[[[end]]]]] -->
+
+
 ## Useful Links 🔗
 
 * [API Reference][3]: A developer's reference of the API exposed by this
