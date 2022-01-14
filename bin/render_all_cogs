@@ -14,12 +14,13 @@
 #     after running this script. 
 #################################################################################
 
-BIN="$(dirname "$0")"
-ROOT="$(dirname "${BIN}")"
+readonly BIN="$(dirname "$0")"
+readonly ROOT="$(dirname "${BIN}")"
 
 source "${ROOT}"/lib/bugyi.sh
 
 readonly COG_MARKERS="[[[[[kooky.cog ]]]]] [[[[[end]]]]]"
+readonly DESIGN=docs/design
 
 COG_TEMPLATE_FILES=( "README.md" )
 
@@ -36,6 +37,14 @@ function run() {
 
     for cog_template_fname in "${COG_TEMPLATE_FILES[@]}"; do
         if [[ "${check_flag_is_set}" == false ]]; then
+            # If the mermaid-cli tool is installed...
+            if command -v mmdc &>/dev/null; then
+                local md_template="${DESIGN}"/design.template.md
+                if [[ -f "${md_template}" ]]; then
+                    mmdc -i "${md_template}" -o "${DESIGN}"/design.md
+                fi
+            fi
+
             local out_fname="$(mktemp --suffix '.md')"
 
             log::info \
