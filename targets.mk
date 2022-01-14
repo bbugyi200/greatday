@@ -71,6 +71,8 @@ flake8: sync-dev-requirements  ## Run flake8 checks.
 
 .PHONY: mypy
 mypy: sync-dev-requirements  ## Run mypy checks.
+	@# HACK: Because mypy's cache has been terrible lately.
+	@rm -rf .mypy_cache
 	$(PYTHON) -m mypy src
 	@# HACK: Fixes weird numpy error that seemed to happen randomly.
 	bash -c "$(SOURCE_VENV) { python -m mypy tests || python -m mypy tests; }"
