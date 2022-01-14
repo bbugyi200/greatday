@@ -57,6 +57,16 @@ if any(L.strip() for L in lines):
     print("## Design Diagrams\n")
     print("\n".join(fixed_lines))
 ]]]]] -->
+## Design Diagrams
+
+### State Diagram of `greatday start`
+
+The following diagram is kicked off when a user runs the `greatday start`
+command. We assume that it has been `N` days since your tickler Todos were last
+processed:
+
+![diagram](./docs/design/design-1.svg)
+
 <!-- [[[[[end]]]]] -->
 
 
