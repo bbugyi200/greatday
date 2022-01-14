@@ -4,9 +4,9 @@
 #
 #    "make update-requirements"
 #
-bolton-clack==0.3.1
+bolton-clack==0.3.2
     # via -r requirements.in
-bolton-eris==0.2.2
+bolton-eris==0.2.3
     # via
     #   bolton-clack
     #   magodo
@@ -20,12 +20,13 @@ bolton-metaman==0.1.1
     # via
     #   bolton-eris
     #   bolton-logrus
-bolton-typist==0.1.2
+    #   magodo
+bolton-typist==0.2.0
     # via
     #   bolton-clack
     #   bolton-eris
     #   magodo
-magodo==0.4.1
+magodo==0.5.1
     # via -r requirements.in
 pydantic==1.9.0
     # via bolton-clack
