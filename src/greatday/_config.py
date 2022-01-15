@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal, Sequence
+from pathlib import Path
+from typing import Any, Literal, Optional, Sequence
 
 import clack
 
@@ -14,6 +15,9 @@ class Config(clack.Config):
     """Command-line arguments."""
 
     command: Command
+
+    # ----- CONFIG
+    data_dir: Optional[Path] = None
 
 
 class StartConfig(Config):
