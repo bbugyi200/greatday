@@ -20,7 +20,7 @@ class GreatDayRepo(TaggedRepo[str, Todo_T, Todo]):
         self.data_dir = Path(data_dir)
         self.path = Path(path)
 
-    def add(self, item: Todo_T, /, *, key: str = None) -> ErisResult[str]:
+    def add(self, todo: Todo_T, /, *, key: str = None) -> ErisResult[str]:
         """Write a new Todo to disk.
 
         Returns a unique identifier that has been associated with this Todo.
@@ -28,21 +28,21 @@ class GreatDayRepo(TaggedRepo[str, Todo_T, Todo]):
         if key is None:
             key = init_next_todo_id(self.data_dir)
 
-        line = item.to_line()
+        line = todo.to_line()
         line = line + f" id:{key}"
-        item = type(item).from_line(line).unwrap()
+        todo = type(todo).from_line(line).unwrap()
 
-        todos: list[Todo_T] = [item]
+        todos: list[Todo_T] = [todo]
         if self.path.is_dir() or (
             not self.path.exists() and self.path.suffix != ".txt"
         ):
-            txt_path = init_yyyymm_path(self.path, date=item.create_date)
+            txt_path = init_yyyymm_path(self.path, date=todo.create_date)
         else:
             self.path.parent.mkdir(parents=True, exist_ok=True)
             txt_path = self.path
 
         if txt_path.exists():
-            todo_group = TodoGroup.from_path(type(item), txt_path)
+            todo_group = TodoGroup.from_path(type(todo), txt_path)
             todos.extend(todo_group)
 
         with txt_path.open("w") as f:
@@ -56,7 +56,7 @@ class GreatDayRepo(TaggedRepo[str, Todo_T, Todo]):
     def remove(self, key: str) -> ErisResult[Todo_T | None]:
         """Remove a Todo from disk."""
 
-    def update(self, key: str, item: Todo_T, /) -> ErisResult[Todo_T]:
+    def update(self, key: str, todo: Todo_T, /) -> ErisResult[Todo_T]:
         """Overwrite an existing Todo on disk."""
 
     def get_by_tag(self, tag: Todo) -> ErisResult[list[Todo_T]]:
