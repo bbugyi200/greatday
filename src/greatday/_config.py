@@ -7,7 +7,7 @@ from typing import Any, Literal, Sequence
 import clack
 
 
-Command = Literal["add", "list", "note", "start"]
+Command = Literal["add", "info", "list", "note", "start"]
 
 
 class Config(clack.Config):
