@@ -38,7 +38,7 @@ class GreatRepo(Repository[str, Todo_T]):
 
         Returns a unique identifier that has been associated with this Todo.
         """
-        next_id = fetch_next_todo_id(self.data_root)
+        next_id = init_next_todo_id(self.data_root)
         line = item.to_line()
         line = line + f" id:{next_id}"
         item = type(item).from_line(line).unwrap()
@@ -82,8 +82,13 @@ def init_yyyymm_path(base: PathLike, *, date: dt.date = None) -> Path:
     return result
 
 
-def fetch_next_todo_id(root: PathLike) -> str:
-    """Retrieves the next valid todo ID."""
+def init_next_todo_id(root: PathLike) -> str:
+    """Retrieves the next valid todo ID.
+
+    Side Effects:
+        * Attempts to read last ID from disk.
+        * Writes the returned ID to disk.
+    """
     root = Path(root)
     last_id_path = root / "last_todo_id"
 
