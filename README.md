@@ -48,6 +48,19 @@ If you don't have pip installed, this [Python installation guide][10] can guide
 you through the process.
 
 
+## Command-Line Interface (CLI)
+
+The output from running `greatday --help` is shown below:
+
+<!-- [[[[[kooky.cog
+import subprocess
+
+popen = subprocess.Popen(["greatday", "--help"], stdout=subprocess.PIPE)
+stdout, _ = popen.communicate()
+print("```", stdout.decode().strip(), "```", sep="\n")
+]]]]] -->
+<!-- [[[[[end]]]]] -->
+
 <!-- [[[[[kooky.cog
 from pathlib import Path
 
