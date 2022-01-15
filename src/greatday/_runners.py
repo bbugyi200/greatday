@@ -8,7 +8,7 @@ import clack
 from clack.types import ClackRunner
 
 from ._config import AddConfig, StartConfig
-from ._todo import GreatTodo
+from ._todo import InboxTodo
 from ._repo import GreatRepo
 
 
@@ -26,8 +26,8 @@ def run_start(cfg: StartConfig) -> int:
 @register_runner
 def run_add(cfg: AddConfig) -> int:
     """Runner for the 'add' subcommand."""
-    repo = GreatRepo(cfg.data_dir)
-    todo = GreatTodo.from_line("o " + cfg.todo_line).unwrap()
+    repo: GreatRepo[InboxTodo] = GreatRepo(cfg.data_dir)
+    todo = InboxTodo.from_line(cfg.todo_line).unwrap()
 
     key = repo.add(todo).unwrap()
     print(key)
