@@ -10,6 +10,7 @@ bolton-eris==0.2.3
     # via
     #   bolton-clack
     #   magodo
+    #   potoroo
 bolton-ion==0.1.0
     # via bolton-eris
 bolton-logrus==0.1.0
@@ -27,6 +28,8 @@ bolton-typist==0.2.0
     #   bolton-eris
     #   magodo
 magodo==0.5.1
+    # via -r requirements.in
+potoroo==0.2.1
     # via -r requirements.in
 pydantic==1.9.0
     # via bolton-clack
