@@ -152,7 +152,7 @@ pluggy==1.0.0
     # via
     #   pytest
     #   tox
-potoroo==0.2.1
+potoroo==0.3.0
     # via
     #   -r requirements.in
     #   greatday

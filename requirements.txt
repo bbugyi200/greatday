@@ -29,7 +29,7 @@ bolton-typist==0.2.0
     #   magodo
 magodo==0.5.1
     # via -r requirements.in
-potoroo==0.2.1
+potoroo==0.3.0
     # via -r requirements.in
 pydantic==1.9.0
     # via bolton-clack
