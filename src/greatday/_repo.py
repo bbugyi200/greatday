@@ -1,4 +1,4 @@
-"""Contains the GreatRepo class."""
+"""Contains the Repo class."""
 
 from __future__ import annotations
 
@@ -6,50 +6,44 @@ import datetime as dt
 from pathlib import Path
 from typing import Container
 
-from clack import xdg
 from eris import ErisResult, Ok
 from magodo import TodoGroup
 from magodo.types import Todo_T
 from potoroo import Repository
 from typist import PathLike
 
-from . import APP_NAME
 
-
-class GreatRepo(Repository[str, Todo_T]):
+class GreatDayRepo(Repository[str, Todo_T]):
     """Repo that stores Todos on disk."""
 
-    def __init__(self, data_dir: PathLike = None) -> None:
-        data_dir = (
-            xdg.get_full_dir("data", APP_NAME)
-            if data_dir is None
-            else Path(data_dir)
-        )
-
-        self.data_root = data_dir
-
-        self.todos_root = self.data_root / "todos"
-
-        self.todos_open = self.todos_root / "open"
-        self.todos_open.mkdir(parents=True, exist_ok=True)
+    def __init__(self, data_dir: PathLike, path: PathLike) -> None:
+        self.data_dir = Path(data_dir)
+        self.path = Path(path)
 
     def add(self, item: Todo_T) -> ErisResult[str]:
         """Write a new Todo to disk.
 
         Returns a unique identifier that has been associated with this Todo.
         """
-        next_id = init_next_todo_id(self.data_root)
+        next_id = init_next_todo_id(self.data_dir)
         line = item.to_line()
         line = line + f" id:{next_id}"
         item = type(item).from_line(line).unwrap()
 
         todos: list[Todo_T] = [item]
-        yyymm_path = init_yyyymm_path(self.todos_open, date=item.create_date)
-        if yyymm_path.exists():
-            todo_group = TodoGroup.from_path(type(item), yyymm_path)
+        if self.path.is_dir() or (
+            not self.path.exists() and self.path.suffix != ".txt"
+        ):
+            txt_path = init_yyyymm_path(self.path, date=item.create_date)
+        else:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            txt_path = self.path
+
+        if txt_path.exists():
+            todo_group = TodoGroup.from_path(type(item), txt_path)
             todos.extend(todo_group)
 
-        with yyymm_path.open("w") as f:
+        with txt_path.open("w") as f:
             f.write("\n".join(T.to_line() for T in sorted(todos)))
 
         return Ok(next_id)

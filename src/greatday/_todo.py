@@ -1,4 +1,4 @@
-"""Contains the GreatTodo class."""
+"""Contains greatday's custom Todo types."""
 
 from __future__ import annotations
 

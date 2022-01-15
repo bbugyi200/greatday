@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Literal, Optional, Sequence
+from typing import Any, Literal, Sequence
 
 import clack
+from clack import xdg
+
+from . import APP_NAME
 
 
 Command = Literal["add", "info", "list", "note", "start"]
@@ -17,7 +20,7 @@ class Config(clack.Config):
     command: Command
 
     # ----- CONFIG
-    data_dir: Optional[Path] = None
+    data_dir: Path = xdg.get_full_dir("data", APP_NAME)
 
 
 class StartConfig(Config):
