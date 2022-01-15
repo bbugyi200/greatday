@@ -2,23 +2,25 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from clack import xdg
-from eris import ErisResult
+from eris import ErisResult, Ok
 from potoroo import Repository
+from typist import PathLike
 
 from . import APP_NAME
-from ._config import Config
 from ._todo import GreatTodo
 
 
 class GreatRepo(Repository[str, GreatTodo]):
     """Repo that stores Todos on disk."""
 
-    def __init__(self, cfg: Config) -> None:
+    def __init__(self, data_dir: PathLike = None) -> None:
         data_dir = (
             xdg.get_full_dir("data", APP_NAME)
-            if cfg.data_dir is None
-            else cfg.data_dir
+            if data_dir is None
+            else Path(data_dir)
         )
         self.root = data_dir / "todos"
         self.root.mkdir(parents=True, exist_ok=True)
@@ -28,6 +30,7 @@ class GreatRepo(Repository[str, GreatTodo]):
 
         Returns a unique identifier that has been associated with this Todo.
         """
+        return Ok(item.desc)
 
     def get(self, key: str) -> ErisResult[GreatTodo | None]:
         """Retrieve a Todo from disk."""
