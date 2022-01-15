@@ -44,7 +44,7 @@ class GreatRepo(Repository[str, Todo_T]):
         item = type(item).from_line(line).unwrap()
 
         todos: list[Todo_T] = [item]
-        yyymm_path = init_yyyymm_path(self.todos_open)
+        yyymm_path = init_yyyymm_path(self.todos_open, date=item.create_date)
         if yyymm_path.exists():
             todo_group = TodoGroup.from_path(type(item), yyymm_path)
             todos.extend(todo_group)
@@ -64,16 +64,18 @@ class GreatRepo(Repository[str, Todo_T]):
         """Overwrite an existing Todo on disk."""
 
 
-def init_yyyymm_path(base: PathLike) -> Path:
+def init_yyyymm_path(base: PathLike, *, date: dt.date = None) -> Path:
     """Returns a Path of the form /path/to/base/YYYY/MM.txt.
 
     NOTE: Creates the /path/to/base/YYYY directory if necessary.
     """
+    if date is None:
+        date = dt.date.today()
+
     base = Path(base)
 
-    today = dt.date.today()
-    year = today.year
-    month = today.month
+    year = date.year
+    month = date.month
 
     result = base / str(year) / f"{month:0>2}.txt"
     result.parent.mkdir(parents=True, exist_ok=True)
