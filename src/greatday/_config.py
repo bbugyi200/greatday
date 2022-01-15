@@ -7,7 +7,7 @@ from typing import Any, Literal, Sequence
 import clack
 
 
-Command = Literal["start", "note", "add", "list"]
+Command = Literal["add", "list", "note", "start"]
 
 
 class Config(clack.Config):
@@ -22,6 +22,14 @@ class StartConfig(Config):
     command: Literal["start"]
 
 
+class AddConfig(Config):
+    """Config for the 'add' subcommand."""
+
+    command: Literal["add"]
+
+    todo_line: str
+
+
 def clack_parser(argv: Sequence[str]) -> dict[str, Any]:
     """Parser we pass to the `main_factory()` `parser` kwarg."""
 
@@ -32,6 +40,16 @@ def clack_parser(argv: Sequence[str]) -> dict[str, Any]:
     new_command = clack.new_command_factory(parser)
 
     new_command("start", help="")
+
+    add_parser = new_command("add", help="Add a new todo to your inbox.")
+    add_parser.add_argument(
+        "todo_line",
+        metavar="TODO",
+        help=(
+            "A valid todo string (i.e. a string that conforms to the standard"
+            " todo.txt format)."
+        ),
+    )
 
     args = parser.parse_args(argv[1:])
     kwargs = clack.filter_cli_args(args)

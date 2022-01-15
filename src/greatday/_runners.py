@@ -7,7 +7,7 @@ from typing import List
 import clack
 from clack.types import ClackRunner
 
-from ._config import StartConfig
+from ._config import AddConfig, StartConfig
 
 
 ALL_RUNNERS: List[ClackRunner] = []
@@ -19,3 +19,8 @@ def run_start(cfg: StartConfig) -> int:
     """Runner for the 'start' subcommand."""
     del cfg
     return 0
+
+
+@register_runner
+def run_add(cfg: AddConfig) -> int:
+    """Runner for the 'add' subcommand."""
