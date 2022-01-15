@@ -5,6 +5,7 @@ https://docs.pytest.org/en/6.2.x/fixture.html#conftest-py-sharing-fixtures-acros
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Protocol
 
 from pytest import fixture
@@ -27,11 +28,16 @@ class MainType(Protocol):
 
 
 @fixture
-def main(make_config_file: MakeConfigFile) -> MainType:
+def main(make_config_file: MakeConfigFile, tmp_path: Path) -> MainType:
     """Returns a wrapper around greatday's main() function."""
 
+    data_dir = tmp_path / "data"
+
     def inner_main(*args: str, **kwargs: Any) -> int:
+        if "data_dir" not in kwargs:
+            kwargs["data_dir"] = data_dir
         cfg_kwargs = {k: str(v) for (k, v) in kwargs.items()}
+
         config_file = make_config_file("greatday_test_config", **cfg_kwargs)
         argv = ["greatday", "-c", str(config_file.path)] + list(args)
         return gtd_main(argv)
