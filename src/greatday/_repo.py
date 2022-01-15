@@ -7,27 +7,29 @@ from pathlib import Path
 from typing import Container
 
 from eris import ErisResult, Ok
-from magodo import TodoGroup
+from magodo import Todo, TodoGroup
 from magodo.types import Todo_T
-from potoroo import Repository
+from potoroo import TaggedRepo
 from typist import PathLike
 
 
-class GreatDayRepo(Repository[str, Todo_T]):
+class GreatDayRepo(TaggedRepo[str, Todo_T, Todo]):
     """Repo that stores Todos on disk."""
 
     def __init__(self, data_dir: PathLike, path: PathLike) -> None:
         self.data_dir = Path(data_dir)
         self.path = Path(path)
 
-    def add(self, item: Todo_T) -> ErisResult[str]:
+    def add(self, item: Todo_T, /, *, key: str = None) -> ErisResult[str]:
         """Write a new Todo to disk.
 
         Returns a unique identifier that has been associated with this Todo.
         """
-        next_id = init_next_todo_id(self.data_dir)
+        if key is None:
+            key = init_next_todo_id(self.data_dir)
+
         line = item.to_line()
-        line = line + f" id:{next_id}"
+        line = line + f" id:{key}"
         item = type(item).from_line(line).unwrap()
 
         todos: list[Todo_T] = [item]
@@ -46,7 +48,7 @@ class GreatDayRepo(Repository[str, Todo_T]):
         with txt_path.open("w") as f:
             f.write("\n".join(T.to_line() for T in sorted(todos)))
 
-        return Ok(next_id)
+        return Ok(key)
 
     def get(self, key: str) -> ErisResult[Todo_T | None]:
         """Retrieve a Todo from disk."""
@@ -54,8 +56,22 @@ class GreatDayRepo(Repository[str, Todo_T]):
     def remove(self, key: str) -> ErisResult[Todo_T | None]:
         """Remove a Todo from disk."""
 
-    def update(self, key: str, item: Todo_T) -> ErisResult[Todo_T]:
+    def update(self, key: str, item: Todo_T, /) -> ErisResult[Todo_T]:
         """Overwrite an existing Todo on disk."""
+
+    def get_by_tag(self, tag: Todo) -> ErisResult[list[Todo_T]]:
+        """Get Todos from disk by using a tag.
+
+        Retrieves a list of Todos from disk by using another Todo's properties
+        as search criteria.
+        """
+
+    def remove_by_tag(self, tag: Todo) -> ErisResult[list[Todo_T]]:
+        """Remove a Todo from disk by using a tag.
+
+        Removes a list of Todos from disk by using another Todo's properties
+        as search criteria.
+        """
 
 
 def init_yyyymm_path(base: PathLike, *, date: dt.date = None) -> Path:
