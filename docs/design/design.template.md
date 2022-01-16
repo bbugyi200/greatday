@@ -56,3 +56,43 @@ stateDiagram-v2
     ask_if_ok_to_save --> [*]: NO
     save_daily_file --> [*]
 ```
+
+### Class Diagrams
+
+#### Class Diagram for the `AbstractTodo` Classes
+
+```mermaid
+classDiagram
+    class AbstractTodo~Todo_T~ {
+        <<Protocol>>
+
+        contexts : Iterable~str~
+        create_date : Optional~date~
+        desc : str
+        done : bool
+        done_date : Optional~date~
+        metadata : dict~str, str~
+        priority : Literal~A, B, ..., Z~
+        projects : Iterable~str~
+
+        from_line() ErisResult~Todo_T~
+        new(**kwargs) Todo_T
+        to_line() str
+    }
+
+    class AbstractMagicTodo~Todo_T~ {
+        <<Protocol>>
+
+        from_line_spells : Iterable~Callable[[str], str]~
+        to_line_spells : Iterable~Callable[[str], str]~
+        todo : Todo_T
+        todo_spells : Iterable~Callable[[Todo_T], ErisResult[Todo_T]]~
+
+        cast_from_line_spells(line: str) str
+        cast_to_line_spells(line: str) str
+        cast_todo_spells(todo: Todo_T) ErisResult~Todo_T~
+    }
+
+    AbstractMagicTodo --|> AbstractTodo: Is a...
+    AbstractMagicTodo --* AbstractTodo: Contains a...
+```

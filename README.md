@@ -115,6 +115,12 @@ processed:
 
 ![diagram](./docs/design/design-1.svg)
 
+### Class Diagrams
+
+#### Class Diagram for the `AbstractTodo` Classes
+
+![diagram](./docs/design/design-2.svg)
+
 <!-- [[[[[end]]]]] -->
 
 
