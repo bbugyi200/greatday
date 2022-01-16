@@ -2,18 +2,21 @@
 
 from __future__ import annotations
 
-from typing import List
-
 from magodo import MagicTodoMixin
 from magodo.spells import group_tags
-from magodo.types import TodoSpell
 
-from ._spells import INBOX_SPELLS
+from ._spells import DAILY_SPELLS, INBOX_SPELLS
+
+
+class DailyTodo(MagicTodoMixin):
+    """Custom MagicTodo type used when working with Todos in the daily file."""
+
+    spells = DAILY_SPELLS
+    post_spells = [group_tags]
 
 
 class InboxTodo(MagicTodoMixin):
     """Custom MagicTodo type used when adding a new Todo to inbox."""
 
-    pre_spells: List[TodoSpell] = []
     spells = INBOX_SPELLS
     post_spells = [group_tags]
