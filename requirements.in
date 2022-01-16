@@ -1,4 +1,4 @@
 bolton-clack ~= 0.3.2
 bolton-logrus ~= 0.1.0
-magodo ~= 0.5.3
+magodo ~= 0.6.0
 potoroo ~= 0.3.0
