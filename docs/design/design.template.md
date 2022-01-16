@@ -12,7 +12,7 @@ stateDiagram-v2
 
     ABC_priority: Process any Todos which have a priority of 'A', 'B', or 'C'.
     ask_if_ok_to_save: ASK | Is it OK to commit the changes made to the daily file?
-    ask_to_delete_backup: ASK | Can we delete this backup daily file?
+    ask_to_delete_backup: ASK | Can we delete the backup daily file?
     ask_to_verify_todos: ASK | For verification / more information about Todo changes that we are unsure of.
     check_daily_todos: Run a series of tests against each Todo remaining in the daily file.
     collect: Collect Todos to add to daily file.
