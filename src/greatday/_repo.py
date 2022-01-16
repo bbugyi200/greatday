@@ -79,10 +79,9 @@ def init_yyyymm_path(base: PathLike, *, date: dt.date = None) -> Path:
 
     NOTE: Creates the /path/to/base/YYYY directory if necessary.
     """
+    base = Path(base)
     if date is None:
         date = dt.date.today()
-
-    base = Path(base)
 
     year = date.year
     month = date.month
@@ -144,6 +143,9 @@ def next_todo_id(last_id: str) -> str:
         >>> next_todo_id('BZZ')
         'C00'
 
+        >>> next_todo_id('C00')
+        'C01'
+
         # we skip 'I', since it can be confused with '1'...
         >>> next_todo_id('BZH')
         'BZJ'
@@ -162,8 +164,8 @@ def next_todo_id(last_id: str) -> str:
                 zeros = "0" * i
                 return last_id[:idx] + next_char(last_id[idx]) + zeros
 
-        zeros = "0" * len(last_id)
-        return "0" + zeros
+        zeros = "0" * (len(last_id) + 1)
+        return zeros
     else:
         return last_id[:-1] + next_char(last_char)
 
