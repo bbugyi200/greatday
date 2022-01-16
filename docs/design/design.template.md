@@ -8,8 +8,12 @@ processed:
 stateDiagram-v2
     state if_run_today <<choice>>
     state if_daily_check_failed <<choice>>
+    state if_old_backup_file <<choice>>
 
     ABC_priority: Process any Todos which have a priority of 'A', 'B', or 'C'.
+    ask_if_ok_to_save: ASK | Is it OK to commit the changes made to the daily file?
+    ask_to_delete_backup: ASK | Can we delete this backup daily file?
+    ask_to_verify_todos: ASK | For verification / more information about Todo changes that we are unsure of.
     check_daily_todos: Run a series of tests against each Todo remaining in the daily file.
     collect: Collect Todos to add to daily file.
     collect_fuzzy: Prompt for Todos (using fuzzy matching) to add to daily file.
@@ -18,19 +22,21 @@ stateDiagram-v2
     create_backup_daily: Create a backup daily file.
     edit_daily: Open backup daily file in text editor.
     inbox: Process all Todos in your inbox (i.e. all Todos tagged with the @inbox context).
-    prompt_for_save: ASK | Is it OK to commit the changes made to the daily file?
     remove_done_todos: Move any "done" Todos in the daily file to permenant storage.
     render_daily: Render the daily file after adding our newly collected Todos to it.
-    save_daily_file: Commit the backup daily files contents to the real daily file.
+    save_daily_file: Commit the backup daily file's contents to the real daily file.
     tickle: Process last N days of tickler Todos.
-    verify_daily_todos: ASK | For verification / more information about Todo changes that we are unsure of.
 
     [*] --> ABC_priority
     ABC_priority --> tickle
-    tickle --> if_run_today
-    if_run_today --> collect: If this command was already run earlier today...
-    if_run_today --> inbox
-    inbox --> remove_done_todos: Else...
+    tickle --> if_old_backup_file
+    if_old_backup_file --> ask_to_delete_backup: IF | The backup daily file's contents differ from the daily file.
+    if_old_backup_file --> if_run_today: ELSE
+    ask_to_delete_backup --> if_run_today: YES
+    ask_to_delete_backup --> edit_daily: NO
+    if_run_today --> collect: IF | This command was already run earlier today.
+    if_run_today --> inbox: ELSE
+    inbox --> remove_done_todos
     remove_done_todos --> collect
     state collect {
         [*] --> collect_leftover
@@ -43,10 +49,10 @@ stateDiagram-v2
     create_backup_daily --> edit_daily
     edit_daily --> check_daily_todos: When the user closes her text editor...
     check_daily_todos --> if_daily_check_failed
-    if_daily_check_failed --> verify_daily_todos: If any of our tests from the previous step failed...
-    if_daily_check_failed --> prompt_for_save: Else...
-    verify_daily_todos --> prompt_for_save
-    prompt_for_save --> save_daily_file: Yes
-    prompt_for_save --> [*]: No
+    if_daily_check_failed --> ask_to_verify_todos: IF | Any of our tests from the previous step failed.
+    if_daily_check_failed --> ask_if_ok_to_save: ELSE
+    ask_to_verify_todos --> ask_if_ok_to_save
+    ask_if_ok_to_save --> save_daily_file: YES
+    ask_if_ok_to_save --> [*]: NO
     save_daily_file --> [*]
 ```
