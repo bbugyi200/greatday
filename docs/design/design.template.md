@@ -93,6 +93,6 @@ classDiagram
         cast_todo_spells(todo: Todo_T) ErisResult~Todo_T~
     }
 
-    AbstractMagicTodo --|> AbstractTodo: Is a...
-    AbstractMagicTodo --* AbstractTodo: Contains a...
+    AbstractMagicTodo --|> AbstractTodo: implements
+    AbstractMagicTodo --* "1" AbstractTodo: contains
 ```
