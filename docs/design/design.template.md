@@ -27,10 +27,10 @@ stateDiagram-v2
 
     [*] --> ABC_priority
     ABC_priority --> tickle
-    tickle --> inbox
-    inbox --> if_run_today
+    tickle --> if_run_today
     if_run_today --> collect: If this command was already run earlier today...
-    if_run_today --> remove_done_todos: Else...
+    if_run_today --> inbox
+    inbox --> remove_done_todos: Else...
     remove_done_todos --> collect
     state collect {
         [*] --> collect_leftover
