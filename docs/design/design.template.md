@@ -75,7 +75,7 @@ classDiagram
         priority : Literal~A, B, ..., Z~
         projects : Iterable~str~
 
-        from_line() ErisResult~Todo_T~
+        from_line(line: str) ErisResult~Todo_T~
         new(**kwargs) Todo_T
         to_line() str
     }
