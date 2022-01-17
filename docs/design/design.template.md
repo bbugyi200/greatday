@@ -68,11 +68,12 @@ interact.
 
 Keep in mind the following notes while reviewing this diagram:
 
+* The type variable `Self` is implicit and is always bound by the current class.
 * The type variable `T` is bound by the `AbstractTodo` protocol.
 
 ```mermaid
 classDiagram
-    class AbstractTodo~T~ {
+    class AbstractTodo {
         <<protocol>>
 
         contexts : Iterable~str~
@@ -84,12 +85,12 @@ classDiagram
         priority : Literal~A, B, ..., Z~
         projects : Iterable~str~
 
-        from_line(cls: Type~T~, line: str)$ ErisResult~T~
-        new(**kwargs) T
+        from_line(cls, line: str)$ ErisResult~Self~
+        new(**kwargs: Any) Self
         to_line() str
     }
 
-    class Todo~Todo~ {
+    class Todo {
         <<concrete>>
     }
 
@@ -103,7 +104,7 @@ classDiagram
 
         cast_from_line_spells(line: str)$ str
         cast_to_line_spells(line: str) str
-        cast_todo_spells(cls: Type~T~, todo: T)$ ErisResult~T~
+        cast_todo_spells(todo: T)$ ErisResult~T~
     }
 
     class MagicTodoMixin~Todo~ {
@@ -148,8 +149,10 @@ Keep in mind the following notes while reviewing this diagram:
   [mermaid][3], however, that prevents us from using `Optional[V]` as a generic
   type.
 * Similarly, `VList_or_None` is meant to be `Optional[List[V]]`.
+* The type variable `Self` is implicit and is always bound by the current class.
 * The type variable `T` is bound by the `AbstractTodo` protocol.
-* The type variable `U` is bound by the `UnitOfWork` class.
+* The type variable `R` is bound by the `BasicRepo` class.
+* The type variables `K`, `V`, and `Tag` are all unbound.
 
 ```mermaid
 classDiagram
@@ -178,16 +181,18 @@ classDiagram
         <<concrete>>
     }
 
-    class UnitOfWork~U~ {
+    class UnitOfWork~R~ {
         <<abstract>>
 
-        __enter__(self: U)* U
+        repo: R
+
+        __enter__()* Self
         __exit__(*args)* None
         commit()* None
         rollback()* None
     }
 
-    class GreatDaySession {
+    class GreatDaySession~GreatDayRepo~ {
         <<concrete>>
     }
 
