@@ -13,7 +13,7 @@ from potoroo import TaggedRepo
 from typist import PathLike
 
 
-T = TypeVar("T", bound="AbstractTodo")
+T = TypeVar("T", bound=AbstractTodo)
 
 
 class GreatDayRepo(TaggedRepo[str, T, Todo]):
