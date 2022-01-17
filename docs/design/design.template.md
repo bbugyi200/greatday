@@ -177,7 +177,7 @@ classDiagram
         remove_by_tag(tag: Tag)* ErisResult~VList_or_None~
     }
 
-    class GreatDayRepo~str, T, Todo~ {
+    class GreatRepo~str, T, Todo~ {
         <<concrete>>
     }
 
@@ -192,16 +192,16 @@ classDiagram
         rollback()* None
     }
 
-    class GreatDaySession~GreatDayRepo~ {
+    class GreatSession~GreatRepo~ {
         <<concrete>>
     }
 
     Repo --|> BasicRepo: inherits
     TaggedRepo --|> Repo: inherits
     UnitOfWork --* "1" BasicRepo: contains
-    GreatDayRepo --|> TaggedRepo: inherits
-    GreatDaySession --|> UnitOfWork: inherits
-    GreatDaySession --* "1" GreatDayRepo: contains
+    GreatRepo --|> TaggedRepo: inherits
+    GreatSession --|> UnitOfWork: inherits
+    GreatSession --* "1" GreatRepo: contains
 ```
 
 [1]: https://github.com/bbugyi200/magodo
