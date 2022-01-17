@@ -61,13 +61,14 @@ stateDiagram-v2
 
 This section contains class diagrams used to help design / document greatday.
 
-Note that the generic type variable `T` is bound by the `AbstractTodo`
-protocol (i.e. `T` must be an `AbstractTodo` type).
-
 #### Class Diagram for `Todo` Classes
 
 The following diagram illustrates how the various [magodo][1] `Todo` classes
 interact.
+
+Keep in mind the following notes while reviewing this diagram:
+
+* The type variable `T` is bound by the `AbstractTodo` protocol.
 
 ```mermaid
 classDiagram
@@ -83,7 +84,7 @@ classDiagram
         priority : Literal~A, B, ..., Z~
         projects : Iterable~str~
 
-        from_line(line: str)$ ErisResult~T~
+        from_line(cls: Type~T~, line: str)$ ErisResult~T~
         new(**kwargs) T
         to_line() str
     }
@@ -102,7 +103,7 @@ classDiagram
 
         cast_from_line_spells(line: str)$ str
         cast_to_line_spells(line: str) str
-        cast_todo_spells(todo: T)$ ErisResult~T~
+        cast_todo_spells(cls: Type~T~, todo: T)$ ErisResult~T~
     }
 
     class MagicTodoMixin~Todo~ {
@@ -141,11 +142,13 @@ classDiagram
 The following diagram illustrates how the various [potoroo][2] `Repo` and `UnitOfWork`
 (Unit-of-Work) classes interact.
 
-Keep in mind the following notes while reviewing:
+Keep in mind the following notes while reviewing this diagram:
 
-* `VorNone` is meant to be `Optional[V]`. There seems to be a bug in
+* `V_or_None` is meant to be `Optional[V]`. There seems to be a bug in
   [mermaid][3], however, that prevents us from using `Optional[V]` as a generic
   type.
+* Similarly, `VList_or_None` is meant to be `Optional[List[V]]`.
+* The type variable `T` is bound by the `AbstractTodo` protocol.
 * The type variable `U` is bound by the `UnitOfWork` class.
 
 ```mermaid
@@ -154,21 +157,21 @@ classDiagram
         <<abstract>>
 
         add(item: V)* ErisResult~K~
-        get(key: K)* ErisResult~VorNone~
+        get(key: K)* ErisResult~V_or_None~
     }
 
     class Repo~K, V~ {
         <<abstract>>
 
         update(key: K, item: V)* ErisResult~V~
-        remove(key: K)* ErisResult~VorNone~
+        remove(key: K)* ErisResult~V_or_None~
     }
 
     class TaggedRepo~K, V, Tag~ {
         <<abstract>>
 
-        get_by_tag(tag: Tag)* ErisResult~VorNone~
-        remove_by_tag(tag: Tag)* ErisResult~VorNone~
+        get_by_tag(tag: Tag)* ErisResult~VList_or_None~
+        remove_by_tag(tag: Tag)* ErisResult~VList_or_None~
     }
 
     class GreatDayRepo~str, T, Todo~ {
@@ -178,7 +181,7 @@ classDiagram
     class UnitOfWork~U~ {
         <<abstract>>
 
-        __enter__()* U
+        __enter__(self: U)* U
         __exit__(*args)* None
         commit()* None
         rollback()* None

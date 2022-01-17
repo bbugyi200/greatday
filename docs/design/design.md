@@ -10,13 +10,14 @@ processed:
 
 This section contains class diagrams used to help design / document greatday.
 
-Note that the generic type variable `T` is bound by the `AbstractTodo`
-protocol (i.e. `T` must be an `AbstractTodo` type).
-
 #### Class Diagram for `Todo` Classes
 
 The following diagram illustrates how the various [magodo][1] `Todo` classes
 interact.
+
+Keep in mind the following notes while reviewing this diagram:
+
+* The type variable `T` is bound by the `AbstractTodo` protocol.
 
 ![diagram](./design-2.svg)
 
@@ -25,11 +26,13 @@ interact.
 The following diagram illustrates how the various [potoroo][2] `Repo` and `UnitOfWork`
 (Unit-of-Work) classes interact.
 
-Keep in mind the following notes while reviewing:
+Keep in mind the following notes while reviewing this diagram:
 
-* `VorNone` is meant to be `Optional[V]`. There seems to be a bug in
+* `V_or_None` is meant to be `Optional[V]`. There seems to be a bug in
   [mermaid][3], however, that prevents us from using `Optional[V]` as a generic
   type.
+* Similarly, `VList_or_None` is meant to be `Optional[List[V]]`.
+* The type variable `T` is bound by the `AbstractTodo` protocol.
 * The type variable `U` is bound by the `UnitOfWork` class.
 
 ![diagram](./design-3.svg)
