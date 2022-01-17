@@ -152,7 +152,7 @@ pluggy==1.0.0
     # via
     #   pytest
     #   tox
-potoroo==0.3.0
+potoroo==0.3.1
     # via
     #   -r requirements.in
     #   greatday
@@ -198,7 +198,7 @@ requests==2.27.1
     # via
     #   cookiecutter
     #   sphinx
-setuptools-scm==6.3.2
+setuptools-scm==6.4.0
     # via -r requirements-dev.in
 six==1.16.0
     # via
