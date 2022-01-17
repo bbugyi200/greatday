@@ -85,7 +85,7 @@ classDiagram
         priority : Literal~A, B, ..., Z~
         projects : Iterable~str~
 
-        from_line(cls, line: str)$ ErisResult~Self~
+        from_line(line: str)$ ErisResult~Self~
         new(**kwargs: Any) Self
         to_line() str
     }
