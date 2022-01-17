@@ -117,7 +117,10 @@ processed:
 
 ### Class Diagrams
 
-#### Class Diagram for the `AbstractTodo` Classes
+#### Class Diagram for `Todo` Classes
+
+Note that the generic type variable `T` is bound by the `AbstractTodo` protocol
+(i.e. `T` must be an `AbstractTodo` type).
 
 ![diagram](./docs/design/design-2.svg)
 

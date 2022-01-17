@@ -59,12 +59,15 @@ stateDiagram-v2
 
 ### Class Diagrams
 
-#### Class Diagram for the `AbstractTodo` Classes
+#### Class Diagram for `Todo` Classes
+
+Note that the generic type variable `T` is bound by the `AbstractTodo` protocol
+(i.e. `T` must be an `AbstractTodo` type).
 
 ```mermaid
 classDiagram
     class AbstractTodo~T~ {
-        <<Protocol>>
+        <<protocol>>
 
         contexts : Iterable~str~
         create_date : Optional~date~
@@ -80,8 +83,12 @@ classDiagram
         to_line() str
     }
 
+    class Todo {
+        <<concrete>>
+    }
+
     class AbstractMagicTodo~T~ {
-        <<Protocol>>
+        <<protocol>>
 
         from_line_spells : Iterable~Callable[[str], str]~
         to_line_spells : Iterable~Callable[[str], str]~
@@ -93,6 +100,33 @@ classDiagram
         cast_todo_spells(todo: T)$ ErisResult~T~
     }
 
-    AbstractMagicTodo --|> AbstractTodo: implements
+    class MagicTodoMixin {
+        <<abstract>>
+    }
+
+    class ToInboxTodo {
+        <<concrete>>
+    }
+
+    class FromInboxTodo {
+        <<concrete>>
+    }
+
+    class ToDailyTodo {
+        <<concrete>>
+    }
+
+    class FromDailyTodo {
+        <<concrete>>
+    }
+
+    AbstractMagicTodo --> AbstractTodo: implements
     AbstractMagicTodo --* "1" AbstractTodo: contains
+    Todo --> AbstractTodo: implements
+    MagicTodoMixin --> AbstractMagicTodo: implements
+    MagicTodoMixin --* "1" Todo: contains
+    ToInboxTodo --|> MagicTodoMixin: inherits
+    FromInboxTodo --|> MagicTodoMixin: inherits
+    ToDailyTodo --|> MagicTodoMixin: inherits
+    FromDailyTodo --|> MagicTodoMixin: inherits
 ```
