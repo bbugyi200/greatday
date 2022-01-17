@@ -63,7 +63,7 @@ stateDiagram-v2
 
 ```mermaid
 classDiagram
-    class AbstractTodo~Todo_T~ {
+    class AbstractTodo~T~ {
         <<Protocol>>
 
         contexts : Iterable~str~
@@ -75,22 +75,22 @@ classDiagram
         priority : Literal~A, B, ..., Z~
         projects : Iterable~str~
 
-        from_line(line: str) ErisResult~Todo_T~
-        new(**kwargs) Todo_T
+        from_line(line: str)$ ErisResult~T~
+        new(**kwargs) T
         to_line() str
     }
 
-    class AbstractMagicTodo~Todo_T~ {
+    class AbstractMagicTodo~T~ {
         <<Protocol>>
 
         from_line_spells : Iterable~Callable[[str], str]~
         to_line_spells : Iterable~Callable[[str], str]~
-        todo : Todo_T
-        todo_spells : Iterable~Callable[[Todo_T], ErisResult[Todo_T]]~
+        todo : T
+        todo_spells : Iterable~Callable[[T], ErisResult[T]]~
 
-        cast_from_line_spells(line: str) str
+        cast_from_line_spells(line: str)$ str
         cast_to_line_spells(line: str) str
-        cast_todo_spells(todo: Todo_T) ErisResult~Todo_T~
+        cast_todo_spells(todo: T)$ ErisResult~T~
     }
 
     AbstractMagicTodo --|> AbstractTodo: implements
