@@ -4,18 +4,14 @@ from __future__ import annotations
 
 import datetime as dt
 from pathlib import Path
-from typing import TypeVar
 
 from eris import ErisResult, Ok
 from magodo import Todo, TodoGroup
-from magodo.types import AbstractTodo
 from potoroo import TaggedRepo
 from typist import PathLike
 
 from ._ids import init_next_todo_id
-
-
-T = TypeVar("T", bound=AbstractTodo)
+from .types import T
 
 
 class GreatRepo(TaggedRepo[str, T, Todo]):
