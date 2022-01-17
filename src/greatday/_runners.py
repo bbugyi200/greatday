@@ -71,9 +71,7 @@ def run_add(cfg: AddConfig) -> int:
     log = logger.bind_fargs(locals())
 
     inbox_txt = cfg.data_dir / "todos" / "inbox.txt"
-    inbox_repo: GreatRepo[ToInboxTodo] = GreatRepo(
-        cfg.data_dir, inbox_txt
-    )
+    inbox_repo: GreatRepo[ToInboxTodo] = GreatRepo(cfg.data_dir, inbox_txt)
     todo = ToInboxTodo.from_line(cfg.todo_line).unwrap()
 
     key = inbox_repo.add(todo).unwrap()
