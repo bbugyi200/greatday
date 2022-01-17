@@ -129,8 +129,8 @@ classDiagram
 
     AbstractMagicTodo --|> AbstractTodo: inherits
     AbstractMagicTodo --* "1" AbstractTodo: contains
-    Todo --> AbstractTodo: implements
-    MagicTodoMixin --> AbstractMagicTodo: implements
+    Todo ..> AbstractTodo: implements
+    MagicTodoMixin ..> AbstractMagicTodo: implements
     MagicTodoMixin --* "1" Todo: contains
     ToInboxTodo --|> MagicTodoMixin: inherits
     FromInboxTodo --|> MagicTodoMixin: inherits
