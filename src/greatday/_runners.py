@@ -9,7 +9,7 @@ from clack.types import ClackRunner
 from logrus import Logger
 
 from ._config import AddConfig, StartConfig
-from ._repo import GreatDayRepo
+from ._repo import GreatRepo
 from ._todo import ToInboxTodo
 
 
@@ -71,7 +71,7 @@ def run_add(cfg: AddConfig) -> int:
     log = logger.bind_fargs(locals())
 
     inbox_txt = cfg.data_dir / "todos" / "inbox.txt"
-    inbox_repo: GreatDayRepo[ToInboxTodo] = GreatDayRepo(
+    inbox_repo: GreatRepo[ToInboxTodo] = GreatRepo(
         cfg.data_dir, inbox_txt
     )
     todo = ToInboxTodo.from_line(cfg.todo_line).unwrap()

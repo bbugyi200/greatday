@@ -16,7 +16,7 @@ from typist import PathLike
 T = TypeVar("T", bound=AbstractTodo)
 
 
-class GreatDayRepo(TaggedRepo[str, T, Todo]):
+class GreatRepo(TaggedRepo[str, T, Todo]):
     """Repo that stores Todos on disk."""
 
     def __init__(self, data_dir: PathLike, path: PathLike) -> None:
