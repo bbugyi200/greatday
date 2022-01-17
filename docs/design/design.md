@@ -20,7 +20,7 @@ interact.
 
 ![diagram](./design-2.svg)
 
-#### Class Diagram for `Repo` Classes
+#### Class Diagram for `Repo` and `UnitOfWork` Classes
 
 The following diagram illustrates how the various [potoroo][2] `Repo` and `UnitOfWork`
 (Unit-of-Work) classes interact.
