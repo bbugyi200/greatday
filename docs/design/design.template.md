@@ -187,7 +187,7 @@ classDiagram
         repo: R
 
         __enter__()* Self
-        __exit__(*args)* None
+        __exit__()* None
         commit()* None
         rollback()* None
     }
