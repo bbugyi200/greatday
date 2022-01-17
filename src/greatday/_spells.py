@@ -11,16 +11,16 @@ from magodo.spells import register_spell_factory
 from magodo.types import TodoSpell
 
 
-INBOX_SPELLS: List[TodoSpell] = []
-inbox_spell = register_spell_factory(INBOX_SPELLS)
+TO_INBOX_SPELLS: List[TodoSpell] = []
+to_inbox_spell = register_spell_factory(TO_INBOX_SPELLS)
 
-DAILY_SPELLS: List[TodoSpell] = []
-daily_spell = register_spell_factory(DAILY_SPELLS)
+TO_DAILY_SPELLS: List[TodoSpell] = []
+to_daily_spell = register_spell_factory(TO_DAILY_SPELLS)
 
 O_PREFIX: Final = "o "
 
 
-@inbox_spell
+@to_inbox_spell
 def add_inbox_ctx(todo: Todo) -> ErisResult[Todo]:
     """Adds the @inbox context to the Todo."""
     if "inbox" in todo.contexts:
@@ -30,7 +30,7 @@ def add_inbox_ctx(todo: Todo) -> ErisResult[Todo]:
     return Ok(todo.new(contexts=contexts))
 
 
-@inbox_spell
+@to_inbox_spell
 def add_create_date(todo: Todo) -> ErisResult[Todo]:
     """Adds today's date as the create date for this Todo."""
     if todo.create_date is not None:
@@ -40,7 +40,7 @@ def add_create_date(todo: Todo) -> ErisResult[Todo]:
     return Ok(todo.new(create_date=today))
 
 
-@inbox_spell
+@to_inbox_spell
 def add_ctime(todo: Todo) -> ErisResult[Todo]:
     """Adds creation time to Todo via the 'ctime' metadata tag."""
     if "ctime" in todo.metadata:
@@ -54,7 +54,7 @@ def add_ctime(todo: Todo) -> ErisResult[Todo]:
     return Ok(todo.new(metadata=metadata))
 
 
-@daily_spell
+@to_daily_spell
 def add_o_prefix(todo: Todo) -> ErisResult[Todo]:
     """Adds the 'o ' prefix to the Todo's description."""
     if todo.desc.startswith(O_PREFIX):

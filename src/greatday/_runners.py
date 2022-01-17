@@ -10,7 +10,7 @@ from logrus import Logger
 
 from ._config import AddConfig, StartConfig
 from ._repo import GreatDayRepo
-from ._todo import InboxTodo
+from ._todo import ToInboxTodo
 
 
 ALL_RUNNERS: List[ClackRunner] = []
@@ -32,8 +32,10 @@ def run_add(cfg: AddConfig) -> int:
     log = logger.bind_fargs(locals())
 
     inbox_txt = cfg.data_dir / "todos" / "inbox.txt"
-    inbox_repo: GreatDayRepo[InboxTodo] = GreatDayRepo(cfg.data_dir, inbox_txt)
-    todo = InboxTodo.from_line(cfg.todo_line).unwrap()
+    inbox_repo: GreatDayRepo[ToInboxTodo] = GreatDayRepo(
+        cfg.data_dir, inbox_txt
+    )
+    todo = ToInboxTodo.from_line(cfg.todo_line).unwrap()
 
     key = inbox_repo.add(todo).unwrap()
     log.info("Added new todo to inbox.", id=repr(key))

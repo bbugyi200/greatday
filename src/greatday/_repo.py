@@ -4,23 +4,26 @@ from __future__ import annotations
 
 import datetime as dt
 from pathlib import Path
-from typing import Container
+from typing import Container, TypeVar
 
 from eris import ErisResult, Ok
 from magodo import Todo, TodoGroup
-from magodo.types import Todo_T
+from magodo.types import AbstractTodo
 from potoroo import TaggedRepo
 from typist import PathLike
 
 
-class GreatDayRepo(TaggedRepo[str, Todo_T, Todo]):
+T = TypeVar("T", bound="AbstractTodo")
+
+
+class GreatDayRepo(TaggedRepo[str, T, Todo]):
     """Repo that stores Todos on disk."""
 
     def __init__(self, data_dir: PathLike, path: PathLike) -> None:
         self.data_dir = Path(data_dir)
         self.path = Path(path)
 
-    def add(self, todo: Todo_T, /, *, key: str = None) -> ErisResult[str]:
+    def add(self, todo: T, /, *, key: str = None) -> ErisResult[str]:
         """Write a new Todo to disk.
 
         Returns a unique identifier that has been associated with this Todo.
@@ -32,7 +35,7 @@ class GreatDayRepo(TaggedRepo[str, Todo_T, Todo]):
         line = line + f" id:{key}"
         todo = type(todo).from_line(line).unwrap()
 
-        todos: list[Todo_T] = [todo]
+        todos: list[T] = [todo]
         if self.path.is_dir() or (
             not self.path.exists() and self.path.suffix != ".txt"
         ):
@@ -50,23 +53,23 @@ class GreatDayRepo(TaggedRepo[str, Todo_T, Todo]):
 
         return Ok(key)
 
-    def get(self, key: str) -> ErisResult[Todo_T | None]:
+    def get(self, key: str) -> ErisResult[T | None]:
         """Retrieve a Todo from disk."""
 
-    def remove(self, key: str) -> ErisResult[Todo_T | None]:
+    def remove(self, key: str) -> ErisResult[T | None]:
         """Remove a Todo from disk."""
 
-    def update(self, key: str, todo: Todo_T, /) -> ErisResult[Todo_T]:
+    def update(self, key: str, todo: T, /) -> ErisResult[T]:
         """Overwrite an existing Todo on disk."""
 
-    def get_by_tag(self, tag: Todo) -> ErisResult[list[Todo_T]]:
+    def get_by_tag(self, tag: Todo) -> ErisResult[list[T]]:
         """Get Todos from disk by using a tag.
 
         Retrieves a list of Todos from disk by using another Todo's properties
         as search criteria.
         """
 
-    def remove_by_tag(self, tag: Todo) -> ErisResult[list[Todo_T]]:
+    def remove_by_tag(self, tag: Todo) -> ErisResult[list[T]]:
         """Remove a Todo from disk by using a tag.
 
         Removes a list of Todos from disk by using another Todo's properties
