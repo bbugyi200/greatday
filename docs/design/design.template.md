@@ -181,6 +181,10 @@ classDiagram
         <<concrete>>
     }
 
+    class FileRepo~str, T~ {
+        <<concrete>>
+    }
+
     class UnitOfWork~R~ {
         <<abstract>>
 
@@ -192,7 +196,7 @@ classDiagram
         rollback()* None
     }
 
-    class GreatSession~GreatRepo~ {
+    class GreatSession~FileRepo~ {
         <<concrete>>
     }
 
@@ -200,8 +204,11 @@ classDiagram
     TaggedRepo --|> Repo: inherits
     UnitOfWork --* "1" BasicRepo: contains
     GreatRepo --|> TaggedRepo: inherits
+    GreatRepo --o FileRepo: aggregates
+    FileRepo --|> BasicRepo: inherits
     GreatSession --|> UnitOfWork: inherits
     GreatSession --* "1" GreatRepo: contains
+    GreatSession --* "1" FileRepo: contains
 ```
 
 [1]: https://github.com/bbugyi200/magodo
