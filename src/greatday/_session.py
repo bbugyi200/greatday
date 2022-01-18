@@ -56,6 +56,8 @@ class GreatSession(UnitOfWork[GreatRepo[T]]):
 
     def rollback(self) -> None:
         """Revert any changes made while in this GreatSession's with-block."""
+        shutil.copyfile(self._path, self._backup)
+        self._repo = GreatRepo(self.repo.data_dir, self._backup)
 
     @property
     def repo(self) -> GreatRepo[T]:
