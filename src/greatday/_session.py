@@ -21,10 +21,12 @@ class GreatSession(UnitOfWork[GreatRepo[T]]):
 
     def __init__(self, data_dir: PathLike, path: PathLike) -> None:
         path = Path(path)
-
         self._path = path
-        _, self._backup = tempfile.mkstemp(suffix=path.stem)
-        self._repo: GreatRepo[T] = GreatRepo(data_dir, str(self._backup))
+
+        _, backup = tempfile.mkstemp(suffix=path.stem)
+        self._backup = Path(backup)
+
+        self._repo: GreatRepo[T] = GreatRepo(data_dir, backup)
 
     def __enter__(self) -> GreatSession:
         """Called before entering a GreatSession with-block."""
