@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
+import shutil
+import tempfile
 from types import TracebackType
 from typing import Type
 
@@ -17,10 +20,15 @@ class GreatSession(UnitOfWork[GreatRepo[T]]):
     """Each time todos are opened in an editor, a new session is created."""
 
     def __init__(self, data_dir: PathLike, path: PathLike) -> None:
-        self._path = Path(path)
-        self._repo: GreatRepo[T] = GreatRepo(data_dir, path)
+        path = Path(path)
+
+        self._path = path
+        _, self._backup = tempfile.mkstemp(suffix=path.stem)
+        self._repo: GreatRepo[T] = GreatRepo(data_dir, str(self._backup))
 
     def __enter__(self) -> GreatSession:
+        """Called before entering a GreatSession with-block."""
+        shutil.copyfile(self._path, self._backup)
         return self
 
     def __exit__(
@@ -29,16 +37,25 @@ class GreatSession(UnitOfWork[GreatRepo[T]]):
         exc_value: BaseException | None,
         traceback: TracebackType | None,
     ) -> None:
+        """Called before exiting a GreatSession with-block."""
         del exc_type
         del exc_value
         del traceback
 
+        os.unlink(self._backup)
+
     def commit(self) -> None:
-        pass
+        """Commit our changes.
+
+        We achieve this by copying the contents of the backup file created on
+        instantiation back to the original.
+        """
+        shutil.copyfile(self._backup, self._path)
 
     def rollback(self) -> None:
-        pass
+        """Revert any changes made while in this GreatSession's with-block."""
 
     @property
     def repo(self) -> GreatRepo[T]:
+        """Returns the GreatRepo object associated with this GreatSession."""
         return self._repo
