@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from types import TracebackType
 from typing import Type
 
@@ -16,7 +17,7 @@ class GreatSession(UnitOfWork[GreatRepo[T]]):
     """Each time todos are opened in an editor, a new session is created."""
 
     def __init__(self, data_dir: PathLike, path: PathLike) -> None:
-        self._path = path
+        self._path = Path(path)
         self._repo: GreatRepo[T] = GreatRepo(data_dir, path)
 
     def __enter__(self) -> GreatSession:
