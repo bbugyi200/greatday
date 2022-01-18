@@ -70,11 +70,12 @@ def next_todo_id(last_id: str) -> str:
         # we skip 'O', since it can be confused with '0'...
         >>> next_todo_id('BZN')
         'BZP'
+
+        >>> next_todo_id('B9Z')
+        'BA0'
     """
     last_char = last_id[-1]
-    if last_char == "9":
-        return last_id[:-1] + "A"
-    elif last_char == "Z":
+    if last_char == "Z":
         for i, ch in enumerate(reversed(last_id)):
             if ch != "Z":
                 idx = len(last_id) - (i + 1)
@@ -89,6 +90,9 @@ def next_todo_id(last_id: str) -> str:
 
 def next_char(ch: str, *, blacklist: Container[str] = ("I", "O")) -> str:
     """Returns the next allowable character (to be used as apart of ID)."""
+    if ch == "9":
+        return "A"
+
     result = chr(ord(ch) + 1)
     while result in blacklist:
         result = chr(ord(result) + 1)
