@@ -1,4 +1,4 @@
-"""Contains this project's clack runners.."""
+"""Contains this project's clack runners."""
 
 from __future__ import annotations
 
@@ -22,47 +22,75 @@ logger = Logger(__name__)
 @runner
 def run_start(cfg: StartConfig) -> int:
     """Runner for the 'start' subcommand."""
-    del cfg
+    repo = GreatRepo(cfg.data_dir)
+
+    tag = lambda todo: todo.priority <= "C"
+    high_priority_todos = repo.get_by_tag(tag).unwrap()
+
+    process_todos = partial(process_repo_todos, repo)
+
     # If any Todos exist with a priority of 'C' or higher...
-    # Process them first...
+    if high_priority_todos:
+        # Process them first...
+        process_todos(high_priority_todos)
 
     # How many days (N) has it been since ticklers were checked?
+    N = days_since_ticklers_processed(cfg.data_dir)
 
     # If we didn't check ticklers yet today (i.e. N > 0)...
-    # Process last N days of ticklers...
-
-    # If daily backup file already exists...
-    # Ask the user: Can we delete this backup file?
+    if N > 0:
+        # Process last N days of ticklers...
+        today = dt.date.today()
+        tag = lambda todo: "tickle" in todo.projects and (today - to_date(todo.metadata["date"])).days < N
+        tickler_todos = repo.get_by_tag(tag).unwrap()
+        process_todos(tickler_todos)
 
     # Process all @inbox Todos.
+    tag = lambda todo: "inbox" in todo.contexts
+    inbox_todos = repo.get_by_tag(tag).unwrap()
+    process_todos(inbox_todos)
 
-    # Clear daily file of all done Todos.
+    # Prompt the user for an optional list of contexts.
+    daily_contexts = input_daily_contexts()
 
-    ### START: Daily Todo Collection
-    # Collect all Todos in daily file.
-    #
-    # Collect all Todos with priority greater than or equal to 'D'.
-    #
+    # Collect all Todos with priority equal to 'D'.
+    tag = lambda todo: todo.priority == "D"
+    d_priority_todos = repo.get_by_tag(tag).unwrap()
+
     # Prompt the user for more Todos (using fuzzy matching).
-    ### END: Daily Todo Collection
+    user_selected_todos = []
+    for tid in input_fuzzy_todos(cfg.data_dir):
+        todo = repo.get(tid).unwrap()
+        user_selected_todos.append(todo)
 
-    # Render / format the daily file using the Todos we collected.
+    # Process daily todos.
+    daily_todos = []
+    daily_todos.extend(d_priority_todos)
+    daily_todos.extend(user_selected_todos)
 
-    # Copy the daily file to the backup daily file.
+    process_todos(daily_todos, contexts=daily_contexts)
 
-    # Use vimlala to open daily file in vim.
-
-    # Collect Todos from daily file.
-
-    # Run tests on all collected daily file Todos.
-
-    # For each failed test...
-    # Prompt the user for a fix.
-
-    # Ask the user: Can we commit / save the daily file?
-    # Copy the contents of the backup daily file to the daily file.
-    # Delete the backup daily file.
     return 0
+
+
+def process_repo_todos(repo, todos_to_process, *, contexts=None):
+    with GreatSession(repo, todos_to_process, contexts=contexts) as session:
+        if ion.getch("OK to commit these changes?: "):
+            session.commit()
+        else:
+            session.rollback()
+
+
+def days_since_ticklers_processed(data_dir):
+    pass
+
+
+def input_fuzzy_todos(data_dir):
+    pass
+
+
+def input_daily_contexts():
+    pass
 
 
 @runner
