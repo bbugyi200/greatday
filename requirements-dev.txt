@@ -32,7 +32,10 @@ bolton-eris==0.2.3
     #   magodo
     #   potoroo
 bolton-ion==0.1.0
-    # via bolton-eris
+    # via
+    #   -r requirements.in
+    #   bolton-eris
+    #   greatday
 bolton-logrus==0.1.0
     # via
     #   -r requirements.in
@@ -198,7 +201,7 @@ requests==2.27.1
     # via
     #   cookiecutter
     #   sphinx
-setuptools-scm==6.4.0
+setuptools-scm==6.4.2
     # via -r requirements-dev.in
 six==1.16.0
     # via
@@ -219,7 +222,7 @@ sphinx==4.3.2
     #   greatday
     #   sphinx-autodoc-typehints
     #   sphinx-rtd-theme
-sphinx-autodoc-typehints==1.15.2
+sphinx-autodoc-typehints==1.15.3
     # via -r requirements-dev.in
 sphinx-rtd-theme==1.0.0
     # via -r requirements-dev.in

@@ -16,7 +16,9 @@ bolton-eris==0.2.3
     #   magodo
     #   potoroo
 bolton-ion==0.1.0
-    # via bolton-eris
+    # via
+    #   -r requirements.in
+    #   bolton-eris
 bolton-logrus==0.1.0
     # via
     #   -r requirements.in
