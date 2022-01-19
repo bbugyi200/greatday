@@ -10,15 +10,17 @@ processed:
 stateDiagram-v2
     state if_run_today <<choice>>
 
-    process_ABC_priority: PROCESS TODOS | Todos which have a priority of 'A', 'B', or 'C'.
-    process_daily: PROCESS TODOS | Todos added to today's daily file.
     collect_daily_fuzzy: Prompt for Todos (using fuzzy matching) to add to daily file.
     collect_daily_priority_D: Collect any todos that have a priority greater than or equal to 'D'.
-    process_ticklers: PROCESS TODOS | Last N days of tickler Todos.
+    get_daily_contexts: Prompt for an optional list of contexts (controls how Todos are grouped in the daily file).
     inbox: PROCESS TODOS | Todos in your inbox (i.e. all Todos tagged with the @inbox context).
+    process_ABC_priority: PROCESS TODOS | Todos which have a priority of 'A', 'B', or 'C'.
+    process_daily: PROCESS TODOS | Todos added to today's daily file.
+    process_ticklers: PROCESS TODOS | Last N days of tickler Todos.
 
     state process_daily {
-        [*] --> collect_daily_priority_D
+        [*] --> get_daily_contexts
+        get_daily_contexts --> collect_daily_priority_D
         collect_daily_priority_D --> collect_daily_fuzzy
         collect_daily_fuzzy --> [*]
     }
@@ -38,12 +40,12 @@ stateDiagram-v2
 stateDiagram-v2
     state if_daily_check_failed <<choice>>
 
-    check_todo_file: Run a series of tests against the todos remaing in this todo.txt file.
+    ask_if_ok_to_save: ASK | Is it OK to commit these changes?
     ask_to_verify_todos: ASK | For verification / more information about Todo changes that we are unsure of.
+    check_todo_file: Run a series of tests against the todos remaing in this todo.txt file.
+    edit_todo_file: Open this todo.txt file in a text editor.
     render_todo_file: Render a temporary todo.txt file after adding our newly collected Todos to it.
     save_daily_file: Commit the Todo changes made in our todo.txt file to the main Todo DB.
-    edit_todo_file: Open this todo.txt file in a text editor.
-    ask_if_ok_to_save: ASK | Is it OK to commit these changes?
 
     [*] --> render_todo_file: INPUT | List of Todo files + (optional) List of contexts (controls how Todos are grouped).
     render_todo_file --> edit_todo_file
@@ -177,7 +179,7 @@ classDiagram
         remove_by_tag(tag: Tag)* ErisResult~VList~
     }
 
-    class GreatRepo~str, T, Todo~ {
+    class GreatRepo~str, T, Callable[[T], bool]~ {
         <<concrete>>
     }
 
