@@ -1,4 +1,6 @@
-### State Diagram for the `greatday start` Command
+### State Diagrams
+
+#### State Diagram for the `greatday start` Command
 
 The following diagram is kicked off when a user runs the `greatday start`
 command. We assume that it has been `N` days since your tickler Todos were last
@@ -7,48 +9,46 @@ processed:
 ```mermaid
 stateDiagram-v2
     state if_run_today <<choice>>
-    state if_daily_check_failed <<choice>>
-    state if_old_backup_file <<choice>>
 
-    ABC_priority: Process any Todos which have a priority of 'A', 'B', or 'C'.
-    ask_if_ok_to_save: ASK | Is it OK to commit the changes made to the daily file?
-    ask_to_delete_backup: ASK | Can we delete the backup daily file?
-    ask_to_verify_todos: ASK | For verification / more information about Todo changes that we are unsure of.
-    check_daily_todos: Run a series of tests against each Todo remaining in the daily file.
-    collect: Collect Todos to add to daily file.
-    collect_fuzzy: Prompt for Todos (using fuzzy matching) to add to daily file.
-    collect_leftover: Collect any todos left over in daily file from last run.
-    collect_priority_B: Collect any todos that have a priority greater than or equal to 'D'.
-    create_backup_daily: Create a backup daily file.
-    edit_daily: Open backup daily file in text editor.
-    inbox: Process all Todos in your inbox (i.e. all Todos tagged with the @inbox context).
-    remove_done_todos: Move any "done" Todos in the daily file to permenant storage.
-    render_daily: Render the daily file after adding our newly collected Todos to it.
-    save_daily_file: Commit the backup daily file's contents to the real daily file.
-    tickle: Process last N days of tickler Todos.
+    process_ABC_priority: PROCESS TODOS | Todos which have a priority of 'A', 'B', or 'C'.
+    process_daily: PROCESS TODOS | Todos added to today's daily file.
+    collect_daily_fuzzy: Prompt for Todos (using fuzzy matching) to add to daily file.
+    collect_daily_priority_D: Collect any todos that have a priority greater than or equal to 'D'.
+    process_ticklers: PROCESS TODOS | Last N days of tickler Todos.
+    inbox: PROCESS TODOS | Todos in your inbox (i.e. all Todos tagged with the @inbox context).
 
-    [*] --> ABC_priority
-    ABC_priority --> tickle
-    tickle --> if_old_backup_file
-    if_old_backup_file --> ask_to_delete_backup: IF | The backup daily file's contents differ from the daily file.
-    if_old_backup_file --> if_run_today: ELSE
-    ask_to_delete_backup --> if_run_today: YES
-    ask_to_delete_backup --> edit_daily: NO
-    if_run_today --> collect: IF | This command was already run earlier today.
-    if_run_today --> inbox: ELSE
-    inbox --> remove_done_todos
-    remove_done_todos --> collect
-    state collect {
-        [*] --> collect_leftover
-        collect_leftover --> collect_priority_B
-        collect_priority_B --> collect_fuzzy
-        collect_fuzzy --> [*]
+    state process_daily {
+        [*] --> collect_daily_priority_D
+        collect_daily_priority_D --> collect_daily_fuzzy
+        collect_daily_fuzzy --> [*]
     }
-    collect --> render_daily
-    render_daily --> create_backup_daily
-    create_backup_daily --> edit_daily
-    edit_daily --> check_daily_todos: When the user closes her text editor...
-    check_daily_todos --> if_daily_check_failed
+
+    [*] --> process_ABC_priority
+    process_ABC_priority --> process_ticklers
+    process_ticklers --> if_run_today
+    if_run_today --> process_daily: IF | This command was already run earlier today.
+    if_run_today --> inbox: ELSE
+    inbox --> process_daily
+    process_daily --> [*]
+```
+
+#### State Diagram for Processing Todos
+
+```mermaid
+stateDiagram-v2
+    state if_daily_check_failed <<choice>>
+
+    check_todo_file: Run a series of tests against the todos remaing in this todo.txt file.
+    ask_to_verify_todos: ASK | For verification / more information about Todo changes that we are unsure of.
+    render_todo_file: Render a temporary todo.txt file after adding our newly collected Todos to it.
+    save_daily_file: Commit the Todo changes made in our todo.txt file to the main Todo DB.
+    edit_todo_file: Open this todo.txt file in a text editor.
+    ask_if_ok_to_save: ASK | Is it OK to commit these changes?
+
+    [*] --> render_todo_file: INPUT | List of Todo files + (optional) List of contexts (controls how Todos are grouped).
+    render_todo_file --> edit_todo_file
+    edit_todo_file --> check_todo_file: When the user closes her text editor...
+    check_todo_file --> if_daily_check_failed
     if_daily_check_failed --> ask_to_verify_todos: IF | Any of our tests from the previous step failed.
     if_daily_check_failed --> ask_if_ok_to_save: ELSE
     ask_to_verify_todos --> ask_if_ok_to_save
@@ -141,14 +141,14 @@ classDiagram
 #### Class Diagram for `Repo` and `UnitOfWork` Classes
 
 The following diagram illustrates how the various [potoroo][2] `Repo` and `UnitOfWork`
-(Unit-of-Work) classes interact.
+classes interact.
 
 Keep in mind the following notes while reviewing this diagram:
 
 * `V_or_None` is meant to be `Optional[V]`. There seems to be a bug in
   [mermaid][3], however, that prevents us from using `Optional[V]` as a generic
   type.
-* Similarly, `VList_or_None` is meant to be `Optional[List[V]]`.
+* Similarly, `VList` is meant to be `List[V]`.
 * The type variable `Self` is implicit and is always bound by the current class.
 * The type variable `T` is bound by the `AbstractTodo` protocol.
 * The type variable `R` is bound by the `BasicRepo` class.
@@ -173,8 +173,8 @@ classDiagram
     class TaggedRepo~K, V, Tag~ {
         <<abstract>>
 
-        get_by_tag(tag: Tag)* ErisResult~VList_or_None~
-        remove_by_tag(tag: Tag)* ErisResult~VList_or_None~
+        get_by_tag(tag: Tag)* ErisResult~VList~
+        remove_by_tag(tag: Tag)* ErisResult~VList~
     }
 
     class GreatRepo~str, T, Todo~ {

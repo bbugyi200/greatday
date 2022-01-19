@@ -107,13 +107,19 @@ if any(L.strip() for L in lines):
 ]]]]] -->
 ## Design Diagrams
 
-### State Diagram for the `greatday start` Command
+### State Diagrams
+
+#### State Diagram for the `greatday start` Command
 
 The following diagram is kicked off when a user runs the `greatday start`
 command. We assume that it has been `N` days since your tickler Todos were last
 processed:
 
 ![diagram](./docs/design/design-1.svg)
+
+#### State Diagram for Processing Todos
+
+![diagram](./docs/design/design-2.svg)
 
 ### Class Diagrams
 
@@ -129,25 +135,25 @@ Keep in mind the following notes while reviewing this diagram:
 * The type variable `Self` is implicit and is always bound by the current class.
 * The type variable `T` is bound by the `AbstractTodo` protocol.
 
-![diagram](./docs/design/design-2.svg)
+![diagram](./docs/design/design-3.svg)
 
 #### Class Diagram for `Repo` and `UnitOfWork` Classes
 
 The following diagram illustrates how the various [potoroo][2] `Repo` and `UnitOfWork`
-(Unit-of-Work) classes interact.
+classes interact.
 
 Keep in mind the following notes while reviewing this diagram:
 
 * `V_or_None` is meant to be `Optional[V]`. There seems to be a bug in
   [mermaid][3], however, that prevents us from using `Optional[V]` as a generic
   type.
-* Similarly, `VList_or_None` is meant to be `Optional[List[V]]`.
+* Similarly, `VList` is meant to be `List[V]`.
 * The type variable `Self` is implicit and is always bound by the current class.
 * The type variable `T` is bound by the `AbstractTodo` protocol.
 * The type variable `R` is bound by the `BasicRepo` class.
 * The type variables `K`, `V`, and `Tag` are all unbound.
 
-![diagram](./docs/design/design-3.svg)
+![diagram](./docs/design/design-4.svg)
 
 [1]: https://github.com/bbugyi200/magodo
 [2]: https://github.com/bbugyi200/potoroo
