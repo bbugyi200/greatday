@@ -18,7 +18,7 @@ pylint
 
 ### Docs
 m2r2
-sphinx
+sphinx != 4.4.*  # ATTOW, 'sphinx==4.4.0' requires a 'importlib-metadata' version that conflicts with what 'cruft' requires.
 sphinx-rtd-theme
 sphinx-autodoc-typehints
 

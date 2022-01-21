@@ -3,6 +3,3 @@ bolton-ion ~= 0.1.0
 bolton-logrus ~= 0.1.0
 magodo ~= 0.7.0
 potoroo ~= 0.3.2
-
-# ATTOW, 'sphinx==4.4.0' requires a 'importlib-metadata' version that conflicts with what 'cruft' requires.
-sphinx < 4.4
