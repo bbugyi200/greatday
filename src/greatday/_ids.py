@@ -74,18 +74,14 @@ def next_todo_id(last_id: str) -> str:
         >>> next_todo_id('B9Z')
         'BA0'
     """
-    last_char = last_id[-1]
-    if last_char == "Z":
-        for i, ch in enumerate(reversed(last_id)):
-            if ch != "Z":
-                idx = len(last_id) - (i + 1)
-                zeros = "0" * i
-                return last_id[:idx] + next_char(last_id[idx]) + zeros
+    for i, ch in enumerate(reversed(last_id)):
+        if ch != "Z":
+            idx = len(last_id) - (i + 1)
+            zeros = "0" * i
+            return last_id[:idx] + next_char(last_id[idx]) + zeros
 
-        zeros = "0" * (len(last_id) + 1)
-        return zeros
-    else:
-        return last_id[:-1] + next_char(last_char)
+    zeros = "0" * (len(last_id) + 1)
+    return zeros
 
 
 def next_char(ch: str, *, blacklist: Container[str] = ("I", "O")) -> str:
