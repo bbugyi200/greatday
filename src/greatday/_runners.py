@@ -75,7 +75,7 @@ def run_start(cfg: StartConfig) -> int:
 
 def process_repo_todos(repo, todos_to_process, *, contexts=None):
     with GreatSession(repo, todos_to_process, contexts=contexts) as session:
-        if ion.getch("OK to commit these changes?: "):
+        if ion.getch("OK to commit these changes?: ") == "y":
             session.commit()
         else:
             session.rollback()
