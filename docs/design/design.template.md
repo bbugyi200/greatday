@@ -121,11 +121,11 @@ classDiagram
         <<concrete>>
     }
 
-    class ToDailyTodo~Todo~ {
+    class ToPrettyTodo~Todo~ {
         <<concrete>>
     }
 
-    class FromDailyTodo~Todo~ {
+    class FromPrettyTodo~Todo~ {
         <<concrete>>
     }
 
@@ -136,8 +136,8 @@ classDiagram
     MagicTodoMixin --* "1" Todo: contains
     ToInboxTodo --|> MagicTodoMixin: inherits
     FromInboxTodo --|> MagicTodoMixin: inherits
-    ToDailyTodo --|> MagicTodoMixin: inherits
-    FromDailyTodo --|> MagicTodoMixin: inherits
+    ToPrettyTodo --|> MagicTodoMixin: inherits
+    FromPrettyTodo --|> MagicTodoMixin: inherits
 ```
 
 #### Class Diagram for `Repo` and `UnitOfWork` Classes
