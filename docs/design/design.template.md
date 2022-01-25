@@ -113,19 +113,7 @@ classDiagram
         <<abstract>>
     }
 
-    class ToInboxTodo~Todo~ {
-        <<concrete>>
-    }
-
-    class FromInboxTodo~Todo~ {
-        <<concrete>>
-    }
-
-    class ToGreatTodo~Todo~ {
-        <<concrete>>
-    }
-
-    class FromGreatTodo~Todo~ {
+    class GreatTodo {
         <<concrete>>
     }
 
@@ -134,10 +122,7 @@ classDiagram
     Todo ..> AbstractTodo: implements
     MagicTodoMixin ..> AbstractMagicTodo: implements
     MagicTodoMixin --* "1" Todo: contains
-    ToInboxTodo --|> MagicTodoMixin: inherits
-    FromInboxTodo --|> MagicTodoMixin: inherits
-    ToGreatTodo --|> MagicTodoMixin: inherits
-    FromGreatTodo --|> MagicTodoMixin: inherits
+    GreatTodo --|> MagicTodoMixin: inherits
 ```
 
 #### Class Diagram for `Repo` and `UnitOfWork` Classes
@@ -152,9 +137,8 @@ Keep in mind the following notes while reviewing this diagram:
   type.
 * Similarly, `VList` is meant to be `List[V]`.
 * The type variable `Self` is implicit and is always bound by the current class.
-* The type variable `T` is bound by the `AbstractTodo` protocol.
 * The type variable `R` is bound by the `BasicRepo` class.
-* The type variables `K`, `V`, and `Tag` are all unbound.
+* The type variables `K`, `V`, and `T` are all unbound.
 
 ```mermaid
 classDiagram
@@ -172,18 +156,18 @@ classDiagram
         remove(key: K)* ErisResult~V_or_None~
     }
 
-    class TaggedRepo~K, V, Tag~ {
+    class TaggedRepo~K, V, T~ {
         <<abstract>>
 
-        get_by_tag(tag: Tag)* ErisResult~VList~
-        remove_by_tag(tag: Tag)* ErisResult~VList~
+        get_by_tag(tag: T)* ErisResult~VList~
+        remove_by_tag(tag: T)* ErisResult~VList~
     }
 
-    class GreatRepo~str, T, Callable[[T], bool]~ {
+    class GreatRepo~str, GreatTodo, Callable[[GreatTodo], bool]~ {
         <<concrete>>
     }
 
-    class FileRepo~str, T~ {
+    class FileRepo~str, GreatTodo~ {
         <<concrete>>
     }
 
@@ -207,7 +191,7 @@ classDiagram
     UnitOfWork --* "1" BasicRepo: contains
     GreatRepo --|> TaggedRepo: inherits
     GreatRepo --o FileRepo: aggregates
-    FileRepo --|> BasicRepo: inherits
+    FileRepo --|> Repo: inherits
     GreatSession --|> UnitOfWork: inherits
     GreatSession --* "1" GreatRepo: contains
     GreatSession --* "1" FileRepo: contains

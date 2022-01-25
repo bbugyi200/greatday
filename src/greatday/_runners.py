@@ -10,7 +10,6 @@ from logrus import Logger
 
 from ._config import AddConfig, StartConfig
 from ._repo import GreatRepo
-from ._todo import ToInboxTodo
 
 
 ALL_RUNNERS: List[ClackRunner] = []
@@ -22,17 +21,23 @@ logger = Logger(__name__)
 @runner
 def run_start(cfg: StartConfig) -> int:
     """Runner for the 'start' subcommand."""
-    repo = GreatRepo(cfg.data_dir)
+    great_repo = GreatRepo(
+        cfg.data_dir, writer=ToGreatTodo, reader=FromGreatTodo
+    )
+    inbox_repo = GreatRepo(
+        cfg.data_dir, writer=ToInboxTodo, reader=FromInboxTodo
+    )
 
     tag = lambda todo: todo.priority <= "C"
-    high_priority_todos = repo.get_by_tag(tag).unwrap()
+    high_priority_todos = great_repo.get_by_tag(tag).unwrap()
 
-    process_todos = partial(process_repo_todos, repo)
+    process_great_todos = partial(process_repo_todos, great_repo)
+    process_inbox_todos = partial(process_repo_todos, inbox_repo)
 
     # If any Todos exist with a priority of 'C' or higher...
     if high_priority_todos:
         # Process them first...
-        process_todos(high_priority_todos)
+        process_great_todos(high_priority_todos)
 
     # How many days (N) has it been since ticklers were checked?
     N = days_since_ticklers_processed(cfg.data_dir)
@@ -41,26 +46,29 @@ def run_start(cfg: StartConfig) -> int:
     if N > 0:
         # Process last N days of ticklers...
         today = dt.date.today()
-        tag = lambda todo: "tickle" in todo.projects and (today - to_date(todo.metadata["date"])).days < N
-        tickler_todos = repo.get_by_tag(tag).unwrap()
-        process_todos(tickler_todos)
+        tag = (
+            lambda todo: "tickle" in todo.projects
+            and (today - to_date(todo.metadata["date"])).days < N
+        )
+        tickler_todos = great_repo.get_by_tag(tag).unwrap()
+        process_great_todos(tickler_todos)
 
     # Process all @inbox Todos.
     tag = lambda todo: "inbox" in todo.contexts
-    inbox_todos = repo.get_by_tag(tag).unwrap()
-    process_todos(inbox_todos)
+    inbox_todos = great_repo.get_by_tag(tag).unwrap()
+    process_inbox_todos(inbox_todos)
 
     # Prompt the user for an optional list of contexts.
     daily_contexts = input_daily_contexts()
 
     # Collect all Todos with priority equal to 'D'.
     tag = lambda todo: todo.priority == "D"
-    d_priority_todos = repo.get_by_tag(tag).unwrap()
+    d_priority_todos = great_repo.get_by_tag(tag).unwrap()
 
     # Prompt the user for more Todos (using fuzzy matching).
     user_selected_todos = []
     for tid in input_fuzzy_todos(cfg.data_dir):
-        todo = repo.get(tid).unwrap()
+        todo = great_repo.get(tid).unwrap()
         user_selected_todos.append(todo)
 
     # Process daily todos.
@@ -68,7 +76,7 @@ def run_start(cfg: StartConfig) -> int:
     daily_todos.extend(d_priority_todos)
     daily_todos.extend(user_selected_todos)
 
-    process_todos(daily_todos, contexts=daily_contexts)
+    process_great_todos(daily_todos, contexts=daily_contexts)
 
     return 0
 

@@ -40,9 +40,8 @@ Keep in mind the following notes while reviewing this diagram:
   type.
 * Similarly, `VList` is meant to be `List[V]`.
 * The type variable `Self` is implicit and is always bound by the current class.
-* The type variable `T` is bound by the `AbstractTodo` protocol.
 * The type variable `R` is bound by the `BasicRepo` class.
-* The type variables `K`, `V`, and `Tag` are all unbound.
+* The type variables `K`, `V`, and `T` are all unbound.
 
 ![diagram](./design-4.svg)
 
