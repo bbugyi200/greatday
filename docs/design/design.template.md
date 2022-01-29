@@ -2,16 +2,19 @@
 
 #### State Diagram for the `greatday start` Command
 
-The following diagram is kicked off when a user runs the `greatday start`
-command. We assume that it has been `N` days since your tickler Todos were last
-processed:
+The below state diagram is kicked off when a user runs the `greatday start`
+command.
+
+Keep in mind the following notes while reviewing this diagram:
+
+* We assume that it has been `N` days since your tickler Todos were last processed.
 
 ```mermaid
 stateDiagram-v2
     state if_run_today <<choice>>
 
     collect_daily_fuzzy: Prompt for Todos (using fuzzy matching) to add to daily file.
-    collect_daily_priority_D: Collect any todos that have a priority greater than or equal to 'D'.
+    collect_daily_priority_D: Collect any todos that have a priority equal to 'D'.
     get_daily_contexts: Prompt for an optional list of contexts (controls how Todos are grouped in the daily file).
     inbox: PROCESS TODOS | Todos in your inbox (i.e. all Todos tagged with the @inbox context).
     process_ABC_priority: PROCESS TODOS | Todos which have a priority of 'A', 'B', or 'C'.
