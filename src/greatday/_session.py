@@ -19,18 +19,18 @@ from .types import T
 class GreatSession(UnitOfWork[GreatRepo[T]]):
     """Each time todos are opened in an editor, a new session is created."""
 
-    def __init__(self, data_dir: PathLike, path: PathLike) -> None:
+    def __init__(self, path: PathLike, todo_type: Type[T]) -> None:
         path = Path(path)
-        self._path = path
+        self.path = path
 
         _, backup = tempfile.mkstemp(suffix=path.stem)
-        self._backup = Path(backup)
+        self.backup = Path(backup)
 
-        self._repo: GreatRepo[T] = GreatRepo(data_dir, backup)
+        self._repo: GreatRepo[T] = GreatRepo(backup, todo_type)
 
     def __enter__(self) -> GreatSession:
         """Called before entering a GreatSession with-block."""
-        shutil.copyfile(self._path, self._backup)
+        shutil.copyfile(self.path, self.backup)
         return self
 
     def __exit__(
@@ -44,7 +44,7 @@ class GreatSession(UnitOfWork[GreatRepo[T]]):
         del exc_value
         del traceback
 
-        os.unlink(self._backup)
+        os.unlink(self.backup)
 
     def commit(self) -> None:
         """Commit our changes.
@@ -52,12 +52,12 @@ class GreatSession(UnitOfWork[GreatRepo[T]]):
         We achieve this by copying the contents of the backup file created on
         instantiation back to the original.
         """
-        shutil.copyfile(self._backup, self._path)
+        shutil.copyfile(self.backup, self.path)
 
     def rollback(self) -> None:
         """Revert any changes made while in this GreatSession's with-block."""
-        shutil.copyfile(self._path, self._backup)
-        self._repo = GreatRepo(self.repo.data_dir, self._backup)
+        shutil.copyfile(self.path, self.backup)
+        self._repo = GreatRepo(self.repo.path, self.repo.todo_type)
 
     @property
     def repo(self) -> GreatRepo[T]:

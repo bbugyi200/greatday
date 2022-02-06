@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime as dt
 from pathlib import Path
+from typing import Type
 
 from eris import ErisResult, Ok
 from magodo import Todo, TodoGroup
@@ -17,9 +18,9 @@ from .types import T
 class GreatRepo(TaggedRepo[str, T, Todo]):
     """Repo that stores Todos on disk."""
 
-    def __init__(self, data_dir: PathLike, *paths: PathLike) -> None:
-        self.data_dir = Path(data_dir)
-        self.paths = [Path(p) for p in paths]
+    def __init__(self, path: PathLike, todo_type: Type[T]) -> None:
+        self.path = Path(path)
+        self.todo_type = todo_type
 
     def add(self, todo: T, /, *, key: str = None) -> ErisResult[str]:
         """Write a new Todo to disk.
@@ -27,23 +28,25 @@ class GreatRepo(TaggedRepo[str, T, Todo]):
         Returns a unique identifier that has been associated with this Todo.
         """
         if key is None:
-            key = init_next_todo_id(self.data_dir)
+            key = init_next_todo_id(self.path)
 
         line = todo.to_line()
         line = line + f" id:{key}"
-        todo = type(todo).from_line(line).unwrap()
+        todo = self.todo_type.from_line(line).unwrap()
 
         todos: list[T] = [todo]
-        for path in self.paths:
-            if path.is_dir() or (not path.exists() and path.suffix != ".txt"):
-                txt_path = init_yyyymm_path(path, date=todo.create_date)
-            else:
-                path.parent.mkdir(parents=True, exist_ok=True)
-                txt_path = path
 
-            if txt_path.exists():
-                todo_group = TodoGroup.from_path(type(todo), txt_path)
-                todos.extend(todo_group)
+        if self.path.is_dir() or (
+            not self.path.exists() and self.path.suffix != ".txt"
+        ):
+            txt_path = init_yyyymm_path(self.path, date=todo.create_date)
+        else:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            txt_path = self.path
+
+        if txt_path.exists():
+            todo_group = TodoGroup.from_path(type(todo), txt_path)
+            todos.extend(todo_group)
 
         with txt_path.open("w") as f:
             f.write("\n".join(T.to_line() for T in sorted(todos)))
