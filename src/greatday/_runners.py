@@ -13,7 +13,7 @@ from vimala import vim
 
 from ._config import AddConfig, StartConfig
 from ._repo import GreatRepo
-from ._todo import ToInboxTodo
+from ._todo import GreatTodo
 
 
 ALL_RUNNERS: List[ClackRunner] = []
@@ -26,13 +26,7 @@ logger = Logger(__name__)
 def run_start(cfg: StartConfig) -> int:
     """Runner for the 'start' subcommand."""
     today = dt.date.today()
-    daily_txt = (
-        cfg.data_dir
-        / "daily"
-        / f"{today.year}"
-        / f"{today.month:0>2}"
-        / f"{today.day:0>2}.txt"
-    )
+    daily_txt = cfg.data_dir / "daily.txt"
 
     todo_txts: list[Path] = []
     month = today.month
@@ -63,8 +57,11 @@ def run_add(cfg: AddConfig) -> int:
     log = logger.bind_fargs(locals())
 
     todo_dir = cfg.data_dir / "todos"
-    repo = GreatRepo(todo_dir, ToInboxTodo)
-    todo = ToInboxTodo.from_line(cfg.todo_line).unwrap()
+    repo = GreatRepo(todo_dir, GreatTodo)
+    todo = GreatTodo.from_line(cfg.todo_line).unwrap()
+    if "inbox" not in todo.contexts:
+        contexts = list(todo.contexts) + ["inbox"]
+        todo = todo.new(contexts=contexts)
 
     key = repo.add(todo).unwrap()
     log.info("Added new todo to inbox.", id=repr(key))

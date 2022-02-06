@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Literal, Sequence
+from typing import Any, List, Literal, Sequence
 
 import clack
 from clack import xdg
@@ -27,6 +27,8 @@ class StartConfig(Config):
     """Config for the 'start' subcommand."""
 
     command: Literal["start"]
+
+    contexts: List[str]
 
 
 class AddConfig(Config):

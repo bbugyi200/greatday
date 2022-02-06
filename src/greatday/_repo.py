@@ -7,12 +7,12 @@ from pathlib import Path
 from typing import Type
 
 from eris import ErisResult, Ok
-from magodo import Todo, TodoGroup
+from magodo import Todo, TodoReader
 from potoroo import TaggedRepo
 from typist import PathLike
 
 from ._ids import init_next_todo_id
-from .types import T
+from .types import T, U
 
 
 class GreatRepo(TaggedRepo[str, T, Todo]):
@@ -45,13 +45,17 @@ class GreatRepo(TaggedRepo[str, T, Todo]):
             txt_path = self.path
 
         if txt_path.exists():
-            todo_group = TodoGroup.from_path(type(todo), txt_path)
+            todo_group = TodoReader.from_path(type(todo), txt_path)
             todos.extend(todo_group)
 
         with txt_path.open("w") as f:
             f.write("\n".join(T.to_line() for T in sorted(todos)))
 
         return Ok(key)
+
+    def bind(self, todo_type: Type[U]) -> GreatRepo[U]:
+        """Constructs a new GreatRepo using a new Todo type."""
+        return GreatRepo(self.path, todo_type)
 
     def get(self, key: str) -> ErisResult[T | None]:
         """Retrieve a Todo from disk."""
@@ -77,18 +81,18 @@ class GreatRepo(TaggedRepo[str, T, Todo]):
         """
 
 
-def init_yyyymm_path(base: PathLike, *, date: dt.date = None) -> Path:
-    """Returns a Path of the form /path/to/base/YYYY/MM.txt.
+def init_yyyymm_path(root: PathLike, *, date: dt.date = None) -> Path:
+    """Returns a Path of the form /path/to/root/YYYY/MM.txt.
 
-    NOTE: Creates the /path/to/base/YYYY directory if necessary.
+    NOTE: Creates the /path/to/root/YYYY directory if necessary.
     """
-    base = Path(base)
+    root = Path(root)
     if date is None:
         date = dt.date.today()
 
     year = date.year
     month = date.month
 
-    result = base / str(year) / f"{month:0>2}.txt"
+    result = root / str(year) / f"{month:0>2}.txt"
     result.parent.mkdir(parents=True, exist_ok=True)
     return result
