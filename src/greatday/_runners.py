@@ -8,11 +8,13 @@ from typing import List
 
 import clack
 from clack.types import ClackRunner
+from ion import getch
 from logrus import Logger
 from vimala import vim
 
 from ._config import AddConfig, StartConfig
-from ._repo import GreatRepo
+from ._repo import GreatRepo, Tag
+from ._session import GreatSession
 from ._todo import GreatTodo
 
 
@@ -25,21 +27,42 @@ logger = Logger(__name__)
 @runner
 def run_start(cfg: StartConfig) -> int:
     """Runner for the 'start' subcommand."""
+    todo_dir = cfg.data_dir / "todos"
+    with GreatSession(todo_dir) as session:
+        inbox_todos = session.repo.get_by_tag(Tag(contexts=["inbox"])).unwrap()
+        contents = [todo.to_line() for todo in inbox_todos]
+        session.path.write_text(
+            "\n".join(contents)
+        )
+
+        V = vim(session.path)
+        V.communicate()
+
+        if getch("commit these todo changes? (y/n): ") == "y":
+            session.commit()
+        else:
+            session.rollback()
+
     today = dt.date.today()
     daily_txt = cfg.data_dir / "daily.txt"
 
     todo_txts: list[Path] = []
     month = today.month
-    for _ in range(3):
-        todo_txt = cfg.data_dir / f"todos/{today.year}/{month:0>2}.txt"
+    year = today.year
+    for _ in range(36):
+        todo_txt = todo_dir / f"{year}/{month:0>2}.txt"
         if todo_txt.is_file():
             todo_txts.append(todo_txt)
+
+        if month == 1:
+            year -= 1
+
         month = last_month(month)
 
-    vim_popen = vim(daily_txt, *todo_txts)
-    vim_popen.communicate()
+    V = vim(daily_txt, *todo_txts)
+    V.communicate()
 
-    return vim_popen.returncode
+    return V.returncode
 
 
 def last_month(month: int) -> int:
@@ -57,7 +80,7 @@ def run_add(cfg: AddConfig) -> int:
     log = logger.bind_fargs(locals())
 
     todo_dir = cfg.data_dir / "todos"
-    repo = GreatRepo(todo_dir, GreatTodo)
+    repo = GreatRepo(todo_dir)
     todo = GreatTodo.from_line(cfg.todo_line).unwrap()
     if "inbox" not in todo.contexts:
         contexts = list(todo.contexts) + ["inbox"]
