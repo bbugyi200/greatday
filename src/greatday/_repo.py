@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import datetime as dt
 from pathlib import Path
-from typing import Type
+from typing import Iterable, Type
 
 from eris import ErisResult, Ok
-from magodo import Todo, TodoReader
+from magodo import TodoGroup
 from potoroo import TaggedRepo
 from typist import PathLike
 
@@ -15,12 +16,21 @@ from ._ids import init_next_todo_id
 from .types import T, U
 
 
-class GreatRepo(TaggedRepo[str, T, Todo]):
+@dataclass(frozen=True)
+class Tag:
+    """Tag used to filter Todos."""
+    contexts: Iterable[str]
+
+
+class GreatRepo(TaggedRepo[str, T, Tag]):
     """Repo that stores Todos on disk."""
 
     def __init__(self, path: PathLike, todo_type: Type[T]) -> None:
         self.path = Path(path)
         self.todo_type = todo_type
+
+        self._todo_group: TodoGroup | None = None
+        self._reload_todo_group = False
 
     def add(self, todo: T, /, *, key: str = None) -> ErisResult[str]:
         """Write a new Todo to disk.
@@ -45,13 +55,19 @@ class GreatRepo(TaggedRepo[str, T, Todo]):
             txt_path = self.path
 
         if txt_path.exists():
-            todo_group = TodoReader.from_path(type(todo), txt_path)
+            todo_group = TodoGroup.from_path(self.todo_type, txt_path)
             todos.extend(todo_group)
 
         with txt_path.open("w") as f:
             f.write("\n".join(T.to_line() for T in sorted(todos)))
 
         return Ok(key)
+
+    def todo_group(self) -> TodoGroup:
+        """Returns the TodoGroup associated with this GreatRepo."""
+        if self._todo_group is None or self._reload_todo_group:
+            self._todo_group = TodoGroup.from_path(self.todo_type, self.path)
+        return self._todo_group
 
     def bind(self, todo_type: Type[U]) -> GreatRepo[U]:
         """Constructs a new GreatRepo using a new Todo type."""
@@ -66,14 +82,14 @@ class GreatRepo(TaggedRepo[str, T, Todo]):
     def update(self, key: str, todo: T, /) -> ErisResult[T]:
         """Overwrite an existing Todo on disk."""
 
-    def get_by_tag(self, tag: Todo) -> ErisResult[list[T]]:
+    def get_by_tag(self, tag: Tag) -> ErisResult[list[T]]:
         """Get Todos from disk by using a tag.
 
         Retrieves a list of Todos from disk by using another Todo's properties
         as search criteria.
         """
 
-    def remove_by_tag(self, tag: Todo) -> ErisResult[list[T]]:
+    def remove_by_tag(self, tag: Tag) -> ErisResult[list[T]]:
         """Remove a Todo from disk by using a tag.
 
         Removes a list of Todos from disk by using another Todo's properties
