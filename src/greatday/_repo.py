@@ -13,7 +13,7 @@ from potoroo import TaggedRepo
 from typist import PathLike
 
 from ._ids import init_next_todo_id
-from .types import T, U
+from .types import T
 
 
 @dataclass(frozen=True)
@@ -68,10 +68,6 @@ class GreatRepo(TaggedRepo[str, T, Tag]):
         if self._todo_group is None or self._reload_todo_group:
             self._todo_group = TodoGroup.from_path(self.todo_type, self.path)
         return self._todo_group
-
-    def bind(self, todo_type: Type[U]) -> GreatRepo[U]:
-        """Constructs a new GreatRepo using a new Todo type."""
-        return GreatRepo(self.path, todo_type)
 
     def get(self, key: str) -> ErisResult[T | None]:
         """Retrieve a Todo from disk."""
