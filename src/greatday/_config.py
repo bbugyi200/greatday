@@ -38,7 +38,11 @@ class AddConfig(Config):
 
     command: Literal["add"]
 
+    # ----- ARGUMENTS
     todo_line: str
+
+    # ----- CONFIG
+    add_inbox_context: bool = True
 
 
 def clack_parser(argv: Sequence[str]) -> dict[str, Any]:

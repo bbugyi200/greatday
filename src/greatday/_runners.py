@@ -108,7 +108,7 @@ def run_add(cfg: AddConfig) -> int:
     todo_dir = cfg.data_dir / "todos"
     repo = GreatRepo(todo_dir)
     todo = GreatTodo.from_line(cfg.todo_line).unwrap()
-    if "inbox" not in todo.contexts:
+    if cfg.add_inbox_context and "inbox" not in todo.contexts:
         contexts = list(todo.contexts) + ["inbox"]
         todo = todo.new(contexts=contexts)
 
