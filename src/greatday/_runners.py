@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import datetime as dt
 from pathlib import Path
-from typing import List
+from typing import Callable, List
 
 import clack
 from clack.types import ClackRunner
 from ion import getch
 from logrus import Logger
+from magodo import to_date
 from vimala import vim
 
 from ._config import AddConfig, StartConfig
@@ -31,14 +32,31 @@ def run_start(cfg: StartConfig) -> int:
     with GreatSession(todo_dir) as session:
         inbox_todos = session.repo.get_by_tag(Tag(contexts=["inbox"])).unwrap()
         contents = [todo.to_line() for todo in inbox_todos]
-        session.path.write_text(
-            "\n".join(contents)
-        )
+        session.path.write_text("\n".join(contents))
 
-        V = vim(session.path)
-        V.communicate()
+        vim(session.path).unwrap()
 
-        if getch("commit these todo changes? (y/n): ") == "y":
+        if (
+            cfg.autocommit
+            or getch("Commit these todo changes? (y/n): ") == "y"
+        ):
+            session.commit()
+        else:
+            session.rollback()
+
+        today = dt.date.today()
+        tickler_todos = session.repo.get_by_tag(
+            Tag(metadata_checks={"tickle": tickle_check(today)})
+        ).unwrap()
+        contents = [todo.to_line() for todo in tickler_todos]
+        session.path.write_text("\n".join(contents))
+
+        vim(session.path).unwrap()
+
+        if (
+            cfg.autocommit
+            or getch("Commit these todo changes? (y/n): ") == "y"
+        ):
             session.commit()
         else:
             session.rollback()
@@ -59,10 +77,18 @@ def run_start(cfg: StartConfig) -> int:
 
         month = last_month(month)
 
-    V = vim(daily_txt, *todo_txts)
-    V.communicate()
+    proc = vim(daily_txt, *todo_txts).unwrap()
+    return proc.popen.returncode
 
-    return V.returncode
+
+def tickle_check(today: dt.date) -> Callable[[str], bool]:
+    """Returns metadata checker that returns all due ticklers."""
+
+    def check(tickle_value: str) -> bool:
+        due_date = to_date(tickle_value)
+        return due_date <= today
+
+    return check
 
 
 def last_month(month: int) -> int:

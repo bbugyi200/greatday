@@ -13,3 +13,10 @@ class GreatTodo(MagicTodoMixin):
     todo_spells = spells.GREAT_TODO_SPELLS
     to_line_spells = spells.GREAT_TO_LINE_SPELLS
     from_line_spells = spells.GREAT_FROM_LINE_SPELLS
+
+    @property
+    def ident(self) -> str:
+        """Returns this Todo's unique identifier."""
+        result = self.metadata.get("id", "null")
+        assert isinstance(result, str)
+        return result

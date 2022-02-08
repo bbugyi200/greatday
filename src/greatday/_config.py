@@ -28,6 +28,8 @@ class StartConfig(Config):
 
     command: Literal["start"]
 
+    # ----- CONFIG
+    autocommit: bool = False
     contexts: List[str]
 
 

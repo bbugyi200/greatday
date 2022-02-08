@@ -30,7 +30,7 @@ class GreatSession(UnitOfWork[GreatRepo]):
 
     def __enter__(self) -> GreatSession:
         """Called before entering a GreatSession with-block."""
-        self.repo.todo_group.to_file(self.path)
+        self.repo.todo_group.to_disk(self.path)
         return self
 
     def __exit__(

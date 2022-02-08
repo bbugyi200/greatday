@@ -5,9 +5,9 @@ from __future__ import annotations
 from typing import List
 
 from magodo.spells import (
+    DEFAULT_FROM_LINE_SPELLS,
     DEFAULT_TO_LINE_SPELLS,
     DEFAULT_TODO_SPELLS,
-    DEFAULT_FROM_LINE_SPELLS,
     register_line_spell_factory,
     register_todo_spell_factory,
 )

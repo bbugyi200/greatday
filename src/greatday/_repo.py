@@ -5,10 +5,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 import datetime as dt
 from pathlib import Path
-from typing import Iterable, Type
+from typing import Iterable, Mapping
 
 from eris import ErisResult, Ok
 from magodo import TodoGroup
+from magodo.types import MetadataChecker, Priority
 from potoroo import TaggedRepo
 from typist import PathLike
 
@@ -20,7 +21,10 @@ from ._todo import GreatTodo
 class Tag:
     """Tag used to filter Todos."""
 
-    contexts: Iterable[str]
+    contexts: Iterable[str] = ()
+    projects: Iterable[str] = ()
+    priorities: Iterable[Priority] = ()
+    metadata_checks: Mapping[str, MetadataChecker] | None = None
 
 
 class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
@@ -69,6 +73,7 @@ class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
     def todo_group(self) -> TodoGroup[GreatTodo]:
         """Returns the TodoGroup associated with this GreatRepo."""
         if self._todo_group is None or self._reload_todo_group:
+            self._reload_todo_group = False
             self._todo_group = TodoGroup.from_path(GreatTodo, self.path)
         return self._todo_group
 
@@ -77,9 +82,32 @@ class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
 
     def remove(self, key: str) -> ErisResult[GreatTodo | None]:
         """Remove a Todo from disk."""
+        todo_txt = self.todo_group.path_map[key]
+
+        new_lines: list[str] = []
+
+        todo: GreatTodo | None = None
+        for line in todo_txt.read_text().split("\n"):
+            for word in line.strip().split(" "):
+                if word == f"id:{key}":
+                    todo = GreatTodo.from_line(line).unwrap()
+                    break
+            else:
+                new_lines.append(line)
+
+        todo_txt.write_text("\n".join(new_lines))
+        self._reload_todo_group = True
+
+        if todo is None:
+            return Ok(None)
+        else:
+            return Ok(todo)
 
     def update(self, key: str, todo: GreatTodo, /) -> ErisResult[GreatTodo]:
         """Overwrite an existing Todo on disk."""
+        self.remove(key).unwrap()
+        self.add(todo, key=key)
+        return Ok(todo)
 
     def get_by_tag(self, tag: Tag) -> ErisResult[list[GreatTodo]]:
         """Get Todos from disk by using a tag.
@@ -88,7 +116,16 @@ class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
         as search criteria.
         """
 
-        return Ok(list(self.todo_group.filter_by(contexts=tag.contexts)))
+        return Ok(
+            list(
+                self.todo_group.filter_by(
+                    projects=tag.projects,
+                    contexts=tag.contexts,
+                    metadata_checks=tag.metadata_checks,
+                    priorities=tag.priorities,
+                )
+            )
+        )
 
     def remove_by_tag(self, tag: Tag) -> ErisResult[list[GreatTodo]]:
         """Remove a Todo from disk by using a tag.
@@ -96,6 +133,12 @@ class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
         Removes a list of Todos from disk by using another Todo's properties
         as search criteria.
         """
+        todos = self.get_by_tag(tag).unwrap()
+        for todo in todos:
+            key = todo.metadata["id"]
+            assert isinstance(key, str)
+            self.remove(key)
+        return Ok(todos)
 
 
 def init_yyyymm_path(root: PathLike, *, date: dt.date = None) -> Path:
