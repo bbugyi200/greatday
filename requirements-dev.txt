@@ -144,7 +144,7 @@ pathspec==0.9.0
     # via black
 pep517==0.12.0
     # via pip-tools
-pip-tools==6.5.0
+pip-tools==6.5.1
     # via -r requirements-dev.in
 platformdirs==2.4.1
     # via
@@ -249,7 +249,7 @@ toml==0.10.2
     #   pylint
     #   pytest
     #   tox
-tomli==2.0.0
+tomli==2.0.1
     # via
     #   black
     #   coverage
@@ -285,7 +285,7 @@ zipp==3.7.0
 # The following packages are considered to be unsafe in a requirements file:
 pip==22.0.3
     # via pip-tools
-setuptools==60.7.1
+setuptools==60.8.1
     # via
     #   astroid
     #   pip-tools
