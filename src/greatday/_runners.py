@@ -10,7 +10,7 @@ import clack
 from clack.types import ClackRunner
 from ion import getch
 from logrus import Logger
-from magodo import to_date
+import magodo
 from vimala import vim
 
 from ._config import AddConfig, StartConfig
@@ -82,10 +82,10 @@ def run_start(cfg: StartConfig) -> int:
 
 
 def tickle_check(today: dt.date) -> Callable[[str], bool]:
-    """Returns metadata checker that returns all due ticklers."""
+    """Returns MetadataChecker that returns all due ticklers."""
 
     def check(tickle_value: str) -> bool:
-        due_date = to_date(tickle_value)
+        due_date = magodo.to_date(tickle_value)
         return due_date <= today
 
     return check
