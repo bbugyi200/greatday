@@ -9,6 +9,7 @@ bolton-clack==0.3.2
 bolton-eris==0.2.3
     # via
     #   bolton-clack
+    #   bolton-proctor
     #   magodo
     #   potoroo
 bolton-ion==0.1.0
@@ -24,11 +25,14 @@ bolton-metaman==0.1.1
     #   bolton-eris
     #   bolton-logrus
     #   magodo
+bolton-proctor==0.2.1
+    # via vimala
 bolton-typist==0.2.0
     # via
     #   bolton-clack
     #   bolton-eris
     #   magodo
+    #   vimala
 magodo==0.7.1
     # via -r requirements.in
 potoroo==0.3.2
@@ -41,3 +45,5 @@ structlog==21.5.0
     # via bolton-logrus
 typing-extensions==4.0.1
     # via pydantic
+vimala==0.1.2
+    # via -r requirements.in

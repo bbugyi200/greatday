@@ -29,6 +29,7 @@ bolton-clack==0.3.2
 bolton-eris==0.2.3
     # via
     #   bolton-clack
+    #   bolton-proctor
     #   magodo
     #   potoroo
 bolton-ion==0.1.0
@@ -46,11 +47,14 @@ bolton-metaman==0.1.1
     #   bolton-eris
     #   bolton-logrus
     #   magodo
+bolton-proctor==0.2.1
+    # via vimala
 bolton-typist==0.2.0
     # via
     #   bolton-clack
     #   bolton-eris
     #   magodo
+    #   vimala
 bump2version==1.0.1
     # via -r requirements-dev.in
 certifi==2021.10.8
@@ -273,6 +277,10 @@ typing-extensions==4.0.1
     #   pylint
 urllib3==1.26.8
     # via requests
+vimala==0.1.2
+    # via
+    #   -r requirements.in
+    #   greatday
 virtualenv==20.13.1
     # via tox
 wheel==0.37.1
