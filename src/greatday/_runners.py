@@ -97,7 +97,8 @@ def edit_and_commit_todos(
         if otodo != new_todo:
             break
     else:
-        return
+        if len(old_todos) == len(session.repo.todo_group):
+            return
 
     should_commit: bool
     if commit_mode == "y":

@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Container
+from typing import Container, Final
 
 from typist import PathLike
+
+
+NULL_ID: Final = "null"
 
 
 def init_next_todo_id(root: PathLike) -> str:

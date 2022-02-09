@@ -5,6 +5,7 @@ from __future__ import annotations
 from magodo import MagicTodoMixin
 
 from . import _spells as spells
+from ._ids import NULL_ID
 
 
 class GreatTodo(MagicTodoMixin):
@@ -17,6 +18,6 @@ class GreatTodo(MagicTodoMixin):
     @property
     def ident(self) -> str:
         """Returns this Todo's unique identifier."""
-        result = self.metadata.get("id", "null")
+        result = self.metadata.get("id", NULL_ID)
         assert isinstance(result, str)
         return result

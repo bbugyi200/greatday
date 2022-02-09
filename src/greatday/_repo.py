@@ -14,7 +14,7 @@ from magodo.types import MetadataChecker, Priority
 from potoroo import TaggedRepo
 from typist import PathLike
 
-from ._ids import init_next_todo_id
+from ._ids import NULL_ID, init_next_todo_id
 from ._todo import GreatTodo
 
 
@@ -50,8 +50,8 @@ class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
 
         Returns a unique identifier that has been associated with this Todo.
         """
-        drop_old_key = False
-        if key is None:
+        drop_old_key = bool(todo.ident == NULL_ID)
+        if key is None or key == NULL_ID:
             key = init_next_todo_id(self.path)
         else:
             drop_old_key = True

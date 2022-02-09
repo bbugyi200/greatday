@@ -8,10 +8,15 @@ import tempfile
 from types import TracebackType
 from typing import Type
 
+from logrus import Logger
 from potoroo import UnitOfWork
 from typist import PathLike
 
+from ._ids import NULL_ID
 from ._repo import GreatRepo, Tag
+
+
+logger = Logger(__name__)
 
 
 class GreatSession(UnitOfWork[GreatRepo]):
@@ -61,8 +66,12 @@ class GreatSession(UnitOfWork[GreatRepo]):
         old_todo_keys = [todo.ident for todo in self._old_todos]
         for todo in self.repo.todo_group:
             key = todo.ident
-            self._master_repo.update(key, todo)
-            old_todo_keys.remove(key)
+            if key == NULL_ID:
+                logger.info("New todo was added while editing?", todo=todo)
+                self._master_repo.add(todo)
+            else:
+                self._master_repo.update(key, todo)
+                old_todo_keys.remove(key)
 
         for key in old_todo_keys:
             self._master_repo.remove(key).unwrap()
