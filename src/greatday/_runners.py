@@ -70,17 +70,22 @@ def run_start(cfg: StartConfig) -> int:
     logger.info("Processing todos selected for completion today.")
     with GreatSession(
         todo_dir,
-        Tag(contexts=["daily"], done=False),
+        Tag(contexts=["today"], done=False),
         name=magodo.from_date(today),
     ) as session:
         edit_todos(session)
         should_commit = False
         for todo in session.repo.todo_group:
-            if "daily" in todo.contexts:
+            if "x" in todo.contexts:
+                contexts = tuple(
+                    ctx for ctx in todo.contexts if ctx not in ["x", "today"]
+                )
+            elif "today" not in todo.contexts:
+                contexts = tuple(list(todo.contexts) + ["today"])
+            else:
                 continue
 
             should_commit = True
-            contexts = tuple(list(todo.contexts) + ["daily"])
             new_todo = todo.new(contexts=contexts)
             session.repo.update(new_todo.ident, new_todo).unwrap()
 
