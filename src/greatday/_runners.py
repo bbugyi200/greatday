@@ -74,6 +74,18 @@ def run_start(cfg: StartConfig) -> int:
         name=magodo.from_date(today),
     ) as session:
         edit_todos(session)
+        should_commit = False
+        for todo in session.repo.todo_group:
+            if "daily" in todo.contexts:
+                continue
+
+            should_commit = True
+            contexts = tuple(list(todo.contexts) + ["daily"])
+            new_todo = todo.new(contexts=contexts)
+            session.repo.update(new_todo.ident, new_todo).unwrap()
+
+        if should_commit:
+            session.commit()
 
     return 0
 

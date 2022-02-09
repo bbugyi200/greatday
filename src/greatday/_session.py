@@ -64,17 +64,31 @@ class GreatSession(UnitOfWork[GreatRepo]):
         instantiation back to the original.
         """
         old_todo_keys = [todo.ident for todo in self._old_todos]
+        new_todos = {}
         for todo in self.repo.todo_group:
             key = todo.ident
             if key == NULL_ID:
                 logger.info("New todo was added while editing?", todo=todo)
-                self._master_repo.add(todo)
+                key = self._master_repo.add(todo).unwrap()
+                new_todos[key] = todo
             else:
-                self._master_repo.update(key, todo)
-                old_todo_keys.remove(key)
+                self._master_repo.update(key, todo).unwrap()
+                if key in old_todo_keys:
+                    old_todo_keys.remove(key)
+
+        if new_todos:
+            old_lines = self.path.read_text().split("\n")
+            self.path.write_text(
+                "\n".join(line for line in old_lines if " id:" in line)
+            )
+
+        for key, todo in new_todos.items():
+            self.repo.add(todo, key=key)
 
         for key in old_todo_keys:
-            self._master_repo.remove(key).unwrap()
+            removed_todo = self._master_repo.remove(key).unwrap()
+            if removed_todo is not None:
+                self._old_todos.remove(removed_todo)
 
     def rollback(self) -> None:
         """Revert any changes made while in this GreatSession's with-block."""
