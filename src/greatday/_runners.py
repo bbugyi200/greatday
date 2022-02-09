@@ -32,13 +32,34 @@ def run_start(cfg: StartConfig) -> int:
     """Runner for the 'start' subcommand."""
     edit_todos = partial(edit_and_commit_todos, commit_mode=cfg.commit_mode)
 
-    todo_dir = cfg.data_dir / "todos"
-    with GreatSession(
-        todo_dir, Tag(contexts=["inbox"], done=False), name="inbox"
-    ) as session:
-        edit_todos(session)
-
     today = dt.date.today()
+    last_start_date_file = cfg.data_dir / "last_start_date"
+    if last_start_date_file.exists():
+        assert last_start_date_file.is_file()
+        last_start_string = last_start_date_file.read_text().strip()
+    else:
+        last_start_string = "1900-01-01"
+    last_start_date = magodo.to_date(last_start_string)
+
+    todo_dir = cfg.data_dir / "todos"
+    if last_start_date < today:
+        logger.info(
+            "Processing todos in your Inbox.",
+            last_start_date=last_start_date,
+        )
+        with GreatSession(
+            todo_dir, Tag(contexts=["inbox"], done=False), name="inbox"
+        ) as session:
+            edit_todos(session)
+
+        last_start_date_file.write_text(magodo.from_date(today))
+    else:
+        logger.info(
+            "Skipping Inbox processing (already processed today).",
+            last_start_date=last_start_date,
+        )
+
+    logger.info("Processing due tickler todos.")
     with GreatSession(
         todo_dir,
         Tag(metadata_checks={"tickle": tickle_check(today)}, done=False),
@@ -46,6 +67,7 @@ def run_start(cfg: StartConfig) -> int:
     ) as session:
         edit_todos(session)
 
+    logger.info("Processing todos selected for completion today.")
     with GreatSession(
         todo_dir,
         Tag(contexts=["daily"], done=False),
