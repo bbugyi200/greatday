@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime as dt
 from typing import List
 
+import magodo
 from magodo.spells import (
     DEFAULT_FROM_LINE_SPELLS,
     DEFAULT_TO_LINE_SPELLS,
@@ -40,3 +41,53 @@ def remove_today_context(todo: T) -> T:
 
     contexts = [ctx for ctx in todo.contexts if ctx != "today"]
     return todo.new(contexts=contexts)
+
+
+@todo_spell
+def recur_spell(todo: T) -> T:
+    """Handles the 'recur:' metatag."""
+    mdata = todo.metadata
+
+    if not todo.done:
+        return todo
+
+    recur = mdata.get("recur")
+    if not recur:
+        return todo
+
+    tickle = mdata.get("tickle")
+    if not tickle:
+        return todo
+
+    assert isinstance(recur, str)
+    tdelta = _get_tdelta(recur)
+
+    assert isinstance(tickle, str)
+    tickle_date = magodo.to_date(tickle)
+
+    metadata = dict(mdata.items())
+    next_tickle_date = tickle_date + tdelta
+    next_tickle_str = magodo.from_date(next_tickle_date)
+    metadata["tickle"] = next_tickle_str
+
+    if "dtime" in metadata:
+        del metadata["dtime"]
+
+    desc_words = todo.desc.split(" ")
+    new_desc_words = []
+    for word in desc_words:
+        if word.startswith("tickle:"):
+            new_desc_words.append(f"tickle:{next_tickle_str}")
+        elif word.startswith("dtime:"):
+            continue
+        else:
+            new_desc_words.append(word)
+
+    desc = " ".join(new_desc_words)
+
+    return todo.new(desc=desc, metadata=metadata, done=False, done_date=None)
+
+
+def _get_tdelta(spec: str) -> dt.timedelta:
+    days = int(spec[:-1])
+    return dt.timedelta(days=days)
