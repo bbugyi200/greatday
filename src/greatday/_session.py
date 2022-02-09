@@ -59,14 +59,13 @@ class GreatSession(UnitOfWork[GreatRepo]):
         We achieve this by copying the contents of the backup file created on
         instantiation back to the original.
         """
-        old_todos = list(self._old_todos)
+        old_todo_keys = [todo.ident for todo in self._old_todos]
         for todo in self.repo.todo_group:
             key = todo.ident
             self._master_repo.update(key, todo)
-            old_todos.remove(todo)
+            old_todo_keys.remove(key)
 
-        for otodo in old_todos:
-            key = otodo.ident
+        for key in old_todo_keys:
             self._master_repo.remove(key).unwrap()
 
     def rollback(self) -> None:

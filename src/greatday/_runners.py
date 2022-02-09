@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import datetime as dt
-from pathlib import Path
-from typing import Callable, Iterable, List
+from functools import partial
+from typing import Callable, List
 
 import clack
 from clack.types import ClackRunner
@@ -30,15 +30,13 @@ logger = Logger(__name__)
 @runner
 def run_start(cfg: StartConfig) -> int:
     """Runner for the 'start' subcommand."""
+    edit_todos = partial(edit_and_commit_todos, commit_mode=cfg.commit_mode)
+
     todo_dir = cfg.data_dir / "todos"
     with GreatSession(
         todo_dir, Tag(contexts=["inbox"]), name="inbox"
     ) as session:
-        inbox_todos = list(session.repo.todo_group)
-        vim(session.path).unwrap()
-        commit_todo_changes(
-            session, old_todos=inbox_todos, commit_mode=cfg.commit_mode
-        )
+        edit_todos(session)
 
     today = dt.date.today()
     with GreatSession(
@@ -46,39 +44,28 @@ def run_start(cfg: StartConfig) -> int:
         Tag(metadata_checks={"tickle": tickle_check(today)}),
         name="ticklers",
     ) as session:
-        tickler_todos = list(session.repo.todo_group)
-        vim(session.path).unwrap()
-        commit_todo_changes(
-            session, old_todos=tickler_todos, commit_mode=cfg.commit_mode
-        )
+        edit_todos(session)
 
-    today = dt.date.today()
-    daily_txt = cfg.data_dir / "daily.txt"
+    with GreatSession(
+        todo_dir, Tag(contexts=["daily"]), name="daily"
+    ) as session:
+        edit_todos(session)
 
-    todo_txts: list[Path] = []
-    month = today.month
-    year = today.year
-    for _ in range(36):
-        todo_txt = todo_dir / f"{year}/{month:0>2}.txt"
-        if todo_txt.is_file():
-            todo_txts.append(todo_txt)
-
-        if month == 1:
-            year -= 1
-
-        month = last_month(month)
-
-    proc = vim(daily_txt, *todo_txts).unwrap()
-    return proc.popen.returncode
+    return 0
 
 
-def commit_todo_changes(
+def edit_and_commit_todos(
     session: GreatSession,
     *,
-    old_todos: Iterable[GreatTodo],
     commit_mode: YesNoPrompt = "prompt",
 ) -> None:
-    """Commit todo changes to disk."""
+    """Edit and commit todo changes to disk."""
+    old_todos = list(session.repo.todo_group)
+    if not old_todos:
+        return
+
+    vim(session.path).unwrap()
+
     for otodo in old_todos:
         key = otodo.ident
 
