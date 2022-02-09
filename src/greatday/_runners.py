@@ -4,19 +4,21 @@ from __future__ import annotations
 
 import datetime as dt
 from pathlib import Path
-from typing import Callable, List
+from typing import Callable, Iterable, List
 
 import clack
 from clack.types import ClackRunner
 from ion import getch
 from logrus import Logger
 import magodo
+from typist import assert_never
 from vimala import vim
 
 from ._config import AddConfig, StartConfig
 from ._repo import GreatRepo, Tag
 from ._session import GreatSession
 from ._todo import GreatTodo
+from .types import YesNoPrompt
 
 
 ALL_RUNNERS: List[ClackRunner] = []
@@ -29,37 +31,26 @@ logger = Logger(__name__)
 def run_start(cfg: StartConfig) -> int:
     """Runner for the 'start' subcommand."""
     todo_dir = cfg.data_dir / "todos"
-    with GreatSession(todo_dir) as session:
-        inbox_todos = session.repo.get_by_tag(Tag(contexts=["inbox"])).unwrap()
-        contents = [todo.to_line() for todo in inbox_todos]
-        session.path.write_text("\n".join(contents))
-
+    with GreatSession(
+        todo_dir, Tag(contexts=["inbox"]), name="inbox"
+    ) as session:
+        inbox_todos = list(session.repo.todo_group)
         vim(session.path).unwrap()
+        commit_todo_changes(
+            session, old_todos=inbox_todos, commit_mode=cfg.commit_mode
+        )
 
-        if (
-            cfg.autocommit
-            or getch("Commit these todo changes? (y/n): ") == "y"
-        ):
-            session.commit()
-        else:
-            session.rollback()
-
-        today = dt.date.today()
-        tickler_todos = session.repo.get_by_tag(
-            Tag(metadata_checks={"tickle": tickle_check(today)})
-        ).unwrap()
-        contents = [todo.to_line() for todo in tickler_todos]
-        session.path.write_text("\n".join(contents))
-
+    today = dt.date.today()
+    with GreatSession(
+        todo_dir,
+        Tag(metadata_checks={"tickle": tickle_check(today)}),
+        name="ticklers",
+    ) as session:
+        tickler_todos = list(session.repo.todo_group)
         vim(session.path).unwrap()
-
-        if (
-            cfg.autocommit
-            or getch("Commit these todo changes? (y/n): ") == "y"
-        ):
-            session.commit()
-        else:
-            session.rollback()
+        commit_todo_changes(
+            session, old_todos=tickler_todos, commit_mode=cfg.commit_mode
+        )
 
     today = dt.date.today()
     daily_txt = cfg.data_dir / "daily.txt"
@@ -79,6 +70,40 @@ def run_start(cfg: StartConfig) -> int:
 
     proc = vim(daily_txt, *todo_txts).unwrap()
     return proc.popen.returncode
+
+
+def commit_todo_changes(
+    session: GreatSession,
+    *,
+    old_todos: Iterable[GreatTodo],
+    commit_mode: YesNoPrompt = "prompt",
+) -> None:
+    """Commit todo changes to disk."""
+    for otodo in old_todos:
+        key = otodo.ident
+
+        new_todo = session.repo.get(key).unwrap()
+        if otodo != new_todo:
+            break
+    else:
+        return
+
+    should_commit: bool
+    if commit_mode == "y":
+        should_commit = True
+    elif commit_mode == "n":
+        should_commit = False
+    elif commit_mode == "prompt":
+        should_commit = bool(
+            getch("Commit these todo changes? (y/n): ") == "y"
+        )
+    else:
+        assert_never(commit_mode)
+
+    if should_commit:
+        session.commit()
+    else:
+        session.rollback()
 
 
 def tickle_check(today: dt.date) -> Callable[[str], bool]:

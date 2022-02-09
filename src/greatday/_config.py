@@ -9,6 +9,7 @@ import clack
 from clack import xdg
 
 from . import APP_NAME
+from .types import YesNoPrompt
 
 
 Command = Literal["add", "info", "list", "note", "start"]
@@ -29,7 +30,7 @@ class StartConfig(Config):
     command: Literal["start"]
 
     # ----- CONFIG
-    autocommit: bool = False
+    commit_mode: YesNoPrompt = "prompt"
     contexts: List[str]
 
 

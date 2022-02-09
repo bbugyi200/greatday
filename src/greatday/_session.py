@@ -8,29 +8,36 @@ import tempfile
 from types import TracebackType
 from typing import Type
 
-from magodo import TodoGroup
 from potoroo import UnitOfWork
 from typist import PathLike
 
-from ._repo import GreatRepo
-from ._todo import GreatTodo
+from ._repo import GreatRepo, Tag
 
 
 class GreatSession(UnitOfWork[GreatRepo]):
     """Each time todos are opened in an editor, a new session is created."""
 
-    def __init__(self, path: PathLike) -> None:
-        path = Path(path)
-        self._path = path
+    def __init__(
+        self, repo_path: PathLike, tag: Tag, *, name: str = None
+    ) -> None:
+        repo_path = Path(repo_path)
+        self._path = repo_path
 
-        _, temp_path = tempfile.mkstemp(suffix=path.stem)
+        prefix = None if name is None else f"{name}."
+        _, temp_path = tempfile.mkstemp(prefix=prefix, suffix=".txt")
         self.path = Path(temp_path)
 
-        self._repo = GreatRepo(path)
+        self._master_repo = GreatRepo(repo_path)
+
+        todos = self._master_repo.get_by_tag(tag).unwrap()
+        contents = [todo.to_line() for todo in todos]
+        self.path.write_text("\n".join(contents))
+
+        self._temp_repo = GreatRepo(self.path)
+        self._old_todos = list(self._temp_repo.todo_group)
 
     def __enter__(self) -> GreatSession:
         """Called before entering a GreatSession with-block."""
-        self.repo.todo_group.to_disk(self.path)
         return self
 
     def __exit__(
@@ -52,10 +59,15 @@ class GreatSession(UnitOfWork[GreatRepo]):
         We achieve this by copying the contents of the backup file created on
         instantiation back to the original.
         """
-        todo_group = TodoGroup.from_path(GreatTodo, self.path)
-        for todo in todo_group:
-            key = todo.metadata["id"]
-            self.repo.update(key, todo)
+        old_todos = list(self._old_todos)
+        for todo in self.repo.todo_group:
+            key = todo.ident
+            self._master_repo.update(key, todo)
+            old_todos.remove(todo)
+
+        for otodo in old_todos:
+            key = otodo.ident
+            self._master_repo.remove(key).unwrap()
 
     def rollback(self) -> None:
         """Revert any changes made while in this GreatSession's with-block."""
@@ -63,4 +75,4 @@ class GreatSession(UnitOfWork[GreatRepo]):
     @property
     def repo(self) -> GreatRepo:
         """Returns the GreatRepo object associated with this GreatSession."""
-        return self._repo
+        return self._temp_repo

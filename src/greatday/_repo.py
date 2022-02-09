@@ -34,7 +34,11 @@ class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
         self.path = Path(path)
 
         self._todo_group: TodoGroup | None = None
-        self._reload_todo_group = False
+
+    @property
+    def todo_group(self) -> TodoGroup[GreatTodo]:
+        """Returns the TodoGroup associated with this GreatRepo."""
+        return TodoGroup.from_path(GreatTodo, self.path)
 
     def add(self, todo: GreatTodo, /, *, key: str = None) -> ErisResult[str]:
         """Write a new Todo to disk.
@@ -69,16 +73,9 @@ class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
 
         return Ok(key)
 
-    @property
-    def todo_group(self) -> TodoGroup[GreatTodo]:
-        """Returns the TodoGroup associated with this GreatRepo."""
-        if self._todo_group is None or self._reload_todo_group:
-            self._reload_todo_group = False
-            self._todo_group = TodoGroup.from_path(GreatTodo, self.path)
-        return self._todo_group
-
     def get(self, key: str) -> ErisResult[GreatTodo | None]:
         """Retrieve a Todo from disk."""
+        return Ok(self.todo_group.todo_map.get(key, None))
 
     def remove(self, key: str) -> ErisResult[GreatTodo | None]:
         """Remove a Todo from disk."""
@@ -96,7 +93,6 @@ class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
                 new_lines.append(line)
 
         todo_txt.write_text("\n".join(new_lines))
-        self._reload_todo_group = True
 
         if todo is None:
             return Ok(None)
