@@ -59,13 +59,16 @@ def run_start(cfg: StartConfig) -> int:
             last_start_date=last_start_date,
         )
 
-    logger.info("Processing due tickler todos.")
-    with GreatSession(
-        todo_dir,
-        Tag(metadata_checks={"tickle": tickle_check(today)}, done=False),
-        name="ticklers",
-    ) as session:
-        edit_todos(session)
+    if cfg.skip_ticklers:
+        logger.info("Skipping tickler todos.")
+    else:
+        logger.info("Processing due tickler todos.")
+        with GreatSession(
+            todo_dir,
+            Tag(metadata_checks={"tickle": tickle_check(today)}, done=False),
+            name="ticklers",
+        ) as session:
+            edit_todos(session)
 
     logger.info("Processing todos selected for completion today.")
     with GreatSession(

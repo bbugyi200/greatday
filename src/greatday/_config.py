@@ -31,6 +31,7 @@ class StartConfig(Config):
 
     # ----- CONFIG
     commit_mode: YesNoPrompt = "prompt"
+    skip_ticklers: bool = False
     contexts: List[str]
 
 
