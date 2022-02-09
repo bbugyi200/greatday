@@ -27,13 +27,12 @@ class GreatSession(UnitOfWork[GreatRepo]):
         _, temp_path = tempfile.mkstemp(prefix=prefix, suffix=".txt")
         self.path = Path(temp_path)
 
-        self._master_repo = GreatRepo(repo_path)
-
-        todos = self._master_repo.get_by_tag(tag).unwrap()
-        contents = [todo.to_line() for todo in todos]
-        self.path.write_text("\n".join(contents))
-
         self._temp_repo = GreatRepo(self.path)
+
+        self._master_repo = GreatRepo(repo_path)
+        for todo in self._master_repo.get_by_tag(tag).unwrap():
+            self.repo.add(todo, key=todo.ident)
+
         self._old_todos = list(self._temp_repo.todo_group)
 
     def __enter__(self) -> GreatSession:

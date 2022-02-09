@@ -22,9 +22,10 @@ class Tag:
     """Tag used to filter Todos."""
 
     contexts: Iterable[str] = ()
-    projects: Iterable[str] = ()
-    priorities: Iterable[Priority] = ()
+    done: bool | None = None
     metadata_checks: Mapping[str, MetadataChecker] | None = None
+    priorities: Iterable[Priority] = ()
+    projects: Iterable[str] = ()
 
 
 class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
@@ -115,10 +116,11 @@ class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
         return Ok(
             list(
                 self.todo_group.filter_by(
-                    projects=tag.projects,
                     contexts=tag.contexts,
+                    done=tag.done,
                     metadata_checks=tag.metadata_checks,
                     priorities=tag.priorities,
+                    projects=tag.projects,
                 )
             )
         )

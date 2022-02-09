@@ -34,20 +34,22 @@ def run_start(cfg: StartConfig) -> int:
 
     todo_dir = cfg.data_dir / "todos"
     with GreatSession(
-        todo_dir, Tag(contexts=["inbox"]), name="inbox"
+        todo_dir, Tag(contexts=["inbox"], done=False), name="inbox"
     ) as session:
         edit_todos(session)
 
     today = dt.date.today()
     with GreatSession(
         todo_dir,
-        Tag(metadata_checks={"tickle": tickle_check(today)}),
+        Tag(metadata_checks={"tickle": tickle_check(today)}, done=False),
         name="ticklers",
     ) as session:
         edit_todos(session)
 
     with GreatSession(
-        todo_dir, Tag(contexts=["daily"]), name="daily"
+        todo_dir,
+        Tag(contexts=["daily"], done=False),
+        name=magodo.from_date(today),
     ) as session:
         edit_todos(session)
 
