@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Iterable, Mapping
 
 from eris import ErisResult, Ok
+from logrus import Logger
 from magodo import TodoGroup
 from magodo.types import MetadataChecker, Priority
 from potoroo import TaggedRepo
@@ -15,6 +16,9 @@ from typist import PathLike
 
 from ._ids import init_next_todo_id
 from ._todo import GreatTodo
+
+
+logger = Logger(__name__)
 
 
 @dataclass(frozen=True)
@@ -46,12 +50,19 @@ class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
 
         Returns a unique identifier that has been associated with this Todo.
         """
+        drop_old_key = False
         if key is None:
             key = init_next_todo_id(self.path)
+        else:
+            drop_old_key = True
 
-        line = todo.to_line()
-        line = line + f" id:{key}"
-        todo = GreatTodo.from_line(line).unwrap()
+        mdata = dict(todo.metadata.items())
+
+        old_key = mdata.get("id")
+        if (drop_old_key and old_key != key) or not old_key:
+            metadata = dict(mdata.items())
+            metadata.update({"id": key})
+            todo = todo.new(metadata=metadata)
 
         todos: list[GreatTodo] = [todo]
 
