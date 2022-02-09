@@ -70,7 +70,7 @@ def run_start(cfg: StartConfig) -> int:
     logger.info("Processing todos selected for completion today.")
     with GreatSession(
         todo_dir,
-        Tag(contexts=["today"], done=False),
+        Tag(contexts=["today"]),
         name=magodo.from_date(today),
     ) as session:
         edit_todos(session)
