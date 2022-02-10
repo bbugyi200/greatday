@@ -48,6 +48,12 @@ def recur_spell(todo: T) -> T:
     """Handles the 'recur:' metatag."""
     mdata = todo.metadata
 
+    def get_tdelta(spec: str) -> dt.timedelta:
+        """Converts a string spec to a timedelta."""
+        assert spec[-1] == "d"
+        days = int(spec[:-1])
+        return dt.timedelta(days=days)
+
     if not todo.done:
         return todo
 
@@ -60,7 +66,7 @@ def recur_spell(todo: T) -> T:
         return todo
 
     assert isinstance(recur, str)
-    tdelta = _get_tdelta(recur)
+    tdelta = get_tdelta(recur)
 
     assert isinstance(tickle, str)
     tickle_date = magodo.to_date(tickle)
@@ -88,6 +94,13 @@ def recur_spell(todo: T) -> T:
     return todo.new(desc=desc, metadata=metadata, done=False, done_date=None)
 
 
-def _get_tdelta(spec: str) -> dt.timedelta:
-    days = int(spec[:-1])
-    return dt.timedelta(days=days)
+@todo_spell
+def appt_todos(todo: T) -> T:
+    """Adds priority of (T) to todos with an appt:HHMM tag."""
+    if not todo.metadata.get("appt"):
+        return todo
+
+    if todo.priority != magodo.DEFAULT_PRIORITY:
+        return todo
+
+    return todo.new(priority="T")
