@@ -200,7 +200,7 @@ def run_add(cfg: AddConfig) -> int:
         and all(ctx not in todo.contexts for ctx in ["inbox", CTX_TODAY])
     ):
         contexts = list(todo.contexts) + ["inbox"]
-        todo = todo.new(desc=desc, contexts=contexts)
+        todo = todo.new(contexts=contexts)
 
     key = repo.add(todo).unwrap()
     log.info("Added new todo to inbox.", id=repr(key))
