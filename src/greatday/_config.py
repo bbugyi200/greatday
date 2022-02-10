@@ -9,7 +9,7 @@ import clack
 from clack import xdg
 
 from . import APP_NAME
-from .types import YesNoPrompt
+from .types import YesNoDefault
 
 
 Command = Literal["add", "info", "list", "note", "start"]
@@ -30,8 +30,9 @@ class StartConfig(Config):
     command: Literal["start"]
 
     # ----- CONFIG
-    commit_mode: YesNoPrompt = "prompt"
-    skip_ticklers: bool = False
+    commit_changes: YesNoDefault = "default"
+    ticklers: YesNoDefault = "default"
+    inbox: YesNoDefault = "default"
     contexts: List[str]
 
 

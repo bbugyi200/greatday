@@ -7,4 +7,4 @@ from magodo.types import AbstractTodo
 
 T = TypeVar("T", bound=AbstractTodo)
 
-YesNoPrompt = Literal["n", "prompt", "y"]
+YesNoDefault = Literal["n", "default", "y"]

@@ -18,7 +18,7 @@ from ._config import AddConfig, StartConfig
 from ._repo import GreatRepo, Tag
 from ._session import GreatSession
 from ._todo import GreatTodo
-from .types import YesNoPrompt
+from .types import YesNoDefault
 
 
 ALL_RUNNERS: List[ClackRunner] = []
@@ -33,7 +33,9 @@ CTX_X: Final = "x"
 @runner
 def run_start(cfg: StartConfig) -> int:
     """Runner for the 'start' subcommand."""
-    edit_todos = partial(edit_and_commit_todos, commit_mode=cfg.commit_mode)
+    edit_todos = partial(
+        edit_and_commit_todos, commit_changes=cfg.commit_changes
+    )
 
     today = dt.date.today()
     last_start_date_file = cfg.data_dir / "last_start_date"
@@ -45,7 +47,12 @@ def run_start(cfg: StartConfig) -> int:
     last_start_date = magodo.to_date(last_start_string)
 
     todo_dir = cfg.data_dir / "todos"
-    if last_start_date < today:
+
+    process_inbox = bool(
+        cfg.inbox == "y"
+        or (cfg.inbox == "default" and last_start_date < today)
+    )
+    if process_inbox:
         logger.info(
             "Processing todos in your Inbox.",
             last_start_date=last_start_date,
@@ -54,15 +61,17 @@ def run_start(cfg: StartConfig) -> int:
             todo_dir, Tag(contexts=["inbox"], done=False), name="inbox"
         ) as session:
             edit_todos(session)
-
-        last_start_date_file.write_text(magodo.from_date(today))
     else:
         logger.info(
             "Skipping Inbox processing (already processed today).",
             last_start_date=last_start_date,
         )
 
-    if cfg.skip_ticklers:
+    process_ticklers = bool(
+        cfg.ticklers == "y"
+        or (cfg.ticklers == "default" and last_start_date < today)
+    )
+    if not process_ticklers:
         logger.info("Skipping tickler todos.")
     else:
         logger.info("Processing due tickler todos.")
@@ -101,13 +110,15 @@ def run_start(cfg: StartConfig) -> int:
         if should_commit:
             session.commit()
 
+    last_start_date_file.write_text(magodo.from_date(today))
+
     return 0
 
 
 def edit_and_commit_todos(
     session: GreatSession,
     *,
-    commit_mode: YesNoPrompt = "prompt",
+    commit_changes: YesNoDefault = "default",
 ) -> None:
     """Edit and commit todo changes to disk."""
     old_todos = list(session.repo.todo_group)
@@ -127,16 +138,16 @@ def edit_and_commit_todos(
             return
 
     should_commit: bool
-    if commit_mode == "y":
+    if commit_changes == "y":
         should_commit = True
-    elif commit_mode == "n":
+    elif commit_changes == "n":
         should_commit = False
-    elif commit_mode == "prompt":
+    elif commit_changes == "default":
         should_commit = bool(
             getch("Commit these todo changes? (y/n): ") == "y"
         )
     else:
-        assert_never(commit_mode)
+        assert_never(commit_changes)
 
     if should_commit:
         session.commit()
