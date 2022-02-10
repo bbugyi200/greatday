@@ -103,4 +103,7 @@ def appt_todos(todo: T) -> T:
     if todo.priority != magodo.DEFAULT_PRIORITY:
         return todo
 
+    if todo.done or todo.done_date:
+        return todo
+
     return todo.new(priority="T")
