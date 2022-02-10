@@ -68,11 +68,9 @@ def recur_spell(todo: T) -> T:
     assert isinstance(recur, str)
     tdelta = get_tdelta(recur)
 
-    assert isinstance(tickle, str)
-    tickle_date = magodo.to_date(tickle)
-
     metadata = dict(mdata.items())
-    next_tickle_date = tickle_date + tdelta
+    today = dt.date.today()
+    next_tickle_date = today + tdelta
     next_tickle_str = magodo.from_date(next_tickle_date)
     metadata["tickle"] = next_tickle_str
 
