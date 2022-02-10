@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import datetime as dt
 from functools import partial
-from typing import Callable, List
+from typing import Callable, Final, List
 
 import clack
 from clack.types import ClackRunner
@@ -25,6 +25,9 @@ ALL_RUNNERS: List[ClackRunner] = []
 runner = clack.register_runner_factory(ALL_RUNNERS)
 
 logger = Logger(__name__)
+
+CTX_TODAY: Final = "today"
+CTX_X: Final = "x"
 
 
 @runner
@@ -73,18 +76,20 @@ def run_start(cfg: StartConfig) -> int:
     logger.info("Processing todos selected for completion today.")
     with GreatSession(
         todo_dir,
-        Tag(contexts=["today"]),
+        Tag(contexts=[CTX_TODAY]),
         name=magodo.from_date(today),
     ) as session:
         edit_todos(session)
         should_commit = False
         for todo in session.repo.todo_group:
-            if "x" in todo.contexts:
+            if CTX_X in todo.contexts:
                 contexts = tuple(
-                    ctx for ctx in todo.contexts if ctx not in ["x", "today"]
+                    ctx
+                    for ctx in todo.contexts
+                    if ctx not in [CTX_X, CTX_TODAY]
                 )
-            elif "today" not in todo.contexts:
-                contexts = tuple(list(todo.contexts) + ["today"])
+            elif CTX_TODAY not in todo.contexts:
+                contexts = tuple(list(todo.contexts) + [CTX_TODAY])
             else:
                 continue
 
@@ -157,6 +162,21 @@ def last_month(month: int) -> int:
         return month - 1
 
 
+def drop_word_from_desc(
+    desc: str,
+    bad_word: str,
+    *,
+    key: Callable[[str, str], bool] = lambda x, y: x == y,
+) -> str:
+    """Removes `bad_word` from the todo description `desc`."""
+    desc_words = desc.split(" ")
+    new_desc_words = []
+    for word in desc_words:
+        if not key(word, bad_word):
+            new_desc_words.append(word)
+    return " ".join(new_desc_words)
+
+
 @runner
 def run_add(cfg: AddConfig) -> int:
     """Runner for the 'add' subcommand."""
@@ -165,9 +185,21 @@ def run_add(cfg: AddConfig) -> int:
     todo_dir = cfg.data_dir / "todos"
     repo = GreatRepo(todo_dir)
     todo = GreatTodo.from_line(cfg.todo_line).unwrap()
-    if cfg.add_inbox_context and "inbox" not in todo.contexts:
+
+    x_found = False
+    if CTX_X in todo.contexts:
+        x_found = True
+        desc = drop_word_from_desc(todo.desc, f"@{CTX_X}")
+        contexts = [ctx for ctx in todo.contexts if ctx != CTX_X]
+        todo = todo.new(desc=desc, contexts=contexts)
+
+    if (
+        cfg.add_inbox_context
+        and not x_found
+        and all(ctx not in todo.contexts for ctx in ["inbox", CTX_TODAY])
+    ):
         contexts = list(todo.contexts) + ["inbox"]
-        todo = todo.new(contexts=contexts)
+        todo = todo.new(desc=desc, contexts=contexts)
 
     key = repo.add(todo).unwrap()
     log.info("Added new todo to inbox.", id=repr(key))
