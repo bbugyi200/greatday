@@ -15,6 +15,8 @@ from magodo.spells import (
 )
 from magodo.types import LineSpell, T, TodoSpell
 
+from ._common import CTX_TODAY, drop_word_from_desc
+
 
 GREAT_TODO_SPELLS: List[TodoSpell] = list(DEFAULT_TODO_SPELLS)
 todo_spell = register_todo_spell_factory(GREAT_TODO_SPELLS)
@@ -32,15 +34,16 @@ def remove_today_context(todo: T) -> T:
     if not todo.done_date:
         return todo
 
-    if "today" not in todo.contexts:
+    if CTX_TODAY not in todo.contexts:
         return todo
 
     today = dt.date.today()
     if todo.done_date == today:
         return todo
 
-    contexts = [ctx for ctx in todo.contexts if ctx != "today"]
-    return todo.new(contexts=contexts)
+    contexts = [ctx for ctx in todo.contexts if ctx != CTX_TODAY]
+    desc = drop_word_from_desc(todo.desc, f"@{CTX_TODAY}")
+    return todo.new(desc=desc, contexts=contexts)
 
 
 @todo_spell

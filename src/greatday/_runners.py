@@ -15,6 +15,7 @@ from typist import assert_never
 from vimala import vim
 
 from ._config import AddConfig, StartConfig
+from ._common import CTX_TODAY, drop_word_from_desc
 from ._repo import GreatRepo, Tag
 from ._session import GreatSession
 from ._todo import GreatTodo
@@ -26,7 +27,6 @@ runner = clack.register_runner_factory(ALL_RUNNERS)
 
 logger = Logger(__name__)
 
-CTX_TODAY: Final = "today"
 CTX_X: Final = "x"
 
 
@@ -172,21 +172,6 @@ def last_month(month: int) -> int:
         return 12
     else:
         return month - 1
-
-
-def drop_word_from_desc(
-    desc: str,
-    bad_word: str,
-    *,
-    key: Callable[[str, str], bool] = lambda x, y: x == y,
-) -> str:
-    """Removes `bad_word` from the todo description `desc`."""
-    desc_words = desc.split(" ")
-    new_desc_words = []
-    for word in desc_words:
-        if not key(word, bad_word):
-            new_desc_words.append(word)
-    return " ".join(new_desc_words)
 
 
 @runner
