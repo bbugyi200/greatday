@@ -15,7 +15,7 @@ from magodo.spells import (
 )
 from magodo.types import LineSpell, T, TodoSpell
 
-from ._common import CTX_TODAY, drop_word_from_desc
+from ._common import CTX_TODAY, drop_word_from_desc, get_tdelta
 
 
 GREAT_TODO_SPELLS: List[TodoSpell] = list(DEFAULT_TODO_SPELLS)
@@ -50,12 +50,6 @@ def remove_today_context(todo: T) -> T:
 def recur_spell(todo: T) -> T:
     """Handles the 'recur:' metatag."""
     mdata = todo.metadata
-
-    def get_tdelta(spec: str) -> dt.timedelta:
-        """Converts a string spec to a timedelta."""
-        assert spec[-1] == "d"
-        days = int(spec[:-1])
-        return dt.timedelta(days=days)
 
     if not todo.done:
         return todo
