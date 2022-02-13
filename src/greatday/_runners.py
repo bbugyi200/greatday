@@ -33,6 +33,8 @@ CTX_X: Final = "x"
 @runner
 def run_start(cfg: StartConfig) -> int:
     """Runner for the 'start' subcommand."""
+    log = logger.bind_fargs(locals())
+
     edit_todos = partial(
         edit_and_commit_todos, commit_changes=cfg.commit_changes
     )
@@ -53,7 +55,7 @@ def run_start(cfg: StartConfig) -> int:
         or (cfg.inbox == "default" and last_start_date < today)
     )
     if process_inbox:
-        logger.info(
+        log.info(
             "Processing todos in your Inbox.",
             last_start_date=last_start_date,
         )
@@ -62,7 +64,7 @@ def run_start(cfg: StartConfig) -> int:
         ) as session:
             edit_todos(session)
     else:
-        logger.info(
+        log.info(
             "Skipping Inbox processing (already processed today).",
             last_start_date=last_start_date,
         )
@@ -72,7 +74,7 @@ def run_start(cfg: StartConfig) -> int:
         or (cfg.ticklers == "default" and last_start_date < today)
     )
     if process_ticklers:
-        logger.info("Processing due tickler todos.")
+        log.info("Processing due tickler todos.")
         with GreatSession(
             todo_dir,
             Tag(metadata_checks={"tickle": tickle_check(today)}, done=False),
@@ -80,9 +82,9 @@ def run_start(cfg: StartConfig) -> int:
         ) as session:
             edit_todos(session)
     else:
-        logger.info("Skipping tickler todos.")
+        log.info("Skipping tickler todos.")
 
-    logger.info("Processing todos selected for completion today.")
+    log.info("Processing todos selected for completion today.")
     name = "today." + magodo.from_date(today)
     with GreatSession(
         todo_dir,
