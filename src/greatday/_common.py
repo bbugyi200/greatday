@@ -1,7 +1,13 @@
 """Common code used throughout this package."""
 
+from __future__ import annotations
+
 import datetime as dt
-from typing import Callable, Final
+from typing import TYPE_CHECKING, Callable, Final
+
+
+if TYPE_CHECKING:
+    from ._todo import GreatTodo
 
 
 CTX_TODAY: Final = "today"
@@ -43,3 +49,8 @@ def get_tdelta(spec: str, *, today: dt.date = None) -> dt.timedelta:
         days = int(spec[:-1])
 
     return dt.timedelta(days=days)
+
+
+def is_tickler(todo: GreatTodo) -> bool:
+    """Returns True iff `todo` is a tickler todo."""
+    return bool(todo.metadata.get("tickle", None) is not None)

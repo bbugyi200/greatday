@@ -45,7 +45,7 @@ class AddConfig(Config):
     todo_line: str
 
     # ----- CONFIG
-    add_inbox_context: bool = True
+    add_inbox_context: YesNoDefault = "default"
 
 
 def clack_parser(argv: Sequence[str]) -> dict[str, Any]:

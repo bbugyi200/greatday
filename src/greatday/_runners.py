@@ -14,7 +14,7 @@ import magodo
 from typist import assert_never
 from vimala import vim
 
-from ._common import CTX_TODAY, drop_word_from_desc
+from ._common import CTX_TODAY, drop_word_from_desc, is_tickler
 from ._config import AddConfig, StartConfig
 from ._repo import GreatRepo, Tag
 from ._session import GreatSession
@@ -190,9 +190,10 @@ def run_add(cfg: AddConfig) -> int:
         contexts = [ctx for ctx in todo.contexts if ctx != CTX_X]
         todo = todo.new(desc=desc, contexts=contexts)
 
-    if (
-        cfg.add_inbox_context
+    if cfg.add_inbox_context == "y" or (
+        cfg.add_inbox_context == "default"
         and not x_found
+        and not is_tickler(todo)
         and all(ctx not in todo.contexts for ctx in ["inbox", CTX_TODAY])
     ):
         contexts = list(todo.contexts) + ["inbox"]
