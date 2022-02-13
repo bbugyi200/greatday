@@ -63,6 +63,9 @@ def next_todo_id(last_id: str) -> str:
         >>> next_todo_id('BZZ')
         'C00'
 
+        >>> next_todo_id('0ZZ')
+        '100'
+
         >>> next_todo_id('C00')
         'C01'
 
