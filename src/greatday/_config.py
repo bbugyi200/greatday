@@ -1,4 +1,4 @@
-"""Contains this project's clack.Config classes.."""
+"""Contains this project's clack.Config classes."""
 
 from __future__ import annotations
 
