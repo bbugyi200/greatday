@@ -9,6 +9,8 @@ import magodo
 from magodo.spells import (
     DEFAULT_FROM_LINE_SPELLS,
     DEFAULT_TO_LINE_SPELLS,
+    DEFAULT_PRE_TODO_SPELLS,
+    DEFAULT_POST_TODO_SPELLS,
     DEFAULT_TODO_SPELLS,
     register_line_spell_factory,
     register_todo_spell_factory,
@@ -18,8 +20,14 @@ from magodo.types import LineSpell, T, TodoSpell
 from ._common import CTX_TODAY, drop_word_from_desc, get_tdelta
 
 
+GREAT_PRE_TODO_SPELLS: List[TodoSpell] = list(DEFAULT_PRE_TODO_SPELLS)
+pre_todo_spell = register_todo_spell_factory(GREAT_PRE_TODO_SPELLS)
+
 GREAT_TODO_SPELLS: List[TodoSpell] = list(DEFAULT_TODO_SPELLS)
 todo_spell = register_todo_spell_factory(GREAT_TODO_SPELLS)
+
+GREAT_POST_TODO_SPELLS: List[TodoSpell] = list(DEFAULT_POST_TODO_SPELLS)
+post_todo_spell = register_todo_spell_factory(GREAT_POST_TODO_SPELLS)
 
 GREAT_TO_LINE_SPELLS: List[LineSpell] = list(DEFAULT_TO_LINE_SPELLS)
 to_line_spell = register_line_spell_factory(GREAT_TO_LINE_SPELLS)
@@ -102,3 +110,54 @@ def appt_todos(todo: T) -> T:
         return todo
 
     return todo.new(priority="T")
+
+
+@todo_spell
+def x_points(todo: T) -> T:
+    """Handles metatags of the form 'x:N' at the start of a todo line."""
+    x = todo.metadata.get("x")
+    if not x or len(x) >= 4:
+        return todo
+
+    if not todo.desc.startswith("x:"):
+        return todo
+
+    metadata = dict(todo.metadata.items())
+    points = metadata["x"]
+    del metadata["x"]
+    metadata["points"] = points
+
+    desc = " ".join(todo.desc.split(" ")[1:]) + f" points:{points}"
+
+    new_todo = todo.new(desc=desc, done=True, metadata=metadata)
+    line = new_todo.to_line()
+    return type(todo).from_line(line).unwrap()
+
+
+@todo_spell
+def points_metatag(todo: T) -> T:
+    """Handles the 'points:N' metatag."""
+    desc = todo.desc
+    points = todo.metadata.get("points")
+    metadata = todo.metadata
+
+    P = todo.metadata.get("p")
+    if P:
+        points = P
+
+        metadata = dict(metadata.items())
+        metadata["points"] = points
+
+        del metadata["p"]
+        desc = drop_word_from_desc(desc, f"p:{points}")
+
+        desc = desc + f" points:{points}"
+
+    if not points:
+        return todo
+
+    priority = todo.priority
+    if not todo.done and priority > "I":
+        priority = "I"
+
+    return todo.new(desc=desc, metadata=metadata, priority=priority)
