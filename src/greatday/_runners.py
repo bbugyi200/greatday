@@ -110,7 +110,10 @@ def run_start(cfg: StartConfig) -> int:
         if should_commit:
             session.commit()
 
-    last_start_date_file.write_text(magodo.from_date(today))
+    if not any(
+        val == "n" for val in [cfg.commit_changes, cfg.inbox, cfg.ticklers]
+    ):
+        last_start_date_file.write_text(magodo.from_date(today))
 
     return 0
 
