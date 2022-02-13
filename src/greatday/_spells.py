@@ -67,6 +67,7 @@ def recur_spell(todo: T) -> T:
         return todo
 
     tickle = mdata.get("tickle")
+    assert isinstance(tickle, str)
     if not tickle:
         return todo
 
@@ -74,10 +75,14 @@ def recur_spell(todo: T) -> T:
     tdelta = get_tdelta(recur)
 
     metadata = dict(mdata.items())
+
     today = dt.date.today()
-    next_tickle_date = today + tdelta
-    next_tickle_str = magodo.from_date(next_tickle_date)
-    metadata["tickle"] = next_tickle_str
+    if magodo.to_date(tickle) <= today:
+        next_tickle_date = today + tdelta
+        new_tickle = magodo.from_date(next_tickle_date)
+        metadata["tickle"] = new_tickle
+    else:
+        new_tickle = tickle
 
     if "dtime" in metadata:
         del metadata["dtime"]
@@ -86,7 +91,7 @@ def recur_spell(todo: T) -> T:
     new_desc_words = []
     for word in desc_words:
         if word.startswith("tickle:"):
-            new_desc_words.append(f"tickle:{next_tickle_str}")
+            new_desc_words.append(f"tickle:{new_tickle}")
         elif word.startswith("dtime:"):
             continue
         else:
