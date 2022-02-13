@@ -14,8 +14,8 @@ import magodo
 from typist import assert_never
 from vimala import vim
 
-from ._config import AddConfig, StartConfig
 from ._common import CTX_TODAY, drop_word_from_desc
+from ._config import AddConfig, StartConfig
 from ._repo import GreatRepo, Tag
 from ._session import GreatSession
 from ._todo import GreatTodo

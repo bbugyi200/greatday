@@ -8,9 +8,9 @@ from typing import List
 import magodo
 from magodo.spells import (
     DEFAULT_FROM_LINE_SPELLS,
-    DEFAULT_TO_LINE_SPELLS,
-    DEFAULT_PRE_TODO_SPELLS,
     DEFAULT_POST_TODO_SPELLS,
+    DEFAULT_PRE_TODO_SPELLS,
+    DEFAULT_TO_LINE_SPELLS,
     DEFAULT_TODO_SPELLS,
     register_line_spell_factory,
     register_todo_spell_factory,
