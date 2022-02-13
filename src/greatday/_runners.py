@@ -71,9 +71,7 @@ def run_start(cfg: StartConfig) -> int:
         cfg.ticklers == "y"
         or (cfg.ticklers == "default" and last_start_date < today)
     )
-    if not process_ticklers:
-        logger.info("Skipping tickler todos.")
-    else:
+    if process_ticklers:
         logger.info("Processing due tickler todos.")
         with GreatSession(
             todo_dir,
@@ -81,6 +79,8 @@ def run_start(cfg: StartConfig) -> int:
             name="ticklers",
         ) as session:
             edit_todos(session)
+    else:
+        logger.info("Skipping tickler todos.")
 
     logger.info("Processing todos selected for completion today.")
     name = "today." + magodo.from_date(today)
