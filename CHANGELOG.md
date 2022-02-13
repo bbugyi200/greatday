@@ -9,9 +9,16 @@ The format is based on [Keep a Changelog], and this project adheres to
 [Semantic Versioning]: https://semver.org/
 
 
-## [Unreleased](https://github.com/bbugyi200/greatday/compare/0.2.0...HEAD)
+## [Unreleased](https://github.com/bbugyi200/greatday/compare/0.3.0...HEAD)
 
 No notable changes have been made.
+
+
+## [0.3.0](https://github.com/bbugyi200/greatday/compare/0.2.0...0.3.0) - 2022-02-13
+
+### Added
+
+* The `greatday start` command now works.
 
 
 ## [0.2.0](https://github.com/bbugyi200/greatday/compare/0.1.0...0.2.0) - 2022-01-15
