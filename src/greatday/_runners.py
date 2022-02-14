@@ -157,7 +157,14 @@ def run_start(cfg: StartConfig) -> int:
     else:
         log.info("Skipping daily todos.")
 
-    last_start_date_file.write_text(magodo.from_date(today))
+    if (
+        all(
+            opt in ["y", "default"]
+            for opt in [cfg.daily, cfg.inbox, cfg.ticklers]
+        )
+        and last_start_date < today
+    ):
+        last_start_date_file.write_text(magodo.from_date(today))
 
     return 0
 
