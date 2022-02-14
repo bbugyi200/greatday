@@ -33,7 +33,7 @@ bolton-typist==0.2.0
     #   bolton-eris
     #   magodo
     #   vimala
-magodo==0.8.3
+magodo==0.8.4
     # via -r requirements.in
 potoroo==0.3.2
     # via -r requirements.in
@@ -43,7 +43,7 @@ pyyaml==6.0
     # via bolton-clack
 structlog==21.5.0
     # via bolton-logrus
-typing-extensions==4.1.0
+typing-extensions==4.1.1
     # via pydantic
 vimala==0.1.2
     # via -r requirements.in

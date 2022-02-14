@@ -120,7 +120,7 @@ lazy-object-proxy==1.7.1
     # via astroid
 m2r2==0.3.2
     # via -r requirements-dev.in
-magodo==0.8.3
+magodo==0.8.4
     # via
     #   -r requirements.in
     #   greatday
@@ -268,7 +268,7 @@ tox-pyenv==1.1.0
     # via -r requirements-dev.in
 typer==0.4.0
     # via cruft
-typing-extensions==4.1.0
+typing-extensions==4.1.1
     # via
     #   astroid
     #   black
@@ -293,7 +293,7 @@ zipp==3.7.0
 # The following packages are considered to be unsafe in a requirements file:
 pip==22.0.3
     # via pip-tools
-setuptools==60.8.2
+setuptools==60.9.0
     # via
     #   astroid
     #   pip-tools
