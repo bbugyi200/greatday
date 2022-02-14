@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import datetime as dt
 from functools import partial
-from typing import Callable, Final, List
+import json
+from typing import Any, Callable, Dict, Final, List
 
 import clack
 from clack.types import ClackRunner
@@ -15,7 +16,7 @@ from typist import assert_never
 from vimala import vim
 
 from ._common import CTX_TODAY, drop_word_from_desc, is_tickler
-from ._config import AddConfig, StartConfig
+from ._config import AddConfig, InfoConfig, StartConfig
 from ._repo import GreatRepo, Tag
 from ._session import GreatSession
 from ._todo import GreatTodo
@@ -28,6 +29,46 @@ runner = clack.register_runner_factory(ALL_RUNNERS)
 logger = Logger(__name__)
 
 CTX_X: Final = "x"
+TODO_DIR: Final = "todos"
+
+
+@runner
+def run_info(cfg: InfoConfig) -> int:
+    """Runner for the 'info' subcommand."""
+    data: Dict[str, Any] = {}
+
+    today = dt.date.today()
+    repo_path = cfg.data_dir / TODO_DIR
+
+    day_info = data["points_by_day"] = {}
+    for days in range(cfg.points_start_offset, cfg.point_end_offset + 1):
+        ctx_to_points: dict[str, int] = {ctx: 0 for ctx in cfg.contexts}
+        done_date = today - dt.timedelta(days=days)
+        total = 0
+        with GreatSession(
+            repo_path,
+            Tag(
+                done_date=done_date,
+                done=True,
+                metadata_checks={"points": lambda _: True},
+            ),
+            name="info",
+        ) as session:
+            for todo in session.repo.todo_group:
+                P = int(todo.metadata.get("points", "0"))
+                total += P
+                for ctx in cfg.contexts:
+                    if ctx in todo.contexts:
+                        ctx_to_points[ctx] += P
+
+        date = magodo.from_date(done_date)
+        day_info[date] = {"total": total}
+        day_info[date]["contexts"] = ctx_to_points
+
+    pretty_data = json.dumps(data, indent=2)
+    print(pretty_data)
+
+    return 0
 
 
 @runner
@@ -48,7 +89,7 @@ def run_start(cfg: StartConfig) -> int:
         last_start_string = "1900-01-01"
     last_start_date = magodo.to_date(last_start_string)
 
-    todo_dir = cfg.data_dir / "todos"
+    todo_dir = cfg.data_dir / TODO_DIR
 
     process_inbox = bool(
         cfg.inbox == "y"

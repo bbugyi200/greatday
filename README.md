@@ -62,7 +62,7 @@ print("```", stdout.decode().strip(), "```", sep="\n")
 ```
 usage: greatday [-h] [-c CONFIG_FILE] [-L [FILE[:LEVEL][@FORMAT]]] [-v]
                 [--version]
-                {start,add} ...
+                {add,start,info} ...
 
 Don't have a good day. Have a great day.
 
@@ -90,9 +90,13 @@ optional arguments:
   --version             show program's version number and exit
 
 subcommands:
-  {start,add}
-    start
+  {add,start,info}
     add                 Add a new todo to your inbox.
+    start               Start the day by going through your inbox, ticklers,
+                        and finally a list of todos to have done before the
+                        end of the day.
+    info                Print information about greatday and its current state
+                        to stdout in JSON format.
 ```
 <!-- [[[[[end]]]]] -->
 

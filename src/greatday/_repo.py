@@ -26,6 +26,8 @@ class Tag:
     """Tag used to filter Todos."""
 
     contexts: Iterable[str] = ()
+    create_date: dt.date | None = None
+    done_date: dt.date | None = None
     done: bool | None = None
     metadata_checks: Mapping[str, MetadataChecker] | None = None
     priorities: Iterable[Priority] = ()
@@ -69,7 +71,7 @@ class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
         if self.path.is_dir() or (
             not self.path.exists() and self.path.suffix != ".txt"
         ):
-            txt_path = init_yyyymm_path(self.path, date=todo.create_date)
+            txt_path = init_yyyymm_path(self.path, date=todo.done_date)
         else:
             self.path.parent.mkdir(parents=True, exist_ok=True)
             txt_path = self.path
@@ -128,6 +130,8 @@ class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
             list(
                 self.todo_group.filter_by(
                     contexts=tag.contexts,
+                    create_date=tag.create_date,
+                    done_date=tag.done_date,
                     done=tag.done,
                     metadata_checks=tag.metadata_checks,
                     priorities=tag.priorities,

@@ -36,6 +36,7 @@ def main(make_config_file: MakeConfigFile, tmp_path: Path) -> MainType:
     def inner_main(*args: str, **kwargs: Any) -> int:
         if "data_dir" not in kwargs:
             kwargs["data_dir"] = data_dir
+
         cfg_kwargs = {k: str(v) for (k, v) in kwargs.items()}
 
         config_file = make_config_file("greatday_test_config", **cfg_kwargs)
