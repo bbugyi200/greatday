@@ -32,6 +32,7 @@ class StartConfig(Config):
 
     # ----- CONFIG
     commit_changes: YesNoDefault = "default"
+    daily: YesNoDefault = "default"
     ticklers: YesNoDefault = "default"
     inbox: YesNoDefault = "default"
 

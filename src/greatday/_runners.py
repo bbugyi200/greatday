@@ -125,33 +125,37 @@ def run_start(cfg: StartConfig) -> int:
     else:
         log.info("Skipping tickler todos.")
 
-    log.info("Processing todos selected for completion today.")
-    name = "today." + magodo.from_date(today)
-    with GreatSession(
-        todo_dir,
-        Tag(contexts=[CTX_TODAY]),
-        name=name,
-    ) as session:
-        edit_todos(session)
-        should_commit = False
-        for todo in session.repo.todo_group:
-            if CTX_X in todo.contexts:
-                contexts = tuple(
-                    ctx
-                    for ctx in todo.contexts
-                    if ctx not in [CTX_X, CTX_TODAY]
-                )
-            elif CTX_TODAY not in todo.contexts:
-                contexts = tuple(list(todo.contexts) + [CTX_TODAY])
-            else:
-                continue
+    process_daily = bool(cfg.daily in ["y", "default"])
+    if process_daily:
+        log.info("Processing todos selected for completion today.")
+        name = "today." + magodo.from_date(today)
+        with GreatSession(
+            todo_dir,
+            Tag(contexts=[CTX_TODAY]),
+            name=name,
+        ) as session:
+            edit_todos(session)
+            should_commit = False
+            for todo in session.repo.todo_group:
+                if CTX_X in todo.contexts:
+                    contexts = tuple(
+                        ctx
+                        for ctx in todo.contexts
+                        if ctx not in [CTX_X, CTX_TODAY]
+                    )
+                elif CTX_TODAY not in todo.contexts:
+                    contexts = tuple(list(todo.contexts) + [CTX_TODAY])
+                else:
+                    continue
 
-            should_commit = True
-            new_todo = todo.new(contexts=contexts)
-            session.repo.update(new_todo.ident, new_todo).unwrap()
+                should_commit = True
+                new_todo = todo.new(contexts=contexts)
+                session.repo.update(new_todo.ident, new_todo).unwrap()
 
-        if should_commit:
-            session.commit()
+            if should_commit:
+                session.commit()
+    else:
+        log.info("Skipping daily todos.")
 
     last_start_date_file.write_text(magodo.from_date(today))
 
