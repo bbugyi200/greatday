@@ -1,6 +1,6 @@
 bolton-clack ~= 0.3.2
 bolton-ion ~= 0.1.0
 bolton-logrus ~= 0.1.0
-magodo ~= 0.8.3
+magodo ~= 0.8.4
 potoroo ~= 0.3.2
 vimala ~= 0.1.2
