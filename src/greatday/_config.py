@@ -56,7 +56,7 @@ class InfoConfig(Config):
 
     # ----- CONFIG
     points_start_offset: int = 0
-    point_end_offset: int = 4
+    points_end_offset: int = 4
 
 
 def clack_parser(argv: Sequence[str]) -> dict[str, Any]:

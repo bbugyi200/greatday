@@ -41,7 +41,7 @@ def run_info(cfg: InfoConfig) -> int:
     repo_path = cfg.data_dir / TODO_DIR
 
     day_info = data["points_by_day"] = {}
-    for days in range(cfg.points_start_offset, cfg.point_end_offset + 1):
+    for days in range(cfg.points_start_offset, cfg.points_end_offset + 1):
         ctx_to_points: dict[str, int] = {ctx: 0 for ctx in cfg.contexts}
         done_date = today - dt.timedelta(days=days)
         total = 0
