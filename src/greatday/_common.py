@@ -51,29 +51,34 @@ def get_relative_date(spec: str, *, start_date: dt.date = None) -> dt.date:
         # Imports
         >>> import datetime as dt
 
-        # Helper Functions / Variables
+        # Helper Functions
         >>> to_date = lambda x: dt.datetime.strptime(x, "%Y-%m-%d")
         >>> from_date = lambda x: x.strftime("%Y-%m-%d")
-        >>> start_date = to_date("2000-01-31")
-        >>> grd = lambda x: from_date(
-        ...   get_relative_date(x, start_date=start_date)
+        >>> grd = lambda x, y: from_date(
+        ...   get_relative_date(x, start_date=to_date(y))
         ... )
 
+        # Default start date.
+        >>> D = "2000-01-31"
+
         # Tests
-        >>> grd("7d")
+        >>> grd("7d", D)
         '2000-02-07'
 
-        >>> grd("1m")
+        >>> grd("1m", D)
         '2000-02-29'
 
-        >>> grd("2m")
+        >>> grd("2m", D)
         '2000-03-31'
 
-        >>> grd("3m")
+        >>> grd("3m", D)
         '2000-04-30'
 
-        >>> grd("20y")
+        >>> grd("20y", D)
         '2020-01-31'
+
+        >>> grd("weekdays", "2022-02-11")
+        '2022-02-14'
     """
     if start_date is None:
         start_date = dt.date.today()
