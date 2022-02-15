@@ -5,6 +5,8 @@ from __future__ import annotations
 import datetime as dt
 from typing import TYPE_CHECKING, Callable, Final
 
+from dateutil.relativedelta import relativedelta
+
 
 if TYPE_CHECKING:
     from ._todo import GreatTodo
@@ -36,19 +38,47 @@ def drop_word_from_desc(
     return " ".join(new_desc_words)
 
 
-def get_tdelta(spec: str, *, today: dt.date = None) -> dt.timedelta:
-    """Converts a string spec to a timedelta."""
-    if today is None:
-        today = dt.date.today()
+def get_relative_date(spec: str, *, start_date: dt.date = None) -> dt.date:
+    """Converts `spec` to a timedelta and adds it to `date`.
 
-    if spec == "weekday":
-        weekday = today.weekday()
+    Args:
+        spec: A timedelta specification string (e.g. '1d', 'monthly',
+          'weekdays').
+        date: The return value is a function of this argument and the
+          timedelta constructed from `spec`. Defaults to today's date.
+
+    Examples:
+        # Imports
+        >>> import datetime as dt
+        >>> from functools import partial
+
+        # Helper Functions
+        >>> to_date = lambda x: dt.datetime.strptime(x, "%Y-%m-%d")
+        >>> from_date = lambda x: x.strftime("%Y-%m-%d")
+
+        >>> start_date = to_date("2000-01-01")
+
+        >>> next_date = get_relative_date("7d", start_date=start_date)
+        >>> from_date(next_date)
+        '2000-01-08'
+
+        >>> next_date = get_relative_date("monthly", start_date=start_date)
+        >>> from_date(next_date)
+        '2000-02-01'
+    """
+    if start_date is None:
+        start_date = dt.date.today()
+
+    if spec == "monthly":
+        return start_date + relativedelta(months=1)
+    elif spec == "weekdays":
+        weekday = start_date.weekday()
         days = {FRIDAY: 3, SATURDAY: 2}.get(weekday, 1)
     else:
         assert spec[-1] == "d"
         days = int(spec[:-1])
 
-    return dt.timedelta(days=days)
+    return start_date + dt.timedelta(days=days)
 
 
 def is_tickler(todo: GreatTodo) -> bool:

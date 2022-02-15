@@ -17,7 +17,7 @@ from magodo.spells import (
 )
 from magodo.types import LineSpell, T, TodoSpell
 
-from ._common import CTX_TODAY, drop_word_from_desc, get_tdelta
+from ._common import CTX_TODAY, drop_word_from_desc, get_relative_date
 
 
 GREAT_PRE_TODO_SPELLS: List[TodoSpell] = list(DEFAULT_PRE_TODO_SPELLS)
@@ -72,13 +72,13 @@ def recur_spell(todo: T) -> T:
         return todo
 
     assert isinstance(recur, str)
-    tdelta = get_tdelta(recur)
+    next_date = get_relative_date(recur)
 
     metadata = dict(mdata.items())
 
     today = dt.date.today()
     if magodo.to_date(tickle) <= today:
-        next_tickle_date = today + tdelta
+        next_tickle_date = next_date
         new_tickle = magodo.from_date(next_tickle_date)
         metadata["tickle"] = new_tickle
     else:
