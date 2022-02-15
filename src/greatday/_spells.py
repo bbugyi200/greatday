@@ -161,16 +161,32 @@ def recur_spell(todo: T) -> T:
 @todo_spell
 def appt_todos(todo: T) -> T:
     """Adds priority of (T) to todos with an appt:HHMM tag."""
-    if not todo.metadata.get("appt"):
-        return todo
-
-    if todo.priority != magodo.DEFAULT_PRIORITY:
+    appt = todo.metadata.get("appt")
+    if not appt:
         return todo
 
     if todo.done or todo.done_date:
         return todo
 
-    return todo.new(priority="T")
+    create_date = todo.create_date
+    if create_date is None:
+        return todo
+
+    now = dt.datetime.now()
+    appt_dt = _date_to_datetime(create_date, appt)
+
+    if appt_dt < now + dt.timedelta(minutes=30):
+        priority = "D"
+    else:
+        priority = "T"
+
+    return todo.new(priority=priority)
+
+
+def _date_to_datetime(date: dt.date, hhmm: str) -> dt.datetime:
+    spec = f"{magodo.from_date(date)} {hhmm}"
+    result = dt.datetime.strptime(spec, "%Y-%m-%d %H%M")
+    return result
 
 
 @todo_spell
