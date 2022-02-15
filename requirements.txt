@@ -39,8 +39,12 @@ potoroo==0.3.2
     # via -r requirements.in
 pydantic==1.9.0
     # via bolton-clack
+python-dateutil==2.8.2
+    # via -r requirements.in
 pyyaml==6.0
     # via bolton-clack
+six==1.16.0
+    # via python-dateutil
 structlog==21.5.0
     # via bolton-logrus
 typing-extensions==4.1.1
