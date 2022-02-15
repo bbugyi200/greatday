@@ -42,7 +42,7 @@ def get_relative_date(spec: str, *, start_date: dt.date = None) -> dt.date:
     """Converts `spec` to a timedelta and adds it to `date`.
 
     Args:
-        spec: A timedelta specification string (e.g. '1d', 'monthly',
+        spec: A timedelta specification string (e.g. '1d', '2m', '3y',
           'weekdays').
         date: The return value is a function of this argument and the
           timedelta constructed from `spec`. Defaults to today's date.
@@ -50,35 +50,52 @@ def get_relative_date(spec: str, *, start_date: dt.date = None) -> dt.date:
     Examples:
         # Imports
         >>> import datetime as dt
-        >>> from functools import partial
 
-        # Helper Functions
+        # Helper Functions / Variables
         >>> to_date = lambda x: dt.datetime.strptime(x, "%Y-%m-%d")
         >>> from_date = lambda x: x.strftime("%Y-%m-%d")
+        >>> start_date = to_date("2000-01-31")
+        >>> grd = lambda x: from_date(
+        ...   get_relative_date(x, start_date=start_date)
+        ... )
 
-        >>> start_date = to_date("2000-01-01")
+        # Tests
+        >>> grd("7d")
+        '2000-02-07'
 
-        >>> next_date = get_relative_date("7d", start_date=start_date)
-        >>> from_date(next_date)
-        '2000-01-08'
+        >>> grd("1m")
+        '2000-02-29'
 
-        >>> next_date = get_relative_date("monthly", start_date=start_date)
-        >>> from_date(next_date)
-        '2000-02-01'
+        >>> grd("2m")
+        '2000-03-31'
+
+        >>> grd("3m")
+        '2000-04-30'
+
+        >>> grd("20y")
+        '2020-01-31'
     """
     if start_date is None:
         start_date = dt.date.today()
 
-    if spec == "monthly":
-        return start_date + relativedelta(months=1)
-    elif spec == "weekdays":
+    delta: dt.timedelta | relativedelta
+    if spec == "weekdays":
         weekday = start_date.weekday()
         days = {FRIDAY: 3, SATURDAY: 2}.get(weekday, 1)
+        delta = dt.timedelta(days=days)
     else:
-        assert spec[-1] == "d"
-        days = int(spec[:-1])
+        ch = spec[-1]
+        N = int(spec[:-1])
 
-    return start_date + dt.timedelta(days=days)
+        if ch == "d":
+            delta = dt.timedelta(days=N)
+        elif ch == "m":
+            delta = relativedelta(months=N)
+        else:
+            assert ch == "y"
+            delta = relativedelta(years=N)
+
+    return start_date + delta
 
 
 def is_tickler(todo: GreatTodo) -> bool:

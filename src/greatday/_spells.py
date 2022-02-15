@@ -67,12 +67,18 @@ def recur_spell(todo: T) -> T:
         return todo
 
     tickle = mdata.get("tickle")
-    assert isinstance(tickle, str)
     if not tickle:
         return todo
 
-    assert isinstance(recur, str)
-    next_date = get_relative_date(recur)
+    today = dt.date.today()
+    if recur == "1d":
+        start_date = today
+    else:
+        start_date = magodo.to_date(tickle)
+
+    next_date = get_relative_date(recur, start_date=start_date)
+    if next_date <= today:
+        next_date = get_relative_date(recur, start_date=today)
 
     metadata = dict(mdata.items())
 
