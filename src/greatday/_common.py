@@ -111,3 +111,10 @@ def get_relative_date(spec: str, *, start_date: dt.date = None) -> dt.date:
 def is_tickler(todo: GreatTodo) -> bool:
     """Returns True iff `todo` is a tickler todo."""
     return bool(todo.metadata.get("tickle", None) is not None)
+
+
+def dt_from_date_and_hhmm(date: dt.date, hhmm: str) -> dt.datetime:
+    """Given a date and a string of the form HHMM, construct a datetime."""
+    spec = f"{date.year}-{date.month}-{date.day} {hhmm}"
+    result = dt.datetime.strptime(spec, "%Y-%m-%d %H%M")
+    return result

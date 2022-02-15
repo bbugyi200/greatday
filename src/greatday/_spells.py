@@ -18,7 +18,12 @@ from magodo.spells import (
 )
 from magodo.types import LineSpell, T, TodoSpell
 
-from ._common import CTX_TODAY, drop_word_from_desc, get_relative_date
+from ._common import (
+    CTX_TODAY,
+    drop_word_from_desc,
+    dt_from_date_and_hhmm,
+    get_relative_date,
+)
 
 
 logger = Logger(__name__)
@@ -173,7 +178,7 @@ def appt_todos(todo: T) -> T:
         return todo
 
     now = dt.datetime.now()
-    appt_dt = _date_to_datetime(create_date, appt)
+    appt_dt = dt_from_date_and_hhmm(create_date, appt)
 
     if appt_dt < now + dt.timedelta(minutes=30):
         priority = "D"
@@ -181,12 +186,6 @@ def appt_todos(todo: T) -> T:
         priority = "T"
 
     return todo.new(priority=priority)
-
-
-def _date_to_datetime(date: dt.date, hhmm: str) -> dt.datetime:
-    spec = f"{magodo.from_date(date)} {hhmm}"
-    result = dt.datetime.strptime(spec, "%Y-%m-%d %H%M")
-    return result
 
 
 @todo_spell
