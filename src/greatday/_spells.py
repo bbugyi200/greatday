@@ -74,7 +74,8 @@ def recur_spell(todo: T) -> T:
         return todo
 
     today = dt.date.today()
-    if recur.isupper():
+    assert isinstance(recur, str)
+    if recur.islower():
         start_date = today
     else:
         start_date = magodo.to_date(tickle)
