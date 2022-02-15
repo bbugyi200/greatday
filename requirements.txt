@@ -25,7 +25,7 @@ bolton-metaman==0.1.1
     #   bolton-eris
     #   bolton-logrus
     #   magodo
-bolton-proctor==0.2.1
+bolton-proctor==0.2.2
     # via vimala
 bolton-typist==0.2.0
     # via
@@ -33,7 +33,7 @@ bolton-typist==0.2.0
     #   bolton-eris
     #   magodo
     #   vimala
-magodo==0.8.4
+magodo==0.8.5
     # via -r requirements.in
 potoroo==0.3.2
     # via -r requirements.in
