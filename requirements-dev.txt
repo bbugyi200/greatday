@@ -87,7 +87,7 @@ docutils==0.17.1
     #   m2r2
     #   sphinx
     #   sphinx-rtd-theme
-filelock==3.4.2
+filelock==3.5.0
     # via
     #   tox
     #   virtualenv
@@ -298,7 +298,7 @@ zipp==3.7.0
 # The following packages are considered to be unsafe in a requirements file:
 pip==22.0.3
     # via pip-tools
-setuptools==60.9.0
+setuptools==60.9.1
     # via
     #   astroid
     #   pip-tools
