@@ -39,6 +39,49 @@ GREAT_FROM_LINE_SPELLS: List[LineSpell] = list(DEFAULT_FROM_LINE_SPELLS)
 from_line_spell = register_line_spell_factory(GREAT_FROM_LINE_SPELLS)
 
 
+@pre_todo_spell
+def x_points(todo: T) -> T:
+    """Handles metatags of the form 'x:N' at the start of a todo line."""
+    x = todo.metadata.get("x")
+    if not x or len(x) >= 4:
+        return todo
+
+    if not todo.desc.startswith("x:"):
+        return todo
+
+    metadata = dict(todo.metadata.items())
+    points = metadata["x"]
+    del metadata["x"]
+    metadata["points"] = points
+
+    desc = " ".join(todo.desc.split(" ")[1:]) + f" points:{points}"
+
+    new_todo = todo.new(desc=desc, done=True, metadata=metadata)
+    line = new_todo.to_line()
+    return type(todo).from_line(line).unwrap()
+
+
+@todo_spell
+def render_tickle_tag(todo: T) -> T:
+    """Renders ticklers (e.g. 'tickle:1d' -> 'tickle:2022-02-16')."""
+    tickle = todo.metadata.get("tickle")
+    if not tickle:
+        return todo
+
+    if len(tickle) == 10 and tickle.count("-") == 2:
+        return todo
+
+    metadata = dict(todo.metadata.items())
+    new_tickle_date = get_relative_date(tickle)
+    new_tickle = magodo.from_date(new_tickle_date)
+    metadata["tickle"] = new_tickle
+
+    desc = drop_word_from_desc(
+        todo.desc, "tickle:", op=lambda x, y: x.startswith(y)
+    )
+    return todo.new(desc=desc, metadata=metadata)
+
+
 @todo_spell
 def remove_today_context(todo: T) -> T:
     """Removes the @today context from done todos completed before today."""
@@ -128,28 +171,6 @@ def appt_todos(todo: T) -> T:
         return todo
 
     return todo.new(priority="T")
-
-
-@todo_spell
-def x_points(todo: T) -> T:
-    """Handles metatags of the form 'x:N' at the start of a todo line."""
-    x = todo.metadata.get("x")
-    if not x or len(x) >= 4:
-        return todo
-
-    if not todo.desc.startswith("x:"):
-        return todo
-
-    metadata = dict(todo.metadata.items())
-    points = metadata["x"]
-    del metadata["x"]
-    metadata["points"] = points
-
-    desc = " ".join(todo.desc.split(" ")[1:]) + f" points:{points}"
-
-    new_todo = todo.new(desc=desc, done=True, metadata=metadata)
-    line = new_todo.to_line()
-    return type(todo).from_line(line).unwrap()
 
 
 @todo_spell
