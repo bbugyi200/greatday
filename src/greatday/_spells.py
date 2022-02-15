@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime as dt
 from typing import List
 
+from logrus import Logger
 import magodo
 from magodo.spells import (
     DEFAULT_FROM_LINE_SPELLS,
@@ -19,6 +20,8 @@ from magodo.types import LineSpell, T, TodoSpell
 
 from ._common import CTX_TODAY, drop_word_from_desc, get_relative_date
 
+
+logger = Logger(__name__)
 
 GREAT_PRE_TODO_SPELLS: List[TodoSpell] = list(DEFAULT_PRE_TODO_SPELLS)
 pre_todo_spell = register_todo_spell_factory(GREAT_PRE_TODO_SPELLS)
@@ -71,14 +74,17 @@ def recur_spell(todo: T) -> T:
         return todo
 
     today = dt.date.today()
-    if recur == "1d":
+    if recur.isupper():
         start_date = today
     else:
         start_date = magodo.to_date(tickle)
 
     next_date = get_relative_date(recur, start_date=start_date)
     if next_date <= today:
-        next_date = get_relative_date(recur, start_date=today)
+        logger.warning(
+            "Recurring tickler is still due after reset / recur.",
+            tickle=next_date,
+        )
 
     metadata = dict(mdata.items())
 
