@@ -46,6 +46,7 @@ def run_info(cfg: InfoConfig) -> int:
         done_date = today - dt.timedelta(days=days)
         total = 0
         with GreatSession(
+            cfg.data_dir,
             repo_path,
             Tag(
                 done_date=done_date,
@@ -101,7 +102,10 @@ def run_start(cfg: StartConfig) -> int:
             last_start_date=last_start_date,
         )
         with GreatSession(
-            todo_dir, Tag(contexts=["inbox"], done=False), name="inbox"
+            cfg.data_dir,
+            todo_dir,
+            Tag(contexts=["inbox"], done=False),
+            name="inbox",
         ) as session:
             edit_todos(session)
     else:
@@ -117,6 +121,7 @@ def run_start(cfg: StartConfig) -> int:
     if process_ticklers:
         log.info("Processing due tickler todos.")
         with GreatSession(
+            cfg.data_dir,
             todo_dir,
             Tag(metadata_checks={"tickle": tickle_check(today)}, done=False),
             name="ticklers",
@@ -130,6 +135,7 @@ def run_start(cfg: StartConfig) -> int:
         log.info("Processing todos selected for completion today.")
         name = "today." + magodo.from_date(today)
         with GreatSession(
+            cfg.data_dir,
             todo_dir,
             Tag(contexts=[CTX_TODAY]),
             name=name,
@@ -234,7 +240,7 @@ def run_add(cfg: AddConfig) -> int:
     log = logger.bind_fargs(locals())
 
     todo_dir = cfg.data_dir / "todos"
-    repo = GreatRepo(todo_dir)
+    repo = GreatRepo(cfg.data_dir, todo_dir)
     todo = GreatTodo.from_line(cfg.todo_line).unwrap()
 
     x_found = False

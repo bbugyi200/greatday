@@ -37,7 +37,8 @@ class Tag:
 class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
     """Repo that stores Todos on disk."""
 
-    def __init__(self, path: PathLike) -> None:
+    def __init__(self, data_dir: PathLike, path: PathLike) -> None:
+        self.data_dir = Path(data_dir)
         self.path = Path(path)
 
         self._todo_group: TodoGroup | None = None
@@ -54,7 +55,7 @@ class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
         """
         drop_old_key = bool(todo.ident == NULL_ID)
         if key is None or key == NULL_ID:
-            key = init_next_todo_id(self.path)
+            key = init_next_todo_id(self.data_dir)
         else:
             drop_old_key = True
 

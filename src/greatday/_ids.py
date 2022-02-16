@@ -11,15 +11,15 @@ from typist import PathLike
 NULL_ID: Final = "null"
 
 
-def init_next_todo_id(root: PathLike) -> str:
+def init_next_todo_id(data_dir: PathLike) -> str:
     """Retrieves the next valid todo ID.
 
     Side Effects:
         * Attempts to read last ID from disk.
         * Writes the returned ID to disk.
     """
-    root = Path(root)
-    last_id_path = root / "last_todo_id"
+    data_dir = Path(data_dir)
+    last_id_path = data_dir / "last_todo_id"
 
     def ID(next_id: str) -> str:
         last_id_path.parent.mkdir(parents=True, exist_ok=True)

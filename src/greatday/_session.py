@@ -23,18 +23,23 @@ class GreatSession(UnitOfWork[GreatRepo]):
     """Each time todos are opened in an editor, a new session is created."""
 
     def __init__(
-        self, repo_path: PathLike, tag: Tag, *, name: str = None
+        self,
+        data_dir: PathLike,
+        repo_path: PathLike,
+        tag: Tag,
+        *,
+        name: str = None,
     ) -> None:
-        repo_path = Path(repo_path)
-        self._path = repo_path
+        self.data_dir = Path(data_dir)
+        self._path = Path(repo_path)
 
         prefix = None if name is None else f"{name}."
         _, temp_path = tempfile.mkstemp(prefix=prefix, suffix=".txt")
         self.path = Path(temp_path)
 
-        self._temp_repo = GreatRepo(self.path)
+        self._temp_repo = GreatRepo(self.data_dir, self.path)
 
-        self._master_repo = GreatRepo(repo_path)
+        self._master_repo = GreatRepo(self.data_dir, self._path)
         for todo in self._master_repo.get_by_tag(tag).unwrap():
             self.repo.add(todo, key=todo.ident)
 
