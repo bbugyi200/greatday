@@ -165,7 +165,7 @@ def recur_spell(todo: T) -> T:
 
 @todo_spell
 def appt_todos(todo: T) -> T:
-    """Adds priority of (T) to todos with an appt:HHMM tag."""
+    """Adds priority of (C) or (T) to todos with an appt:HHMM tag."""
     appt = todo.metadata.get("appt")
     if not appt:
         return todo
@@ -181,7 +181,7 @@ def appt_todos(todo: T) -> T:
     appt_dt = dt_from_date_and_hhmm(create_date, appt)
 
     if appt_dt < now + dt.timedelta(minutes=30):
-        priority = "D"
+        priority = "C"
     else:
         priority = "T"
 
