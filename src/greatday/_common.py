@@ -44,7 +44,7 @@ def get_relative_date(spec: str, *, start_date: dt.date = None) -> dt.date:
     Args:
         spec: A timedelta specification string (e.g. '1d', '2m', '3y',
           'weekdays').
-        date: The return value is a function of this argument and the
+        start_date: The return value is a function of this argument and the
           timedelta constructed from `spec`. Defaults to today's date.
 
     Examples:
