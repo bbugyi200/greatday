@@ -71,6 +71,9 @@ def get_relative_date(spec: str, *, start_date: dt.date = None) -> dt.date:
         >>> grd("1m", D)
         '2000-02-29'
 
+        >>> grd("1m", "2001-01-31")
+        '2001-02-28'
+
         >>> grd("2M", D)
         '2000-03-31'
 
@@ -83,10 +86,9 @@ def get_relative_date(spec: str, *, start_date: dt.date = None) -> dt.date:
         >>> grd("weekdays", "2022-02-11")
         '2022-02-14'
     """
+    spec = spec.lower()
     if start_date is None:
         start_date = dt.date.today()
-
-    spec = spec.lower()
 
     delta: dt.timedelta | relativedelta
     if spec == "weekdays":
