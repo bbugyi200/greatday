@@ -20,9 +20,9 @@ def init_next_todo_id(data_dir: PathLike) -> str:
     """
     data_dir = Path(data_dir)
     last_id_path = data_dir / "last_todo_id"
+    last_id_path.parent.mkdir(parents=True, exist_ok=True)
 
     def ID(next_id: str) -> str:
-        last_id_path.parent.mkdir(parents=True, exist_ok=True)
         with last_id_path.open("w+"):
             last_id_path.write_text(next_id)
         return next_id
