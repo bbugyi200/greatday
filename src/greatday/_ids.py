@@ -92,6 +92,11 @@ def next_todo_id(last_id: str) -> str:
 
 def next_char(ch: str, *, blacklist: Container[str] = ("I", "O")) -> str:
     """Returns the next allowable character (to be used as apart of ID)."""
+    assert len(ch) == 1, (
+        "PRE-CONDITION: The `ch` argument must be a single-character string."
+        f" | ch={ch!r}"
+    )
+
     if ch == "9":
         return "A"
 
