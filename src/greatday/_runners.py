@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
 import datetime as dt
 from functools import partial
 import json
@@ -40,11 +41,51 @@ def run_info(cfg: InfoConfig) -> int:
     today = dt.date.today()
     repo_path = cfg.data_dir / TODO_DIR
 
-    day_info = data["points_by_day"] = {}
+    stats = data["stats"] = {}
+    points_data = stats["points"] = {}
+    day_info = points_data["by_day"] = {}
+
+    # e.g. 'stats.count.total' OR 'stats.count.open' OR 'stats.count.done'
+    counter = stats["count"] = {}
+
+    repo = GreatRepo(cfg.data_dir, repo_path)
+
+    # 'stats.count' counter values
+    done_count = 0
+    open_count = 0
+    tickler_count = 0
+
+    for todo in repo.todo_group:
+        if todo.done:
+            done_count += 1
+        else:
+            open_count += 1
+
+        # --- loop variables
+        # key: used to index into the 'counter' dict.
+        # tags: a dict of tags (e.g. projects) from the current todo.
+        for key, tags in [
+            ("project", todo.projects),
+            ("context", todo.contexts),
+        ]:
+            for tag in tags:
+                if key not in counter:
+                    counter[key] = defaultdict(int)
+
+                counter[key][tag] += 1
+
+        if "tickle" in list(todo.metadata.keys()):
+            tickler_count += 1
+
+    counter["done"] = done_count
+    counter["open"] = open_count
+    counter["tickler"] = tickler_count
+    counter["total"] = open_count + done_count
+
     for days in range(cfg.points_start_offset, cfg.points_end_offset + 1):
         ctx_to_points: dict[str, int] = {ctx: 0 for ctx in cfg.contexts}
         done_date = today - dt.timedelta(days=days)
-        total = 0
+        day_total = 0
         with GreatSession(
             cfg.data_dir,
             repo_path,
@@ -57,16 +98,16 @@ def run_info(cfg: InfoConfig) -> int:
         ) as session:
             for todo in session.repo.todo_group:
                 P = int(todo.metadata.get("points", "0"))
-                total += P
+                day_total += P
                 for ctx in cfg.contexts:
                     if ctx in todo.contexts:
                         ctx_to_points[ctx] += P
 
         date = magodo.from_date(done_date)
-        day_info[date] = {"total": total}
+        day_info[date] = {"total": day_total}
         day_info[date]["contexts"] = ctx_to_points
 
-    pretty_data = json.dumps(data, indent=2)
+    pretty_data = json.dumps(data, indent=2, sort_keys=True)
     print(pretty_data)
 
     return 0
