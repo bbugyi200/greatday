@@ -92,7 +92,7 @@ def run_info(cfg: InfoConfig) -> int:
             Tag(
                 done_date=done_date,
                 done=True,
-                metadata_checks={"points": lambda _: True},
+                metadata_checks=[magodo.MetadataCheck("points")],
             ),
             name="info",
         ) as session:
@@ -155,16 +155,21 @@ def run_start(cfg: StartConfig) -> int:
             last_start_date=last_start_date,
         )
 
-    process_ticklers = bool(
-        cfg.ticklers == "y"
-        or (cfg.ticklers == "default" and last_start_date < today)
-    )
+    process_ticklers = bool(cfg.ticklers == "y" or cfg.ticklers == "default")
     if process_ticklers:
         log.info("Processing due tickler todos.")
         with GreatSession(
             cfg.data_dir,
             todo_dir,
-            Tag(metadata_checks={"tickle": tickle_check(today)}, done=False),
+            Tag(
+                metadata_checks=[
+                    magodo.MetadataCheck("tickle", check=tickle_check(today)),
+                    magodo.MetadataCheck(
+                        "snooze", check=snooze_check(today), required=False
+                    ),
+                ],
+                done=False,
+            ),
             name="ticklers",
         ) as session:
             edit_todos(session)
@@ -257,6 +262,16 @@ def edit_and_commit_todos(
 
 
 def tickle_check(today: dt.date) -> Callable[[str], bool]:
+    """Returns MetadataChecker that returns all due ticklers."""
+
+    def check(tickle_value: str) -> bool:
+        due_date = magodo.to_date(tickle_value)
+        return due_date <= today
+
+    return check
+
+
+def snooze_check(today: dt.date) -> Callable[[str], bool]:
     """Returns MetadataChecker that returns all due ticklers."""
 
     def check(tickle_value: str) -> bool:

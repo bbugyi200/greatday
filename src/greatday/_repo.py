@@ -5,12 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 import datetime as dt
 from pathlib import Path
-from typing import Iterable, Mapping
+from typing import Iterable
 
 from eris import ErisResult, Ok
 from logrus import Logger
-from magodo import TodoGroup
-from magodo.types import MetadataChecker, Priority
+from magodo import MetadataCheck, TodoGroup
+from magodo.types import Priority
 from potoroo import TaggedRepo
 from typist import PathLike
 
@@ -29,7 +29,7 @@ class Tag:
     create_date: dt.date | None = None
     done_date: dt.date | None = None
     done: bool | None = None
-    metadata_checks: Mapping[str, MetadataChecker] | None = None
+    metadata_checks: Iterable[MetadataCheck] = ()
     priorities: Iterable[Priority] = ()
     projects: Iterable[str] = ()
 

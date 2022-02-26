@@ -120,3 +120,8 @@ def dt_from_date_and_hhmm(date: dt.date, hhmm: str) -> dt.datetime:
     spec = f"{date.year}-{date.month}-{date.day} {hhmm}"
     result = dt.datetime.strptime(spec, "%Y-%m-%d %H%M")
     return result
+
+
+def matches_date_fmt(date_spec: str) -> bool:
+    """Returns True iff date_spec matches the magodo date format.."""
+    return len(date_spec) == 10 and date_spec.count("-") == 2

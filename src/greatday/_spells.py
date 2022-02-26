@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
+from functools import partial
 from typing import List
 
 from logrus import Logger
@@ -23,6 +24,7 @@ from ._common import (
     drop_word_from_desc,
     dt_from_date_and_hhmm,
     get_relative_date,
+    matches_date_fmt
 )
 
 
@@ -42,6 +44,14 @@ to_line_spell = register_line_spell_factory(GREAT_TO_LINE_SPELLS)
 
 GREAT_FROM_LINE_SPELLS: List[LineSpell] = list(DEFAULT_FROM_LINE_SPELLS)
 from_line_spell = register_line_spell_factory(GREAT_FROM_LINE_SPELLS)
+
+
+def _startswith_op(x: str, y: str) -> bool:
+    """Used as the value for the 'op' kwarg of `drop_word_from_desc()`."""
+    return x.startswith(y)
+
+
+drop_word_if_startswith = partial(drop_word_from_desc, op=_startswith_op)
 
 
 @pre_todo_spell
@@ -67,23 +77,70 @@ def x_points(todo: T) -> T:
 
 
 @todo_spell
-def render_tickle_tag(todo: T) -> T:
-    """Renders ticklers (e.g. 'tickle:1d' -> 'tickle:2022-02-16')."""
-    tickle = todo.metadata.get("tickle")
-    if not tickle:
-        return todo
-
-    if len(tickle) == 10 and tickle.count("-") == 2:
-        return todo
-
+def snooze_spell(todo: T) -> T:
+    """Handles the 'snooze' metadata tag."""
+    make_new_todo = False
     metadata = dict(todo.metadata.items())
-    new_tickle_date = get_relative_date(tickle)
-    new_tickle = magodo.from_date(new_tickle_date)
-    metadata["tickle"] = new_tickle
+    s = metadata.get("s")
+    if s is not None:
+        metadata["snooze"] = s
+        del metadata["s"]
+        make_new_todo = True
 
-    desc = drop_word_from_desc(
-        todo.desc, "tickle:", op=lambda x, y: x.startswith(y)
-    )
+    snooze = metadata.get("snooze")
+    if snooze is None:
+        return todo
+
+    desc = drop_word_if_startswith(todo.desc, "snooze:")
+
+    today = dt.date.today()
+
+    if matches_date_fmt(snooze):
+        snooze_date = magodo.to_date(snooze)
+    else:
+        snooze_date = get_relative_date(snooze)
+
+    desc = todo.desc
+
+    if snooze_date <= today:
+        del metadata["snooze"]
+        return todo.new(desc=todo.desc, metadata=metadata)
+    elif make_new_todo:
+        return todo.new(desc=desc, metadata=metadata)
+    else:
+        return todo
+
+
+@todo_spell
+def render_tickle_or_snooze_tag(todo: T) -> T:
+    """Renders tickler and snooze metatags.
+
+    (e.g. 'tickle:1d' -> 'tickle:2022-02-16')
+    """
+    found_tag = False
+    desc = todo.desc
+    metadata = dict(todo.metadata.items())
+
+    for key in ["tickle", "snooze"]:
+        # t_or_s: Tickle or Snooze
+        t_o_s = todo.metadata.get(key)
+        if not t_o_s:
+            continue
+
+        if matches_date_fmt(t_o_s):
+            continue
+
+        found_tag = True
+
+        new_t_or_s_date = get_relative_date(t_o_s)
+        new_t_or_s = magodo.from_date(new_t_or_s_date)
+        metadata[key] = new_t_or_s
+
+        desc = drop_word_if_startswith(desc, key + ":")
+
+    if not found_tag:
+        return todo
+
     return todo.new(desc=desc, metadata=metadata)
 
 
