@@ -24,7 +24,7 @@ from ._common import (
     drop_word_from_desc,
     dt_from_date_and_hhmm,
     get_relative_date,
-    matches_date_fmt
+    matches_date_fmt,
 )
 
 
