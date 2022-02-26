@@ -33,7 +33,7 @@ bolton-typist==0.2.0
     #   bolton-eris
     #   magodo
     #   vimala
-magodo==0.8.5
+magodo==0.9.0
     # via -r requirements.in
 potoroo==0.3.2
     # via -r requirements.in

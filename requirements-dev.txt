@@ -63,7 +63,7 @@ chardet==4.0.0
     # via binaryornot
 charset-normalizer==2.0.12
     # via requests
-click==8.0.3
+click==8.0.4
     # via
     #   black
     #   cookiecutter
@@ -76,7 +76,7 @@ colored==1.4.3
     # via syrupy
 cookiecutter==1.7.3
     # via cruft
-coverage[toml]==6.3.1
+coverage[toml]==6.3.2
     # via pytest-cov
 cruft[pyproject]==2.10.1
     # via -r requirements-dev.in
@@ -87,7 +87,7 @@ docutils==0.17.1
     #   m2r2
     #   sphinx
     #   sphinx-rtd-theme
-filelock==3.5.0
+filelock==3.6.0
     # via
     #   tox
     #   virtualenv
@@ -95,7 +95,7 @@ flake8==4.0.1
     # via -r requirements-dev.in
 gitdb==4.0.9
     # via gitpython
-gitpython==3.1.26
+gitpython==3.1.27
     # via cruft
 idna==3.3
     # via requests
@@ -120,11 +120,11 @@ lazy-object-proxy==1.7.1
     # via astroid
 m2r2==0.3.2
     # via -r requirements-dev.in
-magodo==0.8.5
+magodo==0.9.0
     # via
     #   -r requirements.in
     #   greatday
-markupsafe==2.0.1
+markupsafe==2.1.0
     # via jinja2
 mccabe==0.6.1
     # via
@@ -150,7 +150,7 @@ pep517==0.12.0
     # via pip-tools
 pip-tools==6.5.1
     # via -r requirements-dev.in
-platformdirs==2.5.0
+platformdirs==2.5.1
     # via
     #   black
     #   pylint
@@ -183,7 +183,7 @@ pylint==2.12.2
     # via -r requirements-dev.in
 pyparsing==3.0.7
     # via packaging
-pytest==6.2.5
+pytest==7.0.1
     # via
     #   -r requirements-dev.in
     #   pytest-cov
@@ -198,7 +198,7 @@ python-dateutil==2.8.2
     #   -r requirements.in
     #   arrow
     #   greatday
-python-slugify==5.0.2
+python-slugify==6.1.0
     # via cookiecutter
 pytz==2021.3
     # via babel
@@ -245,7 +245,7 @@ sphinxcontrib-serializinghtml==1.1.5
     # via sphinx
 structlog==21.5.0
     # via bolton-logrus
-syrupy==1.7.3
+syrupy==1.7.4
     # via -r requirements-dev.in
 text-unidecode==1.3
     # via python-slugify
@@ -254,7 +254,6 @@ toml==0.10.2
     #   cruft
     #   pydocstyle
     #   pylint
-    #   pytest
     #   tox
 tomli==2.0.1
     # via
@@ -262,6 +261,7 @@ tomli==2.0.1
     #   coverage
     #   mypy
     #   pep517
+    #   pytest
     #   setuptools-scm
 tox==3.24.5
     # via
@@ -286,7 +286,7 @@ vimala==0.1.2
     # via
     #   -r requirements.in
     #   greatday
-virtualenv==20.13.1
+virtualenv==20.13.2
     # via tox
 wheel==0.37.1
     # via pip-tools
@@ -298,7 +298,7 @@ zipp==3.7.0
 # The following packages are considered to be unsafe in a requirements file:
 pip==22.0.3
     # via pip-tools
-setuptools==60.9.1
+setuptools==60.9.3
     # via
     #   astroid
     #   pip-tools
