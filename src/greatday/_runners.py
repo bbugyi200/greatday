@@ -137,7 +137,13 @@ def run_start(cfg: StartConfig) -> int:
         cfg.inbox == "y"
         or (cfg.inbox == "default" and last_start_date < today)
     )
-    if process_inbox:
+    if not process_inbox:
+        log.info(
+            "Skipping Inbox processing (already processed today).",
+            last_start_date=last_start_date,
+        )
+
+    while process_inbox:
         log.info(
             "Processing todos in your Inbox.",
             last_start_date=last_start_date,
@@ -148,15 +154,13 @@ def run_start(cfg: StartConfig) -> int:
             Tag(contexts=["inbox"], done=False),
             name="inbox",
         ) as session:
-            edit_todos(session)
-    else:
-        log.info(
-            "Skipping Inbox processing (already processed today).",
-            last_start_date=last_start_date,
-        )
+            process_inbox = edit_todos(session)
 
     process_ticklers = bool(cfg.ticklers == "y" or cfg.ticklers == "default")
-    if process_ticklers:
+    if not process_ticklers:
+        log.info("Skipping tickler todos.")
+
+    while process_ticklers:
         log.info("Processing due tickler todos.")
         with GreatSession(
             cfg.data_dir,
@@ -172,9 +176,7 @@ def run_start(cfg: StartConfig) -> int:
             ),
             name="ticklers",
         ) as session:
-            edit_todos(session)
-    else:
-        log.info("Skipping tickler todos.")
+            process_ticklers = edit_todos(session)
 
     process_daily = bool(cfg.daily in ["y", "default"])
     if process_daily:
@@ -225,11 +227,11 @@ def edit_and_commit_todos(
     session: GreatSession,
     *,
     commit_changes: YesNoDefault = "default",
-) -> None:
+) -> bool:
     """Edit and commit todo changes to disk."""
     old_todos = list(session.repo.todo_group)
     if not old_todos:
-        return
+        return False
 
     vim(session.path).unwrap()
 
@@ -241,7 +243,7 @@ def edit_and_commit_todos(
             break
     else:
         if len(old_todos) == len(session.repo.todo_group):
-            return
+            return True
 
     should_commit: bool
     if commit_changes == "y":
@@ -259,6 +261,8 @@ def edit_and_commit_todos(
         session.commit()
     else:
         session.rollback()
+
+    return True
 
 
 def tickle_check(today: dt.date) -> Callable[[str], bool]:
