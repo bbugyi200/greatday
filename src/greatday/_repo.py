@@ -112,24 +112,8 @@ class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
 
     def update(self, key: str, todo: GreatTodo, /) -> ErisResult[GreatTodo]:
         """Overwrite an existing Todo on disk."""
-        todo_txt = self.todo_group.path_map[key]
-
-        all_todos = []
-
-        for line in todo_txt.read_text().split("\n"):
-            line = line.strip()
-            if not line:
-                continue
-
-            next_todo = GreatTodo.from_line(line).unwrap()
-            if next_todo.ident == key:
-                all_todos.append(todo)
-            else:
-                all_todos.append(next_todo)
-
-        with todo_txt.open("w") as f:
-            f.write("\n".join(t.to_line() for t in sorted(all_todos)))
-
+        self.remove(key).unwrap()
+        self.add(todo, key=key)
         return Ok(todo)
 
     def get_by_tag(self, tag: Tag) -> ErisResult[list[GreatTodo]]:
