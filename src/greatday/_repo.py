@@ -65,24 +65,22 @@ class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
             metadata.update({"id": key})
             todo = todo.new(metadata=metadata)
 
-        todos: list[GreatTodo] = [todo]
+        all_todos: list[GreatTodo] = [todo]
 
         if self.path.is_dir() or (
             not self.path.exists() and self.path.suffix != ".txt"
         ):
-            txt_path = init_yyyymm_path(self.path, date=todo.done_date)
+            todo_txt = init_yyyymm_path(self.path, date=todo.done_date)
         else:
             self.path.parent.mkdir(parents=True, exist_ok=True)
-            txt_path = self.path
+            todo_txt = self.path
 
-        if txt_path.exists():
-            todo_group = TodoGroup.from_path(GreatTodo, txt_path)
-            todos.extend(todo_group)
+        if todo_txt.exists():
+            todo_group = TodoGroup.from_path(GreatTodo, todo_txt)
+            all_todos.extend(todo_group)
 
-        with txt_path.open("w") as f:
-            f.write(
-                "\n".join(GreatTodo.to_line() for GreatTodo in sorted(todos))
-            )
+        with todo_txt.open("w") as f:
+            f.write("\n".join(t.to_line() for t in sorted(all_todos)))
 
         return Ok(key)
 
@@ -116,18 +114,21 @@ class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
         """Overwrite an existing Todo on disk."""
         todo_txt = self.todo_group.path_map[key]
 
-        new_lines: list[str] = []
+        all_todos = []
 
         for line in todo_txt.read_text().split("\n"):
-            for word in line.strip().split(" "):
-                if word == f"id:{key}":
-                    todo_line = todo.to_line()
-                    new_lines.append(todo_line)
-                    break
-            else:
-                new_lines.append(line)
+            line = line.strip()
+            if not line:
+                continue
 
-        todo_txt.write_text("\n".join(new_lines))
+            next_todo = GreatTodo.from_line(line).unwrap()
+            if next_todo.ident == key:
+                all_todos.append(todo)
+            else:
+                all_todos.append(next_todo)
+
+        with todo_txt.open("w") as f:
+            f.write("\n".join(t.to_line() for t in sorted(all_todos)))
 
         return Ok(todo)
 
