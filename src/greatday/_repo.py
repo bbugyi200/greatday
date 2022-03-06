@@ -159,12 +159,10 @@ class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
         Removes a list of Todos from disk by using another Todo's properties
         as search criteria.
         """
-        todos = self.get_by_tag(tag).unwrap()
-        for todo in todos:
-            key = todo.metadata["id"]
-            assert isinstance(key, str)
-            self.remove(key)
-        return Ok(todos)
+        removed_todos = self.get_by_tag(tag).unwrap()
+        for todo in removed_todos:
+            self.remove(todo.ident).unwrap()
+        return Ok(removed_todos)
 
 
 def init_yyyymm_path(root: PathLike, *, date: dt.date = None) -> Path:
