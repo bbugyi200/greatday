@@ -194,7 +194,6 @@ def recur_spell(todo: T) -> T:
 
     metadata = dict(mdata.items())
 
-    today = dt.date.today()
     if magodo.to_date(tickle) <= today:
         next_tickle_date = next_date
         new_tickle = magodo.from_date(next_tickle_date)

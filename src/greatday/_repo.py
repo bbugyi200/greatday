@@ -41,8 +41,6 @@ class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
         self.data_dir = Path(data_dir)
         self.path = Path(path)
 
-        self._todo_group: TodoGroup | None = None
-
     @property
     def todo_group(self) -> TodoGroup[GreatTodo]:
         """Returns the TodoGroup associated with this GreatRepo."""
