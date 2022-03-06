@@ -198,7 +198,7 @@ python-dateutil==2.8.2
     #   -r requirements.in
     #   arrow
     #   greatday
-python-slugify==6.1.0
+python-slugify==6.1.1
     # via cookiecutter
 pytz==2021.3
     # via babel
