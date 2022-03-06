@@ -70,7 +70,7 @@ class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
         if self.path.is_dir() or (
             not self.path.exists() and self.path.suffix != ".txt"
         ):
-            todo_txt = init_yyyymm_path(self.path, date=todo.done_date)
+            todo_txt = init_yyyymm_path(self.path, date=todo.create_date)
         else:
             self.path.parent.mkdir(parents=True, exist_ok=True)
             todo_txt = self.path
