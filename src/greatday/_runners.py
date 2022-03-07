@@ -296,7 +296,7 @@ def run_info(cfg: InfoConfig) -> int:
     counter["total"] = open_count + done_count
 
     for days in range(cfg.points_start_offset, cfg.points_end_offset + 1):
-        ctx_to_points: dict[str, int] = {ctx: 0 for ctx in cfg.contexts}
+        ctx_to_points: dict[str, int] = defaultdict(int)
         done_date = today - dt.timedelta(days=days)
         day_total = 0
         with GreatSession(
@@ -316,9 +316,10 @@ def run_info(cfg: InfoConfig) -> int:
                     if ctx in todo.contexts:
                         ctx_to_points[ctx] += P
 
-        date = magodo.from_date(done_date)
-        day_info[date] = {"total": day_total}
-        day_info[date]["contexts"] = ctx_to_points
+        if day_total:
+            date = magodo.from_date(done_date)
+            day_info[date] = {"total": day_total}
+            day_info[date]["contexts"] = ctx_to_points
 
     pretty_data = json.dumps(data, indent=2, sort_keys=True)
     print(pretty_data)
