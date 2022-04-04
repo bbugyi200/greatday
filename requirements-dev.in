@@ -21,7 +21,7 @@ types-python-dateutil
 
 ### Docs
 m2r2
-sphinx != 4.4.*  # ATTOW, 'sphinx==4.4.0' requires a 'importlib-metadata' version that conflicts with what 'cruft' requires.
+sphinx ~= 4.3.1  # ATTOW, 'sphinx>=4.4.0' requires a 'importlib-metadata' version that conflicts with what 'cruft' requires.
 sphinx-rtd-theme
 sphinx-autodoc-typehints
 
