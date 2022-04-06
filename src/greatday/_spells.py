@@ -271,3 +271,10 @@ def points_metatag(todo: T) -> T:
         priority = "I"
 
     return todo.new(desc=desc, metadata=metadata, priority=priority)
+
+
+# TODO(bugyi): Remove all priorities when.
+@todo_spell
+def i_priority_spell(todo: T) -> T:
+    """Handles todos with the in-prigress [i.e. (I)] priority."""
+    return todo
