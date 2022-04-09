@@ -69,7 +69,9 @@ def x_points(todo: T) -> T:
     del metadata["x"]
     metadata["points"] = points
 
-    desc = " ".join(todo.desc.split(" ")[1:]) + f" points:{points}"
+    desc = todo.desc
+    desc = drop_word_if_startswith(desc, "points:")
+    desc = " ".join(desc.split(" ")[1:]) + f" points:{points}"
 
     new_todo = todo.new(desc=desc, done=True, metadata=metadata)
     line = new_todo.to_line()
