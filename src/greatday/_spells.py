@@ -273,8 +273,41 @@ def points_metatag(todo: T) -> T:
     return todo.new(desc=desc, metadata=metadata, priority=priority)
 
 
-# TODO(bugyi): Remove all priorities when.
 @todo_spell
 def i_priority_spell(todo: T) -> T:
     """Handles todos with the in-prigress [i.e. (I)] priority."""
-    return todo
+    start = todo.metadata.get("start")
+    if todo.priority != "I":
+        if start:
+            metadata = dict(todo.metadata.items())
+            del metadata["start"]
+            desc = drop_word_if_startswith(todo.desc, "start:")
+            return todo.new(desc=desc, metadata=metadata)
+        else:
+            return todo
+
+    if start:
+        return todo
+
+    now = dt.datetime.now()
+    start = f"{now.hour:0>2}{now.minute:0>2}"
+
+    metadata = dict(todo.metadata.items())
+    metadata["start"] = start
+    desc = todo.desc + f" start:{start}"
+
+    return todo.new(desc=desc, metadata=metadata)
+
+
+@todo_spell
+def remove_priorities(todo: T) -> T:
+    """Remove prioritis for done todos or non-today todos."""
+    if todo.priority == magodo.DEFAULT_PRIORITY:
+        return todo
+
+    if not todo.done and "today" in todo.contexts:
+        return todo
+
+    priority = magodo.DEFAULT_PRIORITY
+    desc = drop_word_from_desc(todo.desc, f"({todo.priority})")
+    return todo.new(desc=desc, priority=priority)
