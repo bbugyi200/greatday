@@ -54,6 +54,9 @@ def _startswith_op(x: str, y: str) -> bool:
 drop_word_if_startswith = partial(drop_word_from_desc, op=_startswith_op)
 
 
+###############################################################################
+# First, all PRE todo spells are cast...
+###############################################################################
 @pre_todo_spell
 def x_points(todo: T) -> T:
     """Handles metatags of the form 'x:N' at the start of a todo line."""
@@ -78,6 +81,9 @@ def x_points(todo: T) -> T:
     return type(todo).from_line(line).unwrap()
 
 
+###############################################################################
+# Then all NORMAL todo spells are cast...
+###############################################################################
 @todo_spell
 def snooze_spell(todo: T) -> T:
     """Handles the 'snooze' metadata tag."""
@@ -301,6 +307,9 @@ def i_priority_spell(todo: T) -> T:
     return todo.new(desc=desc, metadata=metadata)
 
 
+###############################################################################
+# Lastly, all POST todo spells are cast...
+###############################################################################
 @post_todo_spell
 def remove_priorities(todo: T) -> T:
     """Remove prioritis for done todos or non-today todos."""
