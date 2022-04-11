@@ -301,7 +301,7 @@ def i_priority_spell(todo: T) -> T:
     return todo.new(desc=desc, metadata=metadata)
 
 
-@todo_spell
+@post_todo_spell
 def remove_priorities(todo: T) -> T:
     """Remove prioritis for done todos or non-today todos."""
     if todo.priority == magodo.DEFAULT_PRIORITY:
