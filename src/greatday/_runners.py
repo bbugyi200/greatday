@@ -256,7 +256,7 @@ def run_info(cfg: InfoConfig) -> int:
 
     stats = data["stats"] = {}
     points_data = stats["points"] = {}
-    day_info = points_data["by_day"] = {}
+    day_info = points_data["by_day"] = defaultdict(dict)
 
     # e.g. 'stats.count.total' OR 'stats.count.open' OR 'stats.count.done'
     counter = stats["count"] = {}
@@ -296,30 +296,57 @@ def run_info(cfg: InfoConfig) -> int:
     counter["total"] = open_count + done_count
 
     for days in range(cfg.points_start_offset, cfg.points_end_offset + 1):
-        ctx_to_points: dict[str, int] = defaultdict(int)
-        done_date = today - dt.timedelta(days=days)
+        # inner (i.e. local to this for-loop) date
+        date = today - dt.timedelta(days=days)
+
         day_total = 0
+        xp_day_total = 0
+
+        # Maps '@' contexts to numeric points.
+        ctx_to_points: dict[str, int] = defaultdict(int)
+
+        is_today = bool(date == today)
+
         with GreatSession(
             cfg.data_dir,
             repo_path,
             Tag(
-                done_date=done_date,
+                done_date=date,
                 done=True,
                 metadata_checks=[magodo.MetadataCheck("points")],
             ),
             name="info",
-        ) as session:
-            for todo in session.repo.todo_group:
-                P = int(todo.metadata.get("points", "0"))
+        ) as done_session:
+            for todo in done_session.repo.todo_group:
+                P = int(todo.metadata.get("points", 0))
                 day_total += P
-                for ctx in cfg.contexts:
-                    if ctx in todo.contexts:
-                        ctx_to_points[ctx] += P
 
-        if day_total:
-            date = magodo.from_date(done_date)
-            day_info[date] = {"total": day_total}
-            day_info[date]["contexts"] = ctx_to_points
+                XP = int(todo.metadata.get("xp", 0))
+                xp_day_total += P if is_today else XP or P
+
+                for ctx in todo.contexts:
+                    ctx_to_points[ctx] += P
+
+        if is_today:
+            # Add sum of 'xp' metatag values for todos due today...
+            with GreatSession(
+                cfg.data_dir,
+                repo_path,
+                Tag(
+                    done=False,
+                    contexts=["today"],
+                    metadata_checks=[magodo.MetadataCheck("xp")],
+                ),
+            ) as open_session:
+                for todo in open_session.repo.todo_group:
+                    XP = int(todo.metadata.get("xp", 0))
+                    xp_day_total += XP
+
+        if day_total or xp_day_total:
+            date_str = magodo.from_date(date)
+            day_info[date_str]["xp_total"] = xp_day_total
+            day_info[date_str]["total"] = day_total
+            day_info[date_str]["contexts"] = ctx_to_points
 
     pretty_data = json.dumps(data, indent=2, sort_keys=True)
     print(pretty_data)
