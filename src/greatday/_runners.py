@@ -278,6 +278,7 @@ def run_info(cfg: InfoConfig) -> int:
         # key: used to index into the 'counter' dict.
         # tags: a dict of tags (e.g. projects) from the current todo.
         for key, tags in [
+            ("epic", todo.epics),
             ("project", todo.projects),
             ("context", todo.contexts),
         ]:
