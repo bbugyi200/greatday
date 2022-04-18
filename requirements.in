@@ -1,7 +1,7 @@
 bolton-clack ~= 0.3.2
 bolton-ion ~= 0.1.0
 bolton-logrus ~= 0.1.0
-magodo ~= 0.9.0
+magodo ~= 0.9.1
 potoroo ~= 0.3.2
 python-dateutil ~= 2.8
 vimala ~= 0.1.2
