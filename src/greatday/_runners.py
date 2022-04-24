@@ -6,7 +6,7 @@ from collections import defaultdict
 import datetime as dt
 from functools import partial
 import json
-from typing import Any, Callable, Dict, Final, List
+from typing import Any, Callable, Dict, Final, Iterable, List
 
 import clack
 from clack.types import ClackRunner
@@ -17,9 +17,10 @@ from typist import assert_never
 from vimala import vim
 
 from ._common import CTX_TODAY, drop_word_from_desc, is_tickler
-from ._config import AddConfig, InfoConfig, StartConfig
-from ._repo import GreatRepo, Tag
+from ._config import AddConfig, InfoConfig, ListConfig, StartConfig
+from ._repo import GreatRepo
 from ._session import GreatSession
+from ._tag import Tag
 from ._todo import GreatTodo
 from .types import YesNoDefault
 
@@ -351,5 +352,24 @@ def run_info(cfg: InfoConfig) -> int:
 
     pretty_data = json.dumps(data, indent=2, sort_keys=True)
     print(pretty_data)
+
+    return 0
+
+
+@runner
+def run_list(cfg: ListConfig) -> int:
+    """Runner for the 'list' subcommand."""
+    repo_path = cfg.data_dir / TODO_DIR
+    repo = GreatRepo(cfg.data_dir, repo_path)
+
+    todo_iter: Iterable[GreatTodo]
+    if cfg.query is None:
+        todo_iter = repo.todo_group
+    else:
+        tag = Tag.from_query(cfg.query)
+        todo_iter = repo.get_by_tag(tag).unwrap()
+
+    for todo in sorted(todo_iter):
+        print(todo.to_line())
 
     return 0

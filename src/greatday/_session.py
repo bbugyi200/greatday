@@ -13,7 +13,8 @@ from potoroo import UnitOfWork
 from typist import PathLike
 
 from ._ids import NULL_ID
-from ._repo import GreatRepo, Tag
+from ._repo import GreatRepo
+from ._tag import Tag
 
 
 logger = Logger(__name__)

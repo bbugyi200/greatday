@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, List, Literal, Sequence
+from typing import Any, List, Literal, Optional, Sequence
 
 import clack
 from clack import xdg
@@ -59,6 +59,15 @@ class InfoConfig(Config):
     points_end_offset: int = 4
 
 
+class ListConfig(Config):
+    """Config for the 'list' subcommand."""
+
+    command: Literal["list"]
+
+    # ----- ARGUMENTS
+    query: Optional[str] = None
+
+
 def clack_parser(argv: Sequence[str]) -> dict[str, Any]:
     """Parser we pass to the `main_factory()` `parser` kwarg."""
 
@@ -68,6 +77,7 @@ def clack_parser(argv: Sequence[str]) -> dict[str, Any]:
 
     new_command = clack.new_command_factory(parser)
 
+    # ----- 'add' command
     add_parser = new_command("add", help="Add a new todo to your inbox.")
     add_parser.add_argument(
         "todo_line",
@@ -77,6 +87,8 @@ def clack_parser(argv: Sequence[str]) -> dict[str, Any]:
             " todo.txt format)."
         ),
     )
+
+    # ----- 'start' command
     new_command(
         "start",
         help=(
@@ -84,11 +96,24 @@ def clack_parser(argv: Sequence[str]) -> dict[str, Any]:
             " a list of todos to have done before the end of the day."
         ),
     )
+
+    # ----- 'info' command
     new_command(
         "info",
         help=(
             "Print information about greatday and its current state to stdout"
             " in JSON format."
+        ),
+    )
+
+    # ----- 'list' command
+    list_parser = new_command("list", help="Query the todo database.")
+    list_parser.add_argument(
+        "query",
+        nargs="?",
+        help=(
+            "The todo search query that will be used to filter todos. If not"
+            " provided, all todos are selected."
         ),
     )
 

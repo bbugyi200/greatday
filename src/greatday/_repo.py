@@ -2,36 +2,21 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import datetime as dt
 from pathlib import Path
-from typing import Iterable
 
 from eris import ErisResult, Ok
 from logrus import Logger
-from magodo import MetadataCheck, TodoGroup
-from magodo.types import Priority
+from magodo import TodoGroup
 from potoroo import TaggedRepo
 from typist import PathLike
 
 from ._ids import NULL_ID, init_next_todo_id
+from ._tag import Tag
 from ._todo import GreatTodo
 
 
 logger = Logger(__name__)
-
-
-@dataclass(frozen=True)
-class Tag:
-    """Tag used to filter Todos."""
-
-    contexts: Iterable[str] = ()
-    create_date: dt.date | None = None
-    done_date: dt.date | None = None
-    done: bool | None = None
-    metadata_checks: Iterable[MetadataCheck] = ()
-    priorities: Iterable[Priority] = ()
-    projects: Iterable[str] = ()
 
 
 class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
@@ -167,6 +152,7 @@ class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
                     create_date=tag.create_date,
                     done_date=tag.done_date,
                     done=tag.done,
+                    epics=tag.epics,
                     metadata_checks=tag.metadata_checks,
                     priorities=tag.priorities,
                     projects=tag.projects,
