@@ -4,4 +4,6 @@ bolton-logrus ~= 0.1.0
 magodo ~= 0.9.1
 potoroo ~= 0.3.2
 python-dateutil ~= 2.8
+textual ~= 0.1.17
+textual-inputs ~= 0.2.5
 vimala ~= 0.1.2

@@ -17,7 +17,7 @@ from typist import assert_never
 from vimala import vim
 
 from ._common import CTX_TODAY, drop_word_from_desc, is_tickler
-from ._config import AddConfig, InfoConfig, ListConfig, StartConfig
+from ._config import AddConfig, InfoConfig, ListConfig, StartConfig, TUIConfig
 from ._repo import GreatRepo
 from ._session import GreatSession
 from ._tag import Tag
@@ -372,4 +372,10 @@ def run_list(cfg: ListConfig) -> int:
     for todo in sorted(todo_iter):
         print(todo.to_line())
 
+    return 0
+
+
+@runner
+def run_tui(cfg: TUIConfig) -> int:
+    """Runer for the 'tui' subcommand."""
     return 0

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools as it
 from pathlib import Path
 from typing import Any, List, Literal, Optional, Sequence
 
@@ -12,7 +13,7 @@ from . import APP_NAME
 from .types import YesNoDefault
 
 
-Command = Literal["add", "info", "list", "note", "start"]
+Command = Literal["add", "info", "list", "note", "start", "tui"]
 
 
 class Config(clack.Config):
@@ -68,14 +69,32 @@ class ListConfig(Config):
     query: Optional[str] = None
 
 
+class TUIConfig(Config):
+    """Config for the 'tui' subcommand."""
+
+    command: Literal["tui"]
+
+
 def clack_parser(argv: Sequence[str]) -> dict[str, Any]:
     """Parser we pass to the `main_factory()` `parser` kwarg."""
+    # HACK: Make 'tui' the default sub-command.
+    if not list(it.dropwhile(lambda x: x.startswith("-"), argv[1:])):
+        argv = list(argv) + ["tui"]
 
     parser = clack.Parser(
         description="Don't have a good day. Have a great day."
     )
 
     new_command = clack.new_command_factory(parser)
+
+    # ----- 'tui' command (default)
+    new_command(
+        "tui",
+        help=(
+            "Render greatday's text-based user interface (TUI). This is the"
+            " default command."
+        ),
+    )
 
     # ----- 'add' command
     add_parser = new_command("add", help="Add a new todo to your inbox.")

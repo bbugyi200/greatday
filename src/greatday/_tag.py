@@ -32,6 +32,7 @@ class Tag:
 
     @classmethod
     def from_query(cls, query: str) -> Tag:
+        """Build a Tag using a query string."""
         contexts: list[str] = []
         create_date: dt.date | None = None
         done_date: dt.date | None = None
