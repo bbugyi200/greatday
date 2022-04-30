@@ -211,7 +211,10 @@ requests==2.27.1
     #   cookiecutter
     #   sphinx
 rich==12.3.0
-    # via textual
+    # via
+    #   -r requirements.in
+    #   greatday
+    #   textual
 setuptools-scm==6.4.2
     # via -r requirements-dev.in
 six==1.16.0
