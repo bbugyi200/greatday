@@ -47,13 +47,13 @@ python-dateutil==2.8.2
     # via -r requirements.in
 pyyaml==6.0
     # via bolton-clack
-rich==12.2.0
+rich==12.3.0
     # via textual
 six==1.16.0
     # via python-dateutil
 structlog==21.5.0
     # via bolton-logrus
-textual==0.1.17
+textual==0.1.18
     # via
     #   -r requirements.in
     #   textual-inputs
@@ -63,5 +63,6 @@ typing-extensions==4.2.0
     # via
     #   pydantic
     #   rich
+    #   textual
 vimala==0.1.2
     # via -r requirements.in
