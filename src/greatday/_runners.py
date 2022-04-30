@@ -22,6 +22,7 @@ from ._repo import GreatRepo
 from ._session import GreatSession
 from ._tag import Tag
 from ._todo import GreatTodo
+from ._tui import start_textual_app
 from .types import YesNoDefault
 
 
@@ -378,4 +379,6 @@ def run_list(cfg: ListConfig) -> int:
 @runner
 def run_tui(cfg: TUIConfig) -> int:
     """Runer for the 'tui' subcommand."""
+    del cfg
+    start_textual_app()
     return 0
