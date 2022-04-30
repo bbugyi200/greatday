@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import datetime as dt
 from pathlib import Path
 
 from eris import ErisResult, Ok
@@ -11,6 +10,7 @@ from magodo import TodoGroup
 from potoroo import TaggedRepo
 from typist import PathLike
 
+from ._common import init_yyyymm_path
 from ._ids import NULL_ID, init_next_todo_id
 from ._tag import Tag
 from ._todo import GreatTodo
@@ -170,20 +170,3 @@ class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
         for todo in removed_todos:
             self.remove(todo.ident).unwrap()
         return Ok(removed_todos)
-
-
-def init_yyyymm_path(root: PathLike, *, date: dt.date = None) -> Path:
-    """Returns a Path of the form /path/to/root/YYYY/MM.txt.
-
-    NOTE: Creates the /path/to/root/YYYY directory if necessary.
-    """
-    root = Path(root)
-    if date is None:
-        date = dt.date.today()
-
-    year = date.year
-    month = date.month
-
-    result = root / str(year) / f"{month:0>2}.txt"
-    result.parent.mkdir(parents=True, exist_ok=True)
-    return result

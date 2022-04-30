@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import datetime as dt
+from pathlib import Path
 from typing import TYPE_CHECKING, Callable, Final
 
 from dateutil.relativedelta import relativedelta
+from typist import PathLike
 
 
 if TYPE_CHECKING:
@@ -125,3 +127,20 @@ def dt_from_date_and_hhmm(date: dt.date, hhmm: str) -> dt.datetime:
 def matches_date_fmt(date_spec: str) -> bool:
     """Returns True iff date_spec matches the magodo date format.."""
     return len(date_spec) == 10 and date_spec.count("-") == 2
+
+
+def init_yyyymm_path(root: PathLike, *, date: dt.date = None) -> Path:
+    """Returns a Path of the form /path/to/root/YYYY/MM.txt.
+
+    NOTE: Creates the /path/to/root/YYYY directory if necessary.
+    """
+    root = Path(root)
+    if date is None:
+        date = dt.date.today()
+
+    year = date.year
+    month = date.month
+
+    result = root / str(year) / f"{month:0>2}.txt"
+    result.parent.mkdir(parents=True, exist_ok=True)
+    return result
