@@ -253,23 +253,6 @@ def appt_todos(todo: T) -> T:
 
 
 @todo_spell
-def points_metatag(todo: T) -> T:
-    """Handles the 'p:N' metatag."""
-    desc = todo.desc
-    points = todo.metadata.get("p")
-    metadata = todo.metadata
-
-    if not points:
-        return todo
-
-    priority = todo.priority
-    if not todo.done and priority > "I":
-        priority = "I"
-
-    return todo.new(desc=desc, metadata=metadata, priority=priority)
-
-
-@todo_spell
 def i_priority_spell(todo: T) -> T:
     """Handles todos with the in-prigress [i.e. (I)] priority."""
     start = todo.metadata.get("start")
