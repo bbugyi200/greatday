@@ -87,7 +87,7 @@ class GreatApp(App):
 
     async def on_load(self) -> None:
         """Configure key bindings."""
-        await self.bind("escape", "change_mode('normal')", show=False)
+        await self.bind("escape", "change_mode('normal')", "Normal Mode")
         await self.bind("enter", "submit", "Submit")
         await self.bind("i", "change_mode('insert')", "Insert Mode")
         await self.bind("q", "quit", "Quit")

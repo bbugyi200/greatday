@@ -49,8 +49,10 @@ bolton-proctor==0.2.2
     # via vimala
 bolton-typist==0.2.0
     # via
+    #   -r requirements.in
     #   bolton-clack
     #   bolton-eris
+    #   greatday
     #   magodo
     #   vimala
 bump2version==1.0.1
