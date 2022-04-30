@@ -315,12 +315,12 @@ def run_info(cfg: InfoConfig) -> int:
             Tag(
                 done_date=date,
                 done=True,
-                metadata_checks=[magodo.MetadataCheck("points")],
+                metadata_checks=[magodo.MetadataCheck("p")],
             ),
             name="info",
         ) as done_session:
             for todo in done_session.repo.todo_group:
-                P = int(todo.metadata.get("points", 0))
+                P = int(todo.metadata.get("p", 0))
                 day_total += P
 
                 XP = int(todo.metadata.get("xp", 0))

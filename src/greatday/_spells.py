@@ -70,11 +70,11 @@ def x_points(todo: T) -> T:
     metadata = dict(todo.metadata.items())
     points = metadata["x"]
     del metadata["x"]
-    metadata["points"] = points
+    metadata["p"] = points
 
     desc = todo.desc
-    desc = drop_word_if_startswith(desc, "points:")
-    desc = " ".join(desc.split(" ")[1:]) + f" points:{points}"
+    desc = drop_word_if_startswith(desc, "p:")
+    desc = " ".join(desc.split(" ")[1:]) + f" p:{points}"
 
     new_todo = todo.new(desc=desc, done=True, metadata=metadata)
     line = new_todo.to_line()
@@ -254,22 +254,10 @@ def appt_todos(todo: T) -> T:
 
 @todo_spell
 def points_metatag(todo: T) -> T:
-    """Handles the 'points:N' metatag."""
+    """Handles the 'p:N' metatag."""
     desc = todo.desc
-    points = todo.metadata.get("points")
+    points = todo.metadata.get("p")
     metadata = todo.metadata
-
-    P = todo.metadata.get("p")
-    if P:
-        points = P
-
-        metadata = dict(metadata.items())
-        metadata["points"] = points
-
-        del metadata["p"]
-        desc = drop_word_from_desc(desc, f"p:{points}")
-
-        desc = desc + f" points:{points}"
 
     if not points:
         return todo
