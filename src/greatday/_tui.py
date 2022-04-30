@@ -10,8 +10,11 @@ from rich.table import Table
 from rich.text import Text
 from textual import events
 from textual.app import App
-from textual.widgets import Footer, Header, Placeholder, Static
+from textual.widgets import Footer, Header, Static
 from textual_inputs import TextInput
+
+from ._repo import GreatRepo
+from ._tag import Tag
 
 
 class GreatHeader(Header):
@@ -73,15 +76,17 @@ class GreatFooter(Footer):
 class GreatApp(App):
     """Textual TUI Application Class."""
 
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self, *, repo: GreatRepo = None, **kwargs: Any) -> None:
         super().__init__(**kwargs)
+
+        assert repo is not None
+        self.repo = repo
 
         self.input_widget = TextInput(name="input")
         self.main_widget = Static(Panel("", title="Todo List"), name="main")
 
     async def on_load(self) -> None:
         """Configure key bindings."""
-        await self.bind(":", "change_mode('command')", "Command Mode")
         await self.bind("escape", "change_mode('normal')", show=False)
         await self.bind("enter", "submit", "Submit")
         await self.bind("i", "change_mode('insert')", "Insert Mode")
@@ -103,10 +108,6 @@ class GreatApp(App):
             self.input_widget.title = "INSERT"
             self.input_widget.refresh()
             await self.input_widget.focus()
-        elif mode == "command":
-            self.input_widget.title = "COMMAND"
-            self.input_widget.refresh()
-            await self.input_widget.focus()
         elif mode == "normal":
             self.input_widget.title = ""
             self.input_widget.refresh()
@@ -116,11 +117,16 @@ class GreatApp(App):
 
     async def action_submit(self) -> None:
         """Called when the user hits <Enter>."""
-        await self.main_widget.update(
-            Panel(self.input_widget.value, title="Todo List")
-        )
+        tag = Tag.from_query(self.input_widget.value)
+        todos = self.repo.get_by_tag(tag).unwrap()
+
+        text = ""
+        for todo in sorted(todos):
+            text += todo.to_line() + "\n"
+
+        await self.main_widget.update(Panel(text, title="Todo List"))
 
 
-def start_textual_app() -> None:
+def start_textual_app(repo: GreatRepo) -> None:
     """Starts the TUI using the GreatApp class."""
-    GreatApp.run(title="Greatday TUI", log="greatday_textual.log")
+    GreatApp.run(repo=repo, title="Greatday TUI", log="greatday_textual.log")

@@ -49,12 +49,12 @@ class Tag:
                 ("+", projects),
             ]:
                 if word.startswith(prefix):
-                    logger.info("Filter on property.", word=word)
+                    logger.debug("Filter on property.", word=word)
                     prop_list.append(word[1:])
                     break
 
                 if word.startswith(f"!{prefix}"):
-                    logger.info("Filter on negative property.", word=word)
+                    logger.debug("Filter on negative property.", word=word)
                     prop_list.append(f"-{word[2:]}")
                     break
             else:
@@ -68,7 +68,7 @@ class Tag:
                         continue
 
                     create_date = magodo.to_date(date_spec)
-                    logger.info(
+                    logger.debug(
                         "Filter on create date.", create_date=create_date
                     )
                     continue
@@ -83,7 +83,7 @@ class Tag:
                         continue
 
                     done_date = magodo.to_date(date_spec)
-                    logger.info("Filter on done date.", done_date=done_date)
+                    logger.debug("Filter on done date.", done_date=done_date)
                     continue
 
                 done_prefix = "done="
@@ -97,7 +97,7 @@ class Tag:
                         continue
 
                     done = bool(int(zero_or_one))
-                    logger.info(
+                    logger.debug(
                         "Filter on whether todo is done or not.", done=done
                     )
                     continue
