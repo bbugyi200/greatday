@@ -9,6 +9,7 @@ from rich.style import Style
 from rich.table import Table
 from rich.text import Text
 from textual.app import App
+from textual.reactive import Reactive
 from textual.widgets import Footer, Header, Static
 from textual_inputs import TextInput
 
@@ -70,6 +71,36 @@ class GreatFooter(Footer):
         return text
 
 
+class StatsWidget(Static):
+    """Widget that shows Todo statistics."""
+
+    repo: Reactive[GreatRepo | None] = Reactive(None)
+
+    def __init__(self, repo: GreatRepo, *args: Any, **kwargs: Any) -> None:
+        super().__init__("", *args, **kwargs)
+        self.repo = repo
+
+    def render(self) -> Panel:
+        """Render the statistics widget."""
+        assert self.repo is not None
+
+        tag = Tag.from_query("@inbox")
+        inbox_todos = self.repo.get_by_tag(tag).unwrap()
+        inbox_count = len(inbox_todos) if inbox_todos else 0
+
+        tickler_count = 0
+
+        tag = Tag.from_query("@today done=0")
+        today_todos = self.repo.get_by_tag(tag).unwrap()
+        today_count = len(today_todos) if today_todos else 0
+
+        return Panel(
+            f"INBOX: {inbox_count}\nTICKLERS: {tickler_count}\nTODAY:"
+            f" {today_count}\n",
+            title="Statistics",
+        )
+
+
 class GreatApp(App):
     """Textual TUI Application Class."""
 
@@ -80,7 +111,8 @@ class GreatApp(App):
         self.repo = repo
 
         self.input_widget = TextInput(name="input")
-        self.main_widget = Static(Panel("", title="Todo List"), name="main")
+        self.main_widget = Static(Panel("", title="Main"), name="main")
+        self.stats_widget = StatsWidget(self.repo)
 
     async def on_load(self) -> None:
         """Configure key bindings."""
@@ -97,6 +129,7 @@ class GreatApp(App):
 
         # configure other widgets...
         await self.view.dock(self.input_widget, edge="bottom", size=10)
+        await self.view.dock(self.stats_widget, edge="left", size=50)
         await self.view.dock(self.main_widget, edge="top")
 
     async def action_change_mode(self, mode: str) -> None:
