@@ -323,10 +323,7 @@ def run_info(cfg: InfoConfig) -> int:
             for todo in done_session.repo.todo_group:
                 P = int(todo.metadata.get("p", 0))
                 day_total += P
-
-                XP = int(todo.metadata.get("xp", 0))
-                xp_day_total += P if is_today else XP or P
-
+                xp_day_total += P
                 for ctx in todo.contexts:
                     ctx_to_points[ctx] += P
 
@@ -345,9 +342,12 @@ def run_info(cfg: InfoConfig) -> int:
                     XP = int(todo.metadata.get("xp", 0))
                     xp_day_total += XP
 
-        if day_total or xp_day_total:
+        if day_total or (xp_day_total and is_today):
             date_str = magodo.from_date(date)
-            day_info[date_str]["xp_total"] = xp_day_total
+            # Only show 'xp_total' for today's date...
+            if is_today:
+                day_info[date_str]["xp_total"] = xp_day_total
+
             day_info[date_str]["total"] = day_total
             day_info[date_str]["contexts"] = ctx_to_points
 
