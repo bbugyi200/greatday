@@ -26,6 +26,7 @@ class GreatHeader(Header):
         self.style = Style(color="white", bgcolor="rgb(98,98,98)")
 
     def render(self) -> Table:
+        """Returns renderable header."""
         header_table = Table.grid(padding=(0, 1), expand=True)
         header_table.add_column(justify="left", ratio=0, width=8)
         header_table.add_column("title", justify="center", ratio=1)
