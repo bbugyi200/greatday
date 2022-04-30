@@ -8,7 +8,6 @@ from rich.panel import Panel
 from rich.style import Style
 from rich.table import Table
 from rich.text import Text
-from textual import events
 from textual.app import App
 from textual.widgets import Footer, Header, Static
 from textual_inputs import TextInput
@@ -35,9 +34,6 @@ class GreatHeader(Header):
             "🔤", self.full_title, self.get_clock() if self.clock else ""
         )
         return header_table
-
-    async def on_click(self, event: events.Click) -> None:
-        return await super().on_click(event)
 
 
 class GreatFooter(Footer):
