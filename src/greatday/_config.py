@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import itertools as it
 from pathlib import Path
-from typing import Any, List, Literal, Optional, Sequence
+from typing import Any, Literal, Optional, Sequence
 
 import clack
 from clack import xdg
@@ -13,7 +13,7 @@ from . import APP_NAME
 from .types import YesNoDefault
 
 
-Command = Literal["add", "info", "list", "note", "start", "tui"]
+Command = Literal["add", "info", "list", "tui"]
 
 
 class Config(clack.Config):
@@ -22,20 +22,7 @@ class Config(clack.Config):
     command: Command
 
     # ----- CONFIG
-    contexts: List[str] = ["dev", "me", "work"]
     data_dir: Path = xdg.get_full_dir("data", APP_NAME)
-
-
-class StartConfig(Config):
-    """Config for the 'start' subcommand."""
-
-    command: Literal["start"]
-
-    # ----- CONFIG
-    commit_changes: YesNoDefault = "default"
-    daily: YesNoDefault = "default"
-    ticklers: YesNoDefault = "default"
-    inbox: YesNoDefault = "default"
 
 
 class AddConfig(Config):
@@ -104,15 +91,6 @@ def clack_parser(argv: Sequence[str]) -> dict[str, Any]:
         help=(
             "A valid todo string (i.e. a string that conforms to the standard"
             " todo.txt format)."
-        ),
-    )
-
-    # ----- 'start' command
-    new_command(
-        "start",
-        help=(
-            "Start the day by going through your inbox, ticklers, and finally"
-            " a list of todos to have done before the end of the day."
         ),
     )
 
