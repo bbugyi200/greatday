@@ -34,8 +34,7 @@ class Tag:
     def from_query(cls, query: str) -> Tag:
         """Build a Tag using a query string."""
         contexts: list[str] = []
-        create_date: dt.date | None = None
-        done_date: dt.date | None = None
+        create_and_done: list[dt.date | None] = [None, None]
         done: bool | None = None
         epics: list[str] = []
         metadata_checks: list[MetadataCheck] = []
@@ -58,32 +57,26 @@ class Tag:
                     prop_list.append(f"-{word[2:]}")
                     break
             else:
-                if word.startswith("^"):
-                    date_spec = word[1:]
-                    if not matches_date_fmt(date_spec):
-                        logger.warning(
-                            "Create date does not match required date format.",
-                            date_spec=date_spec,
+                is_date_range = False
+                for i, date_prefix in enumerate(["create=", "done="]):
+                    if word.startswith(date_prefix):
+                        date_spec = word[len(date_prefix) :]
+                        if not matches_date_fmt(date_spec):
+                            logger.debug(
+                                "Date does not match required date format.",
+                                date_spec=date_spec,
+                            )
+                            continue
+
+                        create_and_done[i] = magodo.to_date(date_spec)
+                        logger.debug(
+                            "Filter on date.",
+                            prefix=date_prefix,
+                            date=create_and_done[i],
                         )
-                        continue
+                        is_date_range = True
 
-                    create_date = magodo.to_date(date_spec)
-                    logger.debug(
-                        "Filter on create date.", create_date=create_date
-                    )
-                    continue
-
-                if word.startswith("$"):
-                    date_spec = word[1:]
-                    if not matches_date_fmt(date_spec):
-                        logger.warning(
-                            "Done date does not match required date format.",
-                            date_spec=date_spec,
-                        )
-                        continue
-
-                    done_date = magodo.to_date(date_spec)
-                    logger.debug("Filter on done date.", done_date=done_date)
+                if is_date_range:
                     continue
 
                 done_prefix = "done="
@@ -104,8 +97,8 @@ class Tag:
 
         return cls(
             contexts=contexts,
-            create_date=create_date,
-            done_date=done_date,
+            create_date=create_and_done[0],
+            done_date=create_and_done[1],
             done=done,
             epics=epics,
             metadata_checks=metadata_checks,
