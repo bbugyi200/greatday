@@ -132,13 +132,13 @@ class Tag:
                 required = not key.endswith("?")
                 key = key.rstrip("?")
 
-                value: dt.date | str | float
+                value: dt.date | str | int
                 if op_string == ":":
                     value = value_string
                 elif matches_date_fmt(value_string):
                     value = magodo.to_date(value_string)
                 else:
-                    value = float(value_string)
+                    value = int(value_string)
 
                 check = _make_check(op, value)
                 metadata_checks.append(
@@ -159,9 +159,15 @@ class Tag:
 
 
 def _make_check(op: Callable[[Any, Any], bool], expected: Any) -> MetadataFunc:
-    def check(actual: Any) -> bool:
+    def check(x: str) -> bool:
+        actual: dt.date | str | int
         if isinstance(expected, dt.date):
-            actual = magodo.to_date(actual)
+            actual = magodo.to_date(x)
+        elif isinstance(expected, int):
+            actual = int(x)
+        else:
+            actual = x
+
         return op(actual, expected)
 
     return check
