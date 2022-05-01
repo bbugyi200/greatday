@@ -1,0 +1,23 @@
+{* This file contains the EBNF specification of greatday's todo query language (e.g. used by 'greatday list'). *}
+
+start = [spec_group {"|" spec_group}];
+spec_group = spec {SPACE spec};
+spec = create
+     | desc
+     | done
+     | metatag
+     | priority
+     | tag;
+
+{* variables required by spec... *}
+create = "create=" date_range;
+desc = ["!"] '"' WORD {SPACE WORD} '"';
+done = "done=" ("0" | "1" | date_range);
+metatag = WORD ["!" | "?"] [op WORD];
+priority = "(" LETTER ")";
+tag = ["!"] ("@" | "#" | "+") WORD;
+
+{* all other variables... *}
+date_range = date [":" date];
+date = 4*NUM "-" 2*NUM "-" 2*NUM;
+op = ":" | "<" | ">";
