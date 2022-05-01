@@ -17,7 +17,7 @@ Command = Literal["add", "info", "list", "note", "start", "tui"]
 
 
 class Config(clack.Config):
-    """Command-line arguments."""
+    """Shared clack configuration class."""
 
     command: Command
 
