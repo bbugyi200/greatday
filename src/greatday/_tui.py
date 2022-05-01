@@ -104,10 +104,9 @@ class StatsWidget(Static):
 class GreatApp(App):
     """Textual TUI Application Class."""
 
-    def __init__(self, *, repo: GreatRepo = None, **kwargs: Any) -> None:
+    def __init__(self, *, repo: GreatRepo, **kwargs: Any) -> None:
         super().__init__(**kwargs)
 
-        assert repo is not None
         self.repo = repo
 
         self.input_widget = TextInput(name="input")
