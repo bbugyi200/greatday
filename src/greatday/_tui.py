@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import datetime as dt
 from functools import partial
 from typing import Any
 
+import magodo
 from rich.panel import Panel
 from rich.style import Style
 from rich.table import Table
@@ -89,11 +91,16 @@ class StatsWidget(Static):
         """Render the statistics widget."""
         assert self.repo is not None
 
-        tag = Tag.from_query("@inbox")
+        tag = Tag.from_query("@inbox done=0")
         inbox_todos = self.repo.get_by_tag(tag).unwrap()
         inbox_count = len(inbox_todos) if inbox_todos else 0
 
-        tickler_count = 0
+        today = dt.date.today()
+        tag = Tag.from_query(
+            "tickle<={0} snooze?<={0} done=0".format(magodo.from_date(today))
+        )
+        tickler_todos = self.repo.get_by_tag(tag).unwrap()
+        tickler_count = len(tickler_todos) if tickler_todos else 0
 
         tag = Tag.from_query("@today done=0")
         today_todos = self.repo.get_by_tag(tag).unwrap()
