@@ -20,4 +20,4 @@ tag = ["!"] ("@" | "#" | "+") WORD;
 {* all other variables... *}
 date_range = date [":" date];
 date = 4*NUM "-" 2*NUM "-" 2*NUM;
-op = ":" | "<" | ">";
+op = ":" | "<=" | ">=" | "<" | ">";
