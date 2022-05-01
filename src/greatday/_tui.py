@@ -109,8 +109,11 @@ class GreatApp(App):
 
         self.repo = repo
 
-        self.input_widget = TextInput(name="input")
-        self.main_widget = Static(Panel("", title="Main"), name="main")
+        self.input_widget = TextInput(name="input", placeholder="@today")
+        self.main_widget = Static(
+            Panel(_todo_lines_from_query(self.repo, "@today"), title="Main"),
+            name="main",
+        )
         self.stats_widget = StatsWidget(self.repo)
 
     async def on_load(self) -> None:
@@ -146,14 +149,19 @@ class GreatApp(App):
 
     async def action_submit(self) -> None:
         """Called when the user hits <Enter>."""
-        tag = Tag.from_query(self.input_widget.value)
-        todos = self.repo.get_by_tag(tag).unwrap()
-
-        text = ""
-        for todo in sorted(todos):
-            text += todo.to_line() + "\n"
-
+        text = _todo_lines_from_query(self.repo, self.input_widget.value)
         await self.main_widget.update(Panel(text, title="Todo List"))
+
+
+def _todo_lines_from_query(repo: GreatRepo, query: str) -> str:
+    tag = Tag.from_query(query)
+    todos = repo.get_by_tag(tag).unwrap()
+
+    result = ""
+    for todo in sorted(todos):
+        result += todo.to_line() + "\n"
+
+    return result
 
 
 def start_textual_app(repo: GreatRepo) -> None:
