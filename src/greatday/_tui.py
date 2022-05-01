@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+from functools import partial
 from typing import Any
 
 from rich.panel import Panel
@@ -12,8 +14,11 @@ from textual.app import App
 from textual.reactive import Reactive
 from textual.widgets import Footer, Header, Static
 from textual_inputs import TextInput
+from typist import PathLike
 
+from ._editor import edit_and_commit_todos
 from ._repo import GreatRepo
+from ._session import GreatSession
 from ._tag import Tag
 
 
@@ -101,17 +106,58 @@ class StatsWidget(Static):
         )
 
 
+@dataclass
+class Context:
+    """Mutable TUI Context.
+
+    Used to preserve state after closing the GreatApp instance, running vim,
+    and then opening a new GreatApp instance.
+
+    Attributes:
+        query: The active todo query string.
+        is_user_query: Is this query one the user selected or just the
+          default?
+        edit_todos: After closing the TUI, should we open up vim to edit
+          matching todos?
+    """
+
+    query: str
+    is_user_query: bool = False
+    edit_todos: bool = False
+
+
 class GreatApp(App):
     """Textual TUI Application Class."""
 
-    def __init__(self, *, repo: GreatRepo, **kwargs: Any) -> None:
+    def __init__(
+        self, *, repo: GreatRepo, ctx: Context, **kwargs: Any
+    ) -> None:
         super().__init__(**kwargs)
 
         self.repo = repo
+        self.ctx = ctx
 
-        self.input_widget = TextInput(name="input", placeholder="@today")
+        text_input = partial(TextInput, name="input")
+        if ctx.is_user_query:
+            self.input_widget = text_input(value=self.ctx.query)
+        else:
+            self.input_widget = text_input(placeholder=self.ctx.query)
+
+        cursor = (
+            "|",
+            Style(
+                color="black",
+                blink=True,
+                bold=True,
+            ),
+        )
+        self.input_widget.cursor = cursor
+
         self.main_widget = Static(
-            Panel(_todo_lines_from_query(self.repo, "@today"), title="Main"),
+            Panel(
+                _todo_lines_from_query(self.repo, self.ctx.query),
+                title="Main",
+            ),
             name="main",
         )
         self.stats_widget = StatsWidget(self.repo)
@@ -120,6 +166,7 @@ class GreatApp(App):
         """Configure key bindings."""
         await self.bind("escape", "change_mode('normal')", "Normal Mode")
         await self.bind("enter", "submit", "Submit")
+        await self.bind("e", "edit", "Edit Todos")
         await self.bind("i", "change_mode('insert')", "Insert Mode")
         await self.bind("q", "quit", "Quit")
 
@@ -149,8 +196,17 @@ class GreatApp(App):
 
     async def action_submit(self) -> None:
         """Called when the user hits <Enter>."""
-        text = _todo_lines_from_query(self.repo, self.input_widget.value)
+        self.ctx.query = self.input_widget.value
+        self.ctx.is_user_query = True
+        self.input_widget.placeholder = ""
+        text = _todo_lines_from_query(self.repo, self.ctx.query)
         await self.main_widget.update(Panel(text, title="Todo List"))
+        await self.action_change_mode("normal")
+
+    async def action_edit(self) -> None:
+        """Edits todos which match the current todo query."""
+        self.ctx.edit_todos = True
+        await self.action_quit()
 
 
 def _todo_lines_from_query(repo: GreatRepo, query: str) -> str:
@@ -164,6 +220,23 @@ def _todo_lines_from_query(repo: GreatRepo, query: str) -> str:
     return result
 
 
-def start_textual_app(repo: GreatRepo) -> None:
+def start_textual_app(data_dir: PathLike, repo_path: PathLike) -> None:
     """Starts the TUI using the GreatApp class."""
-    GreatApp.run(repo=repo, title="Greatday TUI", log="greatday_textual.log")
+    repo = GreatRepo(data_dir, repo_path)
+    ctx = Context("@today")
+    run_app = partial(
+        GreatApp.run,
+        repo=repo,
+        ctx=ctx,
+        title="Greatday TUI",
+        log="greatday_textual.log",
+    )
+    run_app()
+
+    while ctx.edit_todos:
+        tag = Tag.from_query(ctx.query)
+        with GreatSession(data_dir, repo_path, tag) as session:
+            edit_and_commit_todos(session)
+
+        ctx.edit_todos = False
+        run_app()

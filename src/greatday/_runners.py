@@ -380,6 +380,5 @@ def run_list(cfg: ListConfig) -> int:
 def run_tui(cfg: TUIConfig) -> int:
     """Runer for the 'tui' subcommand."""
     repo_path = cfg.data_dir / TODO_DIR
-    repo = GreatRepo(cfg.data_dir, repo_path)
-    start_textual_app(repo)
+    start_textual_app(cfg.data_dir, repo_path)
     return 0
