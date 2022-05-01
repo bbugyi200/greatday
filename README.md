@@ -62,7 +62,7 @@ print("```", stdout.decode().strip(), "```", sep="\n")
 ```
 usage: greatday [-h] [-c CONFIG_FILE] [-L [FILE[:LEVEL][@FORMAT]]] [-v]
                 [--version]
-                {tui,add,start,info,list} ...
+                {tui,add,info,list} ...
 
 Don't have a good day. Have a great day.
 
@@ -90,13 +90,10 @@ optional arguments:
   --version             show program's version number and exit
 
 subcommands:
-  {tui,add,start,info,list}
+  {tui,add,info,list}
     tui                 Render greatday's text-based user interface (TUI).
                         This is the default command.
     add                 Add a new todo to your inbox.
-    start               Start the day by going through your inbox, ticklers,
-                        and finally a list of todos to have done before the
-                        end of the day.
     info                Print information about greatday and its current state
                         to stdout in JSON format.
     list                Query the todo database.
