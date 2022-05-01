@@ -95,6 +95,16 @@ class Tag:
                     )
                     continue
 
+                if word.isalpha():
+                    metadata_checks.append(MetadataCheck(word))
+
+                if word.startswith("!") and word[1:].isalpha():
+                    metadata_checks.append(
+                        MetadataCheck(
+                            word[1:], check=lambda _: False, required=False
+                        )
+                    )
+
         return cls(
             contexts=contexts,
             create_date=create_and_done[0],
