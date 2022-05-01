@@ -9,9 +9,24 @@ The format is based on [Keep a Changelog], and this project adheres to
 [Semantic Versioning]: https://semver.org/
 
 
-## [Unreleased](https://github.com/bbugyi200/greatday/compare/0.3.0...HEAD)
+## [Unreleased](https://github.com/bbugyi200/greatday/compare/0.4.0...HEAD)
 
 No notable changes have been made.
+
+
+## [0.4.0](https://github.com/bbugyi200/greatday/compare/0.3.0...0.4.0) - 2022-05-01
+
+### Added
+
+* Added new `greatday tui` subcommand (intended to be the main interface to greatday).
+
+### Removed
+
+* *BREAKING CHANGE*: Remove `greatday start` subcommand. Use `greatday tui` instead.
+
+### Miscellaneous
+
+* Many other changes were made. I have not been diligent about releasing new versions.
 
 
 ## [0.3.0](https://github.com/bbugyi200/greatday/compare/0.2.0...0.3.0) - 2022-02-13
