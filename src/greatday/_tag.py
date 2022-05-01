@@ -140,7 +140,7 @@ class Tag:
                 else:
                     value = int(value_string)
 
-                check = _make_check(op, value)
+                check = _make_metadata_func(op, value)
                 metadata_checks.append(
                     MetadataCheck(key, check=check, required=required)
                 )
@@ -158,7 +158,9 @@ class Tag:
         )
 
 
-def _make_check(op: Callable[[Any, Any], bool], expected: Any) -> MetadataFunc:
+def _make_metadata_func(
+    op: Callable[[Any, Any], bool], expected: Any
+) -> MetadataFunc:
     def check(x: str) -> bool:
         actual: dt.date | str | int
         if isinstance(expected, dt.date):
