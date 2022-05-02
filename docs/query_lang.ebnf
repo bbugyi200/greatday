@@ -2,22 +2,24 @@
 
 start = [spec_group {"|" spec_group}];
 spec_group = spec {SPACE spec};
-spec = create
-     | desc
-     | done
+spec = desc
      | metatag
      | priority
      | tag;
 
 {* variables required by spec... *}
-create = "create=" date_range;
 desc = ["!"] '"' WORD {SPACE WORD} '"';
-done = "done=" ("0" | "1" | date_range);
 metatag = ["!"] WORD | WORD [["?"] op WORD];
-priority = "(" LETTER ")";
+priority = "(" UPPERCASE_LETTER ")";
 tag = ["!"] ("@" | "#" | "+") WORD;
 
-{* all other variables... *}
+{* all other non-terminal variables... *}
 date_range = date [":" date];
-date = 4*NUM "-" 2*NUM "-" 2*NUM;
-op = ":" | "<=" | ">=" | "<" | ">";
+date = 4*NAT "-" 2*NAT "-" 2*NAT;
+op = "=" | "!=" | "<=" | ">=" | "<" | ">";
+
+{* all terminal variables... *}
+NAT = ? a positive non-zero integer (i.e. a natural number) ?;
+SPACE = " ";
+UPPERCASE_LETTER = ? any uppercase letter A-Z ?;
+WORD = ? any (almost) sequence of non-whitespace characters ?;
