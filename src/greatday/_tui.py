@@ -175,9 +175,6 @@ class GreatApp(App):
         await self.bind("enter", "submit", "Submit")
         await self.bind("e", "edit", "Edit Todos")
         await self.bind("i", "change_mode('insert')", "Insert Mode")
-        await self.bind(
-            "I", "change_mode('INSERT')", "Erase and Insert Mode", show=False
-        )
         await self.bind("q", "quit", "Quit")
 
     async def on_mount(self) -> None:
@@ -193,16 +190,11 @@ class GreatApp(App):
 
     async def action_change_mode(self, mode: str) -> None:
         """Action to toggle to/from insert mode and other modes."""
-        if mode.lower() == "insert":
+        if mode == "insert":
             self.input_widget.title = "INSERT"
-
-            # Clear the input bar's value if mode == 'INSERT'...
-            if mode.isupper():
-                self.input_widget.value = ""
-
             self.input_widget.refresh()
             await self.input_widget.focus()
-        elif mode.lower() == "normal":
+        elif mode == "normal":
             self.input_widget.title = ""
             self.input_widget.refresh()
             await self.main_widget.focus()
