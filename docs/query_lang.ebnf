@@ -10,16 +10,14 @@ spec = desc
 
 {* variables required by spec... *}
 desc = ["!"] ('"' NOT_DOUBLE_QUOTE+ '"' | "'" NOT_SINGLE_QUOTE+ "'");
-metatag = ["!"] word | word ["?"] op (word | DIGIT+ | date);
+metatag = ["!"] word | word ["?"] op any;
 priority = "(" UPPER_LETTER ")";
 tag = ["!"] ("@" | "#" | "+") word;
 
 {* all other non-special variables... *}
-absolute_date = 4*DIGIT "-" 2*DIGIT "-" 2*DIGIT;
-date = absolute_date | relative_date;
+any = (letter | DIGIT | "-")+;
 letter = UPPER_LETTER | LOWER_LETTER;
 op = "=" | "!=" | "<=" | ">=" | "<" | ">";
-relative_date = DIGIT+ ("d" | "D" | "m" | "M" | "y" | "Y");
 space = " ";
 word = letter+;
 
