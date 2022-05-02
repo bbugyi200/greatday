@@ -9,7 +9,7 @@ spec = desc
 
 {* variables required by spec... *}
 desc = ["!"] ('"' NOT_DOUBLE_QUOTE+ '"' | "'" NOT_SINGLE_QUOTE+ "'");
-metatag = ["!"] word | word [["?"] op (word | DIGIT+ | date)];
+metatag = ["!"] word | word ["?"] op (word | DIGIT+ | date);
 priority = "(" UPPER_LETTER ")";
 tag = ["!"] ("@" | "#" | "+") word;
 
