@@ -12,7 +12,11 @@ import magodo
 from magodo import MetadataCheck
 from magodo.types import MetadataFunc, Priority
 
-from ._common import matches_date_fmt
+from ._common import (
+    get_relative_date,
+    matches_date_fmt,
+    matches_relative_date_fmt,
+)
 
 
 logger = Logger(__name__)
@@ -32,7 +36,7 @@ class Tag:
     projects: Iterable[str] = ()
 
     @classmethod
-    def from_query(cls, query: str) -> Tag:
+    def from_query(cls, query: str) -> Tag:  # noqa: C901
         """Build a Tag using a query string."""
         contexts: list[str] = []
         create_and_done: list[dt.date | None] = [None, None]
@@ -137,6 +141,8 @@ class Tag:
                     value = value_string
                 elif matches_date_fmt(value_string):
                     value = magodo.to_date(value_string)
+                elif matches_relative_date_fmt(value_string):
+                    value = get_relative_date(value_string)
                 else:
                     value = int(value_string)
 
