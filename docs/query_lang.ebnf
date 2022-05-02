@@ -13,7 +13,7 @@ spec = create
 create = "create=" date_range;
 desc = ["!"] '"' WORD {SPACE WORD} '"';
 done = "done=" ("0" | "1" | date_range);
-metatag = ["!"] WORD | WORD [["?"] [op WORD]];
+metatag = ["!"] WORD | WORD [["?"] op WORD];
 priority = "(" LETTER ")";
 tag = ["!"] ("@" | "#" | "+") WORD;
 
