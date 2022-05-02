@@ -62,7 +62,7 @@ print("```", stdout.decode().strip(), "```", sep="\n")
 ```
 usage: greatday [-h] [-c CONFIG_FILE] [-L [FILE[:LEVEL][@FORMAT]]] [-v]
                 [--version]
-                {tui,add,info,list} ...
+                {add,info,list,tui} ...
 
 Don't have a good day. Have a great day.
 
@@ -90,13 +90,13 @@ optional arguments:
   --version             show program's version number and exit
 
 subcommands:
-  {tui,add,info,list}
-    tui                 Render greatday's text-based user interface (TUI).
-                        This is the default command.
+  {add,info,list,tui}
     add                 Add a new todo to your inbox.
     info                Print information about greatday and its current state
                         to stdout in JSON format.
     list                Query the todo database.
+    tui                 Render greatday's text-based user interface (TUI).
+                        This is the default command.
 ```
 <!-- [[[[[end]]]]] -->
 
