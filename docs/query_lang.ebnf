@@ -1,7 +1,8 @@
 {* This file contains the EBNF specification of greatday's todo query language (e.g. used by 'greatday list'). *}
 
-start = [spec_group {space "|" space spec_group}];
-spec_group = spec {space spec};
+start = [spec_or];
+spec_or = spec_and {space "|" space spec_and};
+spec_and = spec {space spec};
 spec = desc
      | metatag
      | priority
