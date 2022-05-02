@@ -74,15 +74,6 @@ def clack_parser(argv: Sequence[str]) -> dict[str, Any]:
 
     new_command = clack.new_command_factory(parser)
 
-    # ----- 'tui' command (default)
-    new_command(
-        "tui",
-        help=(
-            "Render greatday's text-based user interface (TUI). This is the"
-            " default command."
-        ),
-    )
-
     # ----- 'add' command
     add_parser = new_command("add", help="Add a new todo to your inbox.")
     add_parser.add_argument(
@@ -111,6 +102,15 @@ def clack_parser(argv: Sequence[str]) -> dict[str, Any]:
         help=(
             "The todo search query that will be used to filter todos. If not"
             " provided, all todos are selected."
+        ),
+    )
+
+    # ----- 'tui' command (default)
+    new_command(
+        "tui",
+        help=(
+            "Render greatday's text-based user interface (TUI). This is the"
+            " default command."
         ),
     )
 
