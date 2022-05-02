@@ -102,7 +102,7 @@ class StatsWidget(Static):
         tickler_todos = self.repo.get_by_tag(tag).unwrap()
         tickler_count = len(tickler_todos) if tickler_todos else 0
 
-        tag = Tag.from_query("@today done=0")
+        tag = Tag.from_query("@today snooze?<=0d done=0")
         today_todos = self.repo.get_by_tag(tag).unwrap()
         today_count = len(today_todos) if today_todos else 0
 
@@ -230,7 +230,7 @@ def _todo_lines_from_query(repo: GreatRepo, query: str) -> str:
 def start_textual_app(data_dir: PathLike, repo_path: PathLike) -> None:
     """Starts the TUI using the GreatApp class."""
     repo = GreatRepo(data_dir, repo_path)
-    ctx = Context("@today")
+    ctx = Context("@today snooze?<=0d")
     run_app = partial(
         GreatApp.run,
         repo=repo,
