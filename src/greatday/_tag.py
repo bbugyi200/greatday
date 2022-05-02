@@ -143,8 +143,10 @@ class Tag:
                     value = magodo.to_date(value_string)
                 elif matches_relative_date_fmt(value_string):
                     value = get_relative_date(value_string)
-                else:
+                elif value_string.isdigit():
                     value = int(value_string)
+                else:
+                    value = value_string
 
                 check = _make_metadata_func(op, value)
                 metadata_checks.append(
