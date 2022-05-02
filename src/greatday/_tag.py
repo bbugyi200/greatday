@@ -138,7 +138,7 @@ class Tag:
                 key = key.rstrip("?")
 
                 value: dt.date | str | int
-                if op_string == "=":
+                if op_string in ["=", "!="]:
                     value = value_string
                 elif matches_date_fmt(value_string):
                     value = magodo.to_date(value_string)
