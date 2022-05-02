@@ -125,7 +125,8 @@ class Tag:
                 (">=", operator.ge),
                 ("<", operator.lt),
                 (">", operator.gt),
-                (":", operator.eq),
+                ("!=", operator.ne),
+                ("=", operator.eq),
             ]:
                 key_and_value_string = word.split(op_string)
                 if len(key_and_value_string) != 2:
@@ -137,9 +138,7 @@ class Tag:
                 key = key.rstrip("?")
 
                 value: dt.date | str | int
-                if op_string == ":":
-                    value = value_string
-                elif matches_date_fmt(value_string):
+                if matches_date_fmt(value_string):
                     value = magodo.to_date(value_string)
                 elif matches_relative_date_fmt(value_string):
                     value = get_relative_date(value_string)
