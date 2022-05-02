@@ -149,7 +149,12 @@ def run_info(cfg: InfoConfig) -> int:
                 Tag(
                     done=False,
                     contexts=["today"],
-                    metadata_checks=[magodo.MetadataCheck("xp")],
+                    metadata_checks=[
+                        magodo.MetadataCheck("xp"),
+                        magodo.MetadataCheck(
+                            "snooze", check=lambda _: False, required=False
+                        ),
+                    ],
                 ),
             ) as open_session:
                 for todo in open_session.repo.todo_group:
