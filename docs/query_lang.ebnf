@@ -8,7 +8,7 @@ spec = desc
      | tag;
 
 {* variables required by spec... *}
-desc = ["!"] ('"' {NOT_DOUBLE_QUOTE} '"' | "'" {NOT_SINGLE_QUOTE} "'");
+desc = ["!"] ('"' NOT_DOUBLE_QUOTE+ '"' | "'" NOT_SINGLE_QUOTE+ "'");
 metatag = ["!"] word | word [["?"] op (word | NAT | date)];
 priority = "(" UPPER_LETTER ")";
 tag = ["!"] ("@" | "#" | "+") word;
@@ -20,7 +20,7 @@ letter = UPPER_LETTER | LOWER_LETTER;
 op = "=" | "!=" | "<=" | ">=" | "<" | ">";
 relative_date = NAT ("d" | "D" | "m" | "M" | "y" | "Y");
 space = " ";
-word = letter {letter};
+word = letter+;
 
 {* all special variables... *}
 LOWER_LETTER = ? a lowercase letter a-z ?;
