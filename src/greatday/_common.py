@@ -131,11 +131,11 @@ def matches_date_fmt(date_spec: str) -> bool:
 
 def matches_relative_date_fmt(date_spec: str) -> bool:
     """Returns True iff date_spec appears to be a relative date (e.g. 1d)."""
-    return date_spec[:-1].isdigit() and date_spec[-1].lower() in [
-        "d",
-        "m",
-        "y",
-    ]
+    return (
+        len(date_spec) > 1
+        and date_spec[:-1].isdigit()
+        and date_spec[-1].lower() in ["d", "m", "y"]
+    )
 
 
 def init_yyyymm_path(root: PathLike, *, date: dt.date = None) -> Path:
