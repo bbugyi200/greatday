@@ -1,25 +1,30 @@
 {* This file contains the EBNF specification of greatday's todo query language (e.g. used by 'greatday list'). *}
 
-start = [spec_group {"|" spec_group}];
-spec_group = spec {SPACE spec};
+start = [spec_group {space "|" space spec_group}];
+spec_group = spec {space spec};
 spec = desc
      | metatag
      | priority
      | tag;
 
 {* variables required by spec... *}
-desc = ["!"] '"' WORD {SPACE WORD} '"';
-metatag = ["!"] WORD | WORD [["?"] op WORD];
-priority = "(" UPPERCASE_LETTER ")";
-tag = ["!"] ("@" | "#" | "+") WORD;
+desc = ["!"] ('"' {NOT_DOUBLE_QUOTE} '"' | "'" {NOT_SINGLE_QUOTE} "'");
+metatag = ["!"] word | word [["?"] op (word | NAT | date)];
+priority = "(" UPPER_LETTER ")";
+tag = ["!"] ("@" | "#" | "+") word;
 
-{* all other non-terminal variables... *}
-date_range = date [":" date];
-date = 4*NAT "-" 2*NAT "-" 2*NAT;
+{* all other non-special variables... *}
+absolute_date = 4*NAT "-" 2*NAT "-" 2*NAT;
+date = absolute_date | relative_date;
+letter = UPPER_LETTER | LOWER_LETTER;
 op = "=" | "!=" | "<=" | ">=" | "<" | ">";
+relative_date = NAT ("d" | "D" | "m" | "M" | "y" | "Y");
+space = " ";
+word = letter {letter};
 
-{* all terminal variables... *}
+{* all special variables... *}
+LOWER_LETTER = ? a lowercase letter a-z ?;
 NAT = ? a positive non-zero integer (i.e. a natural number) ?;
-SPACE = " ";
-UPPERCASE_LETTER = ? any uppercase letter A-Z ?;
-WORD = ? any (almost) sequence of non-whitespace characters ?;
+NOT_DOUBLE_QUOTE = ? any sequence of characters not including a double quote ?;
+NOT_SINGLE_QUOTE = ? any sequence of characters not including a single quote ?;
+UPPER_LETTER = ? an uppercase letter A-Z ?;
