@@ -9,22 +9,22 @@ spec = desc
 
 {* variables required by spec... *}
 desc = ["!"] ('"' NOT_DOUBLE_QUOTE+ '"' | "'" NOT_SINGLE_QUOTE+ "'");
-metatag = ["!"] word | word [["?"] op (word | NAT | date)];
+metatag = ["!"] word | word [["?"] op (word | DIGIT+ | date)];
 priority = "(" UPPER_LETTER ")";
 tag = ["!"] ("@" | "#" | "+") word;
 
 {* all other non-special variables... *}
-absolute_date = 4*NAT "-" 2*NAT "-" 2*NAT;
+absolute_date = 4*DIGIT "-" 2*DIGIT "-" 2*DIGIT;
 date = absolute_date | relative_date;
 letter = UPPER_LETTER | LOWER_LETTER;
 op = "=" | "!=" | "<=" | ">=" | "<" | ">";
-relative_date = NAT ("d" | "D" | "m" | "M" | "y" | "Y");
+relative_date = DIGIT+ ("d" | "D" | "m" | "M" | "y" | "Y");
 space = " ";
 word = letter+;
 
 {* all special variables... *}
 LOWER_LETTER = ? a lowercase letter a-z ?;
-NAT = ? a positive non-zero integer (i.e. a natural number) ?;
+DIGIT = ? an integer between 0-9 ?;
 NOT_DOUBLE_QUOTE = ? any sequence of characters not including a double quote ?;
 NOT_SINGLE_QUOTE = ? any sequence of characters not including a single quote ?;
 UPPER_LETTER = ? an uppercase letter A-Z ?;
