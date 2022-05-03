@@ -3,11 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import datetime as dt
 from functools import partial
 from typing import Any, Final
 
-import magodo
 import more_itertools as mit
 from rich.panel import Panel
 from rich.style import Style
@@ -26,6 +24,7 @@ from ._tag import Tag
 
 
 INBOX_QUERY: Final = f"@{CTX_INBOX} done=0"
+TICKLER_QUERY: Final = "tickle<=0d !snooze done=0"
 TODAY_QUERY: Final = f"@{CTX_TODAY} !snooze"
 
 
@@ -101,10 +100,7 @@ class StatsWidget(Static):
         inbox_todos = self.repo.get_by_tag(tag).unwrap()
         inbox_count = len(inbox_todos) if inbox_todos else 0
 
-        today = dt.date.today()
-        tag = Tag.from_query(
-            "tickle<={0} !snooze done=0".format(magodo.from_date(today))
-        )
+        tag = Tag.from_query(TICKLER_QUERY)
         tickler_todos = self.repo.get_by_tag(tag).unwrap()
         tickler_count = len(tickler_todos) if tickler_todos else 0
 
@@ -192,6 +188,9 @@ class GreatApp(App):
 
     async def on_load(self) -> None:
         """Configure key bindings."""
+        await self.bind("1", f"new_query('{INBOX_QUERY}')", "Inbox Query")
+        await self.bind("2", f"new_query('{TICKLER_QUERY}')", "Tickler Query")
+        await self.bind("3", f"new_query('{TODAY_QUERY}')", "Today Query")
         await self.bind("escape", "change_mode('normal')", "Normal Mode")
         await self.bind("enter", "submit", "Submit")
         await self.bind("e", "edit", "Edit Todos")
@@ -245,6 +244,12 @@ class GreatApp(App):
         self.input_widget.value = ""
         self.input_widget._cursor_position = 0
         await self.action_change_mode("insert")
+
+    async def action_new_query(self, query: str) -> None:
+        """Submit a new todo query."""
+        self.input_widget.value = query
+        self.input_widget._cursor_position = len(query)
+        await self.action_submit()
 
 
 def _todo_lines_from_query(repo: GreatRepo, query: str) -> str:
