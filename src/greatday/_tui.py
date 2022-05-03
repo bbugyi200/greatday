@@ -61,10 +61,9 @@ class GreatFooter(Footer):
             end="",
         )
         for binding in self.app.bindings.shown_keys:
+            key = binding.key.upper() if len(binding.key) > 1 else binding.key
             key_display = (
-                binding.key.upper()
-                if binding.key_display is None
-                else binding.key_display
+                key if binding.key_display is None else binding.key_display
             )
             hovered = self.highlight_key == binding.key
             key_text = Text.assemble(
@@ -195,7 +194,7 @@ class GreatApp(App):
         await self.bind("enter", "submit", "Submit")
         await self.bind("e", "edit", "Edit Todos")
         await self.bind("i", "change_mode('insert')", "Insert Mode")
-        await self.bind("I", "clear_and_insert", show=False)
+        await self.bind("I", "clear_and_insert", "Clear and Insert")
         await self.bind("q", "quit", "Quit")
 
     async def on_mount(self) -> None:
