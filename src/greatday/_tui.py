@@ -222,8 +222,25 @@ class GreatApp(App):
         else:
             raise AssertionError(f"Bad mode: {mode!r}")
 
+    async def action_clear_and_insert(self) -> None:
+        """Clears input bar and enters Insert mode."""
+        self.input_widget.value = ""
+        self.input_widget._cursor_position = 0
+        await self.action_change_mode("insert")
+
+    async def action_edit(self) -> None:
+        """Edits todos which match the current todo query."""
+        self.ctx.edit_todos = True
+        await self.action_quit()
+
+    async def action_new_query(self, query: str) -> None:
+        """Execute a new todo query."""
+        self.input_widget.value = query
+        self.input_widget._cursor_position = len(query)
+        await self.action_submit()
+
     async def action_submit(self) -> None:
-        """Called when the user hits <Enter>."""
+        """Executes the current todo query shown in the input bar."""
         self.ctx.query = self.input_widget.value
 
         self.input_widget.placeholder = ""
@@ -233,23 +250,6 @@ class GreatApp(App):
         await self.main_widget.update(Panel(text, title="Todo List"))
 
         await self.action_change_mode("normal")
-
-    async def action_edit(self) -> None:
-        """Edits todos which match the current todo query."""
-        self.ctx.edit_todos = True
-        await self.action_quit()
-
-    async def action_clear_and_insert(self) -> None:
-        """Clears input bar and enters Insert mode."""
-        self.input_widget.value = ""
-        self.input_widget._cursor_position = 0
-        await self.action_change_mode("insert")
-
-    async def action_new_query(self, query: str) -> None:
-        """Submit a new todo query."""
-        self.input_widget.value = query
-        self.input_widget._cursor_position = len(query)
-        await self.action_submit()
 
 
 def _todo_lines_from_query(repo: GreatRepo, query: str) -> str:
