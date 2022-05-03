@@ -15,7 +15,7 @@ priority = "(" UPPER_LETTER ")";
 tag = ["!"] ("@" | "#" | "+") word;
 
 {* all other non-special variables... *}
-any = (letter | DIGIT | "-")+;
+any = (letter | DIGIT | "-" | ".")+;
 letter = UPPER_LETTER | LOWER_LETTER;
 op = "=" | "!=" | "<=" | ">=" | "<" | ">";
 space = " ";
@@ -23,7 +23,7 @@ word = letter+;
 
 {* all special variables... *}
 DIGIT = ? an integer between 0-9 ?;
-LOWER_LETTER = ? a lowercase letter a-z ?;
-NOT_DOUBLE_QUOTE = ? any sequence of characters not including a double quote ?;
-NOT_SINGLE_QUOTE = ? any sequence of characters not including a single quote ?;
-UPPER_LETTER = ? an uppercase letter A-Z ?;
+LOWER_LETTER = ? a lowercase letter (i.e. a-z) ?;
+NOT_DOUBLE_QUOTE = ? any character NOT including a double quote ?;
+NOT_SINGLE_QUOTE = ? any character NOT including a single quote ?;
+UPPER_LETTER = ? an uppercase letter (i.e. A-Z) ?;
