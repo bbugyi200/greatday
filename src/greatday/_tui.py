@@ -101,15 +101,15 @@ class StatsWidget(Static):
 
         today = dt.date.today()
         tag = Tag.from_query(
-            "tickle<={0} snooze?<={0} done=0".format(magodo.from_date(today))
+            "tickle<={0} !snooze done=0".format(magodo.from_date(today))
         )
         tickler_todos = self.repo.get_by_tag(tag).unwrap()
         tickler_count = len(tickler_todos) if tickler_todos else 0
 
-        tag = Tag.from_query("@today snooze?<=0d")
+        tag = Tag.from_query("@today !snooze")
         today_todos = self.repo.get_by_tag(tag).unwrap()
         all_today_count = len(today_todos)
-        open_today_count = len([todo for todo in today_todos if not todo.done])
+        done_today_count = len([todo for todo in today_todos if todo.done])
 
         tag = Tag.from_query(self.ctx.query)
         query_todos = self.repo.get_by_tag(tag).unwrap()
@@ -130,7 +130,7 @@ class StatsWidget(Static):
         text = ""
         text += f"INBOX: {inbox_count}\n"
         text += f"TICKLERS: {tickler_count}\n"
-        text += f"TODAY: {open_today_count}/{all_today_count}\n\n"
+        text += f"TODAY: {done_today_count}/{all_today_count}\n\n"
         text += (
             f"{open_count}.{open_points} + {done_count}.{done_points} ="
             f" {all_count}.{all_points}"
@@ -230,9 +230,13 @@ class GreatApp(App):
         """Called when the user hits <Enter>."""
         self.ctx.query = self.input_widget.value
         self.ctx.is_user_query = True
+
         self.input_widget.placeholder = ""
+        self.stats_widget.refresh()
+
         text = _todo_lines_from_query(self.repo, self.ctx.query)
         await self.main_widget.update(Panel(text, title="Todo List"))
+
         await self.action_change_mode("normal")
 
     async def action_edit(self) -> None:
@@ -255,7 +259,7 @@ def _todo_lines_from_query(repo: GreatRepo, query: str) -> str:
 def start_textual_app(data_dir: PathLike, repo_path: PathLike) -> None:
     """Starts the TUI using the GreatApp class."""
     repo = GreatRepo(data_dir, repo_path)
-    ctx = Context("@today snooze?<=0d")
+    ctx = Context("@today !snooze")
     run_app = partial(
         GreatApp.run,
         repo=repo,
