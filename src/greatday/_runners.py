@@ -12,7 +12,7 @@ from clack.types import ClackRunner
 from logrus import Logger
 import magodo
 
-from ._common import CTX_TODAY, drop_word_from_desc, is_tickler
+from ._common import CTX_INBOX, CTX_TODAY, drop_word_from_desc, is_tickler
 from ._config import AddConfig, InfoConfig, ListConfig, TUIConfig
 from ._repo import GreatRepo
 from ._session import GreatSession
@@ -50,9 +50,9 @@ def run_add(cfg: AddConfig) -> int:
         cfg.add_inbox_context == "default"
         and not x_found
         and not is_tickler(todo)
-        and all(ctx not in todo.contexts for ctx in ["inbox", CTX_TODAY])
+        and all(ctx not in todo.contexts for ctx in [CTX_INBOX, CTX_TODAY])
     ):
-        contexts = list(todo.contexts) + ["inbox"]
+        contexts = list(todo.contexts) + [CTX_INBOX]
         todo = todo.new(contexts=contexts)
 
     key = repo.add(todo).unwrap()
@@ -143,7 +143,7 @@ def run_info(cfg: InfoConfig) -> int:
 
         if is_today:
             # Add sum of 'xp' metatag values for todos due today...
-            tag = Tag.from_query("@today xp !snooze done=0")
+            tag = Tag.from_query(f"@{CTX_TODAY} xp !snooze done=0")
             with GreatSession(cfg.data_dir, repo_path, tag) as open_session:
                 for todo in open_session.repo.todo_group:
                     XP = int(todo.metadata.get("xp", 0))

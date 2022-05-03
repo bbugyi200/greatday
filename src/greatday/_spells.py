@@ -153,8 +153,20 @@ def render_tickle_or_snooze_tag(todo: T) -> T:
 
 
 @todo_spell
+def due_to_today_context(todo: T) -> T:
+    """Converts @due context into today context."""
+    if "due" not in todo.contexts:
+        return todo
+
+    contexts = [ctx for ctx in todo.contexts if ctx != "due"]
+    contexts.append(CTX_TODAY)
+    desc = drop_word_from_desc(todo.desc, "@due")
+    return todo.new(desc=desc, contexts=contexts)
+
+
+@todo_spell
 def remove_today_context(todo: T) -> T:
-    """Removes the @today context from done todos completed before today."""
+    """Removes the today context from done todos completed before today."""
     if not todo.done_date:
         return todo
 

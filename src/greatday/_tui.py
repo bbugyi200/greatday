@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import datetime as dt
 from functools import partial
-from typing import Any
+from typing import Any, Final
 
 import magodo
 import more_itertools as mit
@@ -18,10 +18,15 @@ from textual.widgets import Footer, Header, Static
 from textual_inputs import TextInput
 from typist import PathLike
 
+from ._common import CTX_INBOX, CTX_TODAY
 from ._editor import edit_and_commit_todos
 from ._repo import GreatRepo
 from ._session import GreatSession
 from ._tag import Tag
+
+
+INBOX_QUERY: Final = f"@{CTX_INBOX} done=0"
+TODAY_QUERY: Final = f"@{CTX_TODAY} !snooze"
 
 
 class GreatHeader(Header):
@@ -92,7 +97,7 @@ class StatsWidget(Static):
         """Render the statistics widget."""
         assert self.repo is not None
 
-        tag = Tag.from_query("@inbox done=0")
+        tag = Tag.from_query(INBOX_QUERY)
         inbox_todos = self.repo.get_by_tag(tag).unwrap()
         inbox_count = len(inbox_todos) if inbox_todos else 0
 
@@ -103,7 +108,7 @@ class StatsWidget(Static):
         tickler_todos = self.repo.get_by_tag(tag).unwrap()
         tickler_count = len(tickler_todos) if tickler_todos else 0
 
-        tag = Tag.from_query("@today !snooze")
+        tag = Tag.from_query(TODAY_QUERY)
         today_todos = self.repo.get_by_tag(tag).unwrap()
         all_today_count = len(today_todos)
         done_today_count = len([todo for todo in today_todos if todo.done])
@@ -256,7 +261,7 @@ def _todo_lines_from_query(repo: GreatRepo, query: str) -> str:
 def start_textual_app(data_dir: PathLike, repo_path: PathLike) -> None:
     """Starts the TUI using the GreatApp class."""
     repo = GreatRepo(data_dir, repo_path)
-    ctx = Context("@today !snooze")
+    ctx = Context(TODAY_QUERY)
     run_app = partial(
         GreatApp.run,
         repo=repo,

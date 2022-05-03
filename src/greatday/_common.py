@@ -14,7 +14,8 @@ if TYPE_CHECKING:
     from ._todo import GreatTodo
 
 
-CTX_TODAY: Final = "today"
+CTX_INBOX: Final = "INBOX"
+CTX_TODAY: Final = "TODAY"
 
 MONDAY: Final = 0
 TUESDAY: Final = 1
