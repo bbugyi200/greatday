@@ -8,6 +8,7 @@ from functools import partial
 from typing import Any
 
 import magodo
+import more_itertools as mit
 from rich.panel import Panel
 from rich.style import Style
 from rich.table import Table
@@ -83,9 +84,12 @@ class StatsWidget(Static):
 
     repo: Reactive[GreatRepo | None] = Reactive(None)
 
-    def __init__(self, repo: GreatRepo, *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self, repo: GreatRepo, ctx: Context, *args: Any, **kwargs: Any
+    ) -> None:
         super().__init__("", *args, **kwargs)
         self.repo = repo
+        self.ctx = ctx
 
     def render(self) -> Panel:
         """Render the statistics widget."""
@@ -102,15 +106,36 @@ class StatsWidget(Static):
         tickler_todos = self.repo.get_by_tag(tag).unwrap()
         tickler_count = len(tickler_todos) if tickler_todos else 0
 
-        tag = Tag.from_query("@today snooze?<=0d done=0")
+        tag = Tag.from_query("@today snooze?<=0d")
         today_todos = self.repo.get_by_tag(tag).unwrap()
-        today_count = len(today_todos) if today_todos else 0
+        all_today_count = len(today_todos)
+        open_today_count = len([todo for todo in today_todos if not todo.done])
 
-        return Panel(
-            f"INBOX: {inbox_count}\nTICKLERS: {tickler_count}\nTODAY:"
-            f" {today_count}\n",
-            title="Statistics",
+        tag = Tag.from_query(self.ctx.query)
+        query_todos = self.repo.get_by_tag(tag).unwrap()
+        open_todos, done_query_todos = [
+            list(x) for x in mit.partition(lambda todo: todo.done, query_todos)
+        ]
+        open_count = len(open_todos)
+        open_points = sum(
+            int(todo.metadata.get("xp", 0)) for todo in open_todos
         )
+        done_count = len(done_query_todos)
+        done_points = sum(
+            int(todo.metadata.get("p", 0)) for todo in done_query_todos
+        )
+        all_count = len(query_todos)
+        all_points = open_points + done_points
+
+        text = ""
+        text += f"INBOX: {inbox_count}\n"
+        text += f"TICKLERS: {tickler_count}\n"
+        text += f"TODAY: {open_today_count}/{all_today_count}\n\n"
+        text += (
+            f"{open_count}.{open_points} + {done_count}.{done_points} ="
+            f" {all_count}.{all_points}"
+        )
+        return Panel(text, title="Statistics")
 
 
 @dataclass
@@ -167,7 +192,7 @@ class GreatApp(App):
             ),
             name="main",
         )
-        self.stats_widget = StatsWidget(self.repo)
+        self.stats_widget = StatsWidget(self.repo, self.ctx)
 
     async def on_load(self) -> None:
         """Configure key bindings."""
