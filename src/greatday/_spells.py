@@ -299,7 +299,7 @@ def remove_priorities(todo: T) -> T:
     if todo.priority == magodo.DEFAULT_PRIORITY:
         return todo
 
-    if not todo.done and "today" in todo.contexts:
+    if not todo.done and CTX_TODAY in todo.contexts:
         return todo
 
     priority = magodo.DEFAULT_PRIORITY
