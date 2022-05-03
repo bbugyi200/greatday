@@ -149,14 +149,11 @@ class Context:
 
     Attributes:
         query: The active todo query string.
-        is_user_query: Is this query one the user selected or just the
-          default?
         edit_todos: After closing the TUI, should we open up vim to edit
           matching todos?
     """
 
     query: str
-    is_user_query: bool = False
     edit_todos: bool = False
 
 
@@ -172,10 +169,7 @@ class GreatApp(App):
         self.ctx = ctx
 
         text_input = partial(TextInput, name="input")
-        if ctx.is_user_query:
-            self.input_widget = text_input(value=self.ctx.query)
-        else:
-            self.input_widget = text_input(placeholder=self.ctx.query)
+        self.input_widget = text_input(value=self.ctx.query)
 
         cursor = (
             "|",
@@ -202,6 +196,7 @@ class GreatApp(App):
         await self.bind("enter", "submit", "Submit")
         await self.bind("e", "edit", "Edit Todos")
         await self.bind("i", "change_mode('insert')", "Insert Mode")
+        await self.bind("I", "clear_and_insert", show=False)
         await self.bind("q", "quit", "Quit")
 
     async def on_mount(self) -> None:
@@ -231,7 +226,6 @@ class GreatApp(App):
     async def action_submit(self) -> None:
         """Called when the user hits <Enter>."""
         self.ctx.query = self.input_widget.value
-        self.ctx.is_user_query = True
 
         self.input_widget.placeholder = ""
         self.stats_widget.refresh()
@@ -245,6 +239,12 @@ class GreatApp(App):
         """Edits todos which match the current todo query."""
         self.ctx.edit_todos = True
         await self.action_quit()
+
+    async def action_clear_and_insert(self) -> None:
+        """Clears input bar and enters Insert mode."""
+        self.input_widget.value = ""
+        self.input_widget._cursor_position = 0
+        await self.action_change_mode("insert")
 
 
 def _todo_lines_from_query(repo: GreatRepo, query: str) -> str:
