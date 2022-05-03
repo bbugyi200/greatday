@@ -93,16 +93,16 @@ def run_info(cfg: InfoConfig) -> int:
         # --- loop variables
         # key: used to index into the 'counter' dict.
         # tags: a dict of tags (e.g. projects) from the current todo.
-        for key, tags in [
+        for key, props in [
             ("epic", todo.epics),
             ("project", todo.projects),
             ("context", todo.contexts),
         ]:
-            for tag in tags:
+            for prop in props:
                 if key not in counter:
                     counter[key] = defaultdict(int)
 
-                counter[key][tag] += 1
+                counter[key][prop] += 1
 
         if "tickle" in list(todo.metadata.keys()):
             tickler_count += 1
@@ -143,20 +143,8 @@ def run_info(cfg: InfoConfig) -> int:
 
         if is_today:
             # Add sum of 'xp' metatag values for todos due today...
-            with GreatSession(
-                cfg.data_dir,
-                repo_path,
-                Tag(
-                    done=False,
-                    contexts=["today"],
-                    metadata_checks=[
-                        magodo.MetadataCheck("xp"),
-                        magodo.MetadataCheck(
-                            "snooze", check=lambda _: False, required=False
-                        ),
-                    ],
-                ),
-            ) as open_session:
+            tag = Tag.from_query("@today xp !snooze done=0")
+            with GreatSession(cfg.data_dir, repo_path, tag) as open_session:
                 for todo in open_session.repo.todo_group:
                     XP = int(todo.metadata.get("xp", 0))
                     xp_day_total += XP
