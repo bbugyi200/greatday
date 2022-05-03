@@ -14,7 +14,6 @@ from rich.style import Style
 from rich.table import Table
 from rich.text import Text
 from textual.app import App
-from textual.reactive import Reactive
 from textual.widgets import Footer, Header, Static
 from textual_inputs import TextInput
 from typist import PathLike
@@ -81,8 +80,6 @@ class GreatFooter(Footer):
 
 class StatsWidget(Static):
     """Widget that shows Todo statistics."""
-
-    repo: Reactive[GreatRepo | None] = Reactive(None)
 
     def __init__(
         self, repo: GreatRepo, ctx: Context, *args: Any, **kwargs: Any
