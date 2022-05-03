@@ -132,8 +132,8 @@ class StatsWidget(Static):
         text += f"TICKLERS: {tickler_count}\n"
         text += f"TODAY: {done_today_count}/{all_today_count}\n\n"
         text += (
-            f"{open_count}.{open_points} + {done_count}.{done_points} ="
-            f" {all_count}.{all_points}"
+            f"done({done_count}.{done_points}) +"
+            f" open({open_count}.{open_points}) = {all_count}.{all_points}"
         )
         return Panel(text, title="Statistics")
 
