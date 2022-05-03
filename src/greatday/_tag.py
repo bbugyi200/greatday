@@ -112,6 +112,7 @@ class Tag:
             # ----- Metatag Checks
             if word.isalpha():
                 metadata_checks.append(MetadataCheck(word))
+                continue
 
             if word.startswith("!") and word[1:].isalpha():
                 metadata_checks.append(
@@ -119,7 +120,9 @@ class Tag:
                         word[1:], check=lambda _: False, required=False
                     )
                 )
+                continue
 
+            is_metatag_constraint = True
             for op_string, op in [
                 ("<=", operator.le),
                 (">=", operator.ge),
@@ -154,6 +157,11 @@ class Tag:
                     MetadataCheck(key, check=check, required=required)
                 )
                 break
+            else:
+                is_metatag_constraint = False
+
+            if is_metatag_constraint:
+                continue
 
         return cls(
             contexts=contexts,
