@@ -132,7 +132,7 @@ This section contains class diagrams used to help design / document greatday.
 
 #### Class Diagram for `Todo` Classes
 
-The following diagram illustrates how the various [magodo][1] `Todo` classes
+The following diagram illustrates how the various [magodo][14] `Todo` classes
 interact.
 
 Keep in mind the following notes while reviewing this diagram:
@@ -144,13 +144,13 @@ Keep in mind the following notes while reviewing this diagram:
 
 #### Class Diagram for `Repo` and `UnitOfWork` Classes
 
-The following diagram illustrates how the various [potoroo][2] `Repo` and `UnitOfWork`
+The following diagram illustrates how the various [potoroo][15] `Repo` and `UnitOfWork`
 classes interact.
 
 Keep in mind the following notes while reviewing this diagram:
 
 * `V_or_None` is meant to be `Optional[V]`. There seems to be a bug in
-  [mermaid][3], however, that prevents us from using `Optional[V]` as a generic
+  [mermaid][16], however, that prevents us from using `Optional[V]` as a generic
   type.
 * Similarly, `VList` is meant to be `List[V]`.
 * The type variable `Self` is implicit and is always bound by the current class.
@@ -158,10 +158,6 @@ Keep in mind the following notes while reviewing this diagram:
 * The type variables `K`, `V`, and `T` are all unbound.
 
 ![diagram](./docs/design/design-4.svg)
-
-[1]: https://github.com/bbugyi200/magodo
-[2]: https://github.com/bbugyi200/potoroo
-[3]: https://github.com/mermaid-js/mermaid
 
 <!-- [[[[[end]]]]] -->
 
@@ -194,3 +190,6 @@ Keep in mind the following notes while reviewing this diagram:
 [11]: https://github.com/pypa/pipx
 [12]: https://github.com/cruft/cruft
 [13]: https://github.com/bbugyi200/greatday/issues/new/choose
+[14]: https://github.com/bbugyi200/magodo
+[15]: https://github.com/bbugyi200/potoroo
+[16]: https://github.com/mermaid-js/mermaid
