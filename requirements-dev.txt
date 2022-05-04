@@ -26,15 +26,14 @@ bolton-clack==0.3.2
     #   greatday
 bolton-eris==0.2.3
     # via
+    #   -r requirements.in
     #   bolton-clack
     #   bolton-proctor
+    #   greatday
     #   magodo
     #   potoroo
 bolton-ion==0.1.0
-    # via
-    #   -r requirements.in
-    #   bolton-eris
-    #   greatday
+    # via bolton-eris
 bolton-logrus==0.1.0
     # via
     #   -r requirements.in

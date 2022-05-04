@@ -8,14 +8,13 @@ bolton-clack==0.3.2
     # via -r requirements.in
 bolton-eris==0.2.3
     # via
+    #   -r requirements.in
     #   bolton-clack
     #   bolton-proctor
     #   magodo
     #   potoroo
 bolton-ion==0.1.0
-    # via
-    #   -r requirements.in
-    #   bolton-eris
+    # via bolton-eris
 bolton-logrus==0.1.0
     # via
     #   -r requirements.in
