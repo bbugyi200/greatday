@@ -13,7 +13,7 @@ from . import APP_NAME
 from .types import YesNoDefault
 
 
-Command = Literal["add", "info", "list", "tui"]
+Command = Literal["add", "list", "tui"]
 
 
 class Config(clack.Config):
@@ -35,16 +35,6 @@ class AddConfig(Config):
 
     # ----- CONFIG
     add_inbox_context: YesNoDefault = "default"
-
-
-class InfoConfig(Config):
-    """Config for the 'info' subcommand."""
-
-    command: Literal["info"]
-
-    # ----- CONFIG
-    points_start_offset: int = 0
-    points_end_offset: int = 4
 
 
 class ListConfig(Config):
@@ -82,15 +72,6 @@ def clack_parser(argv: Sequence[str]) -> dict[str, Any]:
         help=(
             "A valid todo string (i.e. a string that conforms to the standard"
             " todo.txt format)."
-        ),
-    )
-
-    # ----- 'info' command
-    new_command(
-        "info",
-        help=(
-            "Print information about greatday and its current state to stdout"
-            " in JSON format."
         ),
     )
 
