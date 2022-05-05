@@ -15,11 +15,11 @@ def edit_and_commit_todos(session: GreatSession) -> None:
 
     vim(session.path).unwrap()
 
-    for otodo in old_todos:
-        key = otodo.ident
+    for old_todo in old_todos:
+        key = old_todo.ident
 
         new_todo = session.repo.get(key).unwrap()
-        if otodo != new_todo:
+        if old_todo != new_todo:
             break
     else:
         if len(old_todos) == len(session.repo.todo_group):
