@@ -260,7 +260,11 @@ def appt_todos(todo: T) -> T:
     else:
         priority = "T"
 
-    return todo.new(priority=priority)
+    contexts = todo.contexts
+    if "appt" not in contexts:
+        contexts = tuple(list(contexts) + ["appt"])
+
+    return todo.new(contexts=contexts, priority=priority)
 
 
 @todo_spell
