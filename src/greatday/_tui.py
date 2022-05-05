@@ -163,10 +163,7 @@ class GreatApp(App):
         self.repo = repo
         self.ctx = ctx
 
-        text_input = partial(TextInput, name="input")
-        self.input_widget = text_input(value=self.ctx.query)
-
-        cursor = (
+        text_input_cursor = (
             "|",
             Style(
                 color="black",
@@ -174,7 +171,8 @@ class GreatApp(App):
                 bold=True,
             ),
         )
-        self.input_widget.cursor = cursor
+        self.input_widget = TextInput(name="input", value=self.ctx.query)
+        self.input_widget.cursor = text_input_cursor
 
         self.main_widget = Static(
             Panel(
