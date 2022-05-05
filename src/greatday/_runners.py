@@ -45,7 +45,8 @@ def run_add(cfg: AddConfig) -> int:
         cfg.add_inbox_context == "default"
         and not x_found
         and not is_tickler(todo)
-        and all(ctx not in todo.contexts for ctx in [CTX_INBOX, CTX_TODAY])
+        and CTX_TODAY not in todo.contexts
+        and CTX_INBOX not in todo.contexts
     ):
         contexts = list(todo.contexts) + [CTX_INBOX]
         todo = todo.new(contexts=contexts)
