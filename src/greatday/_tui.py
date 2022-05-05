@@ -202,7 +202,7 @@ class GreatApp(App):
         await self.view.dock(GreatFooter(), edge="bottom")
 
         # configure other widgets...
-        await self.view.dock(self.input_widget, edge="bottom", size=10)
+        await self.view.dock(self.input_widget, edge="bottom", size=5)
         await self.view.dock(self.stats_widget, edge="left", size=50)
         await self.view.dock(self.main_widget, edge="top")
 
