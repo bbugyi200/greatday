@@ -120,8 +120,8 @@ def snooze_spell(todo: T) -> T:
 
 
 @todo_spell
-def render_tickle_or_snooze_tag(todo: T) -> T:
-    """Renders tickler and snooze metatags.
+def render_relative_dates(todo: T) -> T:
+    """Renders metatags that support relative dates.
 
     (e.g. 'tickle:1d' -> 'tickle:2022-02-16')
     """
@@ -129,7 +129,7 @@ def render_tickle_or_snooze_tag(todo: T) -> T:
     desc = todo.desc
     metadata = dict(todo.metadata.items())
 
-    for key in ["tickle", "snooze"]:
+    for key in ["snooze", "tickle", "until"]:
         # t_or_s: Tickle or Snooze
         t_o_s = todo.metadata.get(key)
         if not t_o_s:
@@ -205,13 +205,12 @@ def recur_spell(todo: T) -> T:
     else:
         start_date = magodo.to_date(tickle)
 
-    next_date = get_relative_date(recur, start_date=start_date)
-    if next_date <= today:
-        logger.warning(
-            "Recurring tickler is still due after reset / recur.",
-            tickle=next_date,
-        )
+    until = mdata.get("until")
+    if until and magodo.to_date(until) <= start_date:
+        logger.debug("Recurring todo has reached its 'until' date.", todo=todo)
+        return todo
 
+    next_date = get_relative_date(recur, start_date=start_date)
     metadata = dict(mdata.items())
 
     if magodo.to_date(tickle) <= today:
