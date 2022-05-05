@@ -30,7 +30,7 @@ def run_add(cfg: AddConfig) -> int:
     """Runner for the 'add' subcommand."""
     log = logger.bind_fargs(locals())
 
-    todo_dir = cfg.data_dir / "todos"
+    todo_dir = cfg.data_dir / TODO_DIR
     repo = GreatRepo(cfg.data_dir, todo_dir)
     todo = GreatTodo.from_line(cfg.todo_line).unwrap()
 
