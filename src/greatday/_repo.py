@@ -10,7 +10,7 @@ from magodo import TodoGroup
 from potoroo import TaggedRepo
 from typist import PathLike
 
-from ._common import init_yyyymm_path
+from ._dates import init_yyyymm_path
 from ._ids import NULL_ID, init_next_todo_id
 from ._tag import Tag
 from ._todo import GreatTodo

@@ -19,13 +19,8 @@ from magodo.spells import (
 )
 from magodo.types import LineSpell, T, TodoSpell
 
-from ._common import (
-    CTX_TODAY,
-    drop_word_from_desc,
-    dt_from_date_and_hhmm,
-    get_relative_date,
-    matches_date_fmt,
-)
+from ._common import CTX_TODAY, drop_word_from_desc
+from ._dates import dt_from_date_and_hhmm, get_relative_date, matches_date_fmt
 
 
 logger = Logger(__name__)

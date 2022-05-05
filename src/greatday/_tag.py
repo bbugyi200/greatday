@@ -12,7 +12,7 @@ import magodo
 from magodo import MetadataCheck
 from magodo.types import MetadataFunc, Priority
 
-from ._common import (
+from ._dates import (
     get_relative_date,
     matches_date_fmt,
     matches_relative_date_fmt,
