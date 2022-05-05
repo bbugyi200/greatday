@@ -239,13 +239,9 @@ class GreatApp(App):
     async def action_submit(self) -> None:
         """Executes the current todo query shown in the input bar."""
         self.ctx.query = self.input_widget.value
-
-        self.input_widget.placeholder = ""
         self.stats_widget.refresh()
-
         text = _todo_lines_from_query(self.repo, self.ctx.query)
         await self.main_widget.update(Panel(text, title="Todo List"))
-
         await self.action_change_mode("normal")
 
 
