@@ -15,15 +15,14 @@ CTX_TODAY: Final = "TODAY"
 
 def drop_word_from_desc(
     desc: str,
-    bad_word: str,
-    *,
+    *bad_words: str,
     op: Callable[[str, str], bool] = lambda x, y: x == y,
 ) -> str:
     """Removes `bad_word` from the todo description `desc`."""
     desc_words = desc.split(" ")
     new_desc_words = []
     for word in desc_words:
-        if not op(word, bad_word):
+        if not any(op(word, bad_word) for bad_word in bad_words):
             new_desc_words.append(word)
     return " ".join(new_desc_words)
 
