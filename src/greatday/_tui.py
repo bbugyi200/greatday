@@ -15,9 +15,9 @@ from textual.app import App
 from textual.widgets import Footer, Header, Static
 from textual_inputs import TextInput
 from typist import PathLike
+from vimala import vim
 
 from ._common import CTX_INBOX, CTX_TODAY
-from ._editor import edit_and_commit_todos
 from ._repo import GreatRepo
 from ._session import GreatSession
 from ._tag import Tag
@@ -272,7 +272,8 @@ def start_textual_app(data_dir: PathLike) -> None:
     while ctx.edit_todos:
         tag = Tag.from_query(ctx.query)
         with GreatSession(data_dir, tag) as session:
-            edit_and_commit_todos(session)
+            vim(session.path).unwrap()
+            session.commit()
 
         ctx.edit_todos = False
         run_app()
