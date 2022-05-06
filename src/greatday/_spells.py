@@ -178,8 +178,8 @@ def remove_today_context(todo: T) -> T:
 
 
 @todo_spell
-def recur_spell(todo: T) -> T:
-    """Handles the 'recur:' metatag."""
+def recur_tickler_spell(todo: T) -> T:
+    """Handles the 'recur:' metatag for tickler todos."""
     mdata = todo.metadata
 
     if not todo.done:

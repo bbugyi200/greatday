@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime as dt
 import os
 from pathlib import Path
 import tempfile
@@ -9,12 +10,15 @@ from types import TracebackType
 from typing import Type
 
 from logrus import Logger
+import magodo
 from potoroo import UnitOfWork
 from typist import PathLike
 
+from ._dates import get_relative_date
 from ._ids import NULL_ID
 from ._repo import GreatRepo
 from ._tag import Tag
+from ._todo import GreatTodo
 
 
 logger = Logger(__name__)
@@ -83,7 +87,7 @@ class GreatSession(UnitOfWork[GreatRepo]):
                 key = self._master_repo.add(todo).unwrap()
                 new_todos[key] = todo
             elif todo != old_todo:
-                self._master_repo.update(key, todo).unwrap()
+                _commit_todo_changes(self._master_repo, todo, old_todo)
 
         if new_todos:
             old_lines = self.path.read_text().split("\n")
@@ -106,3 +110,54 @@ class GreatSession(UnitOfWork[GreatRepo]):
     def repo(self) -> GreatRepo:
         """Returns the GreatRepo object associated with this GreatSession."""
         return self._temp_repo
+
+
+def _commit_todo_changes(
+    repo: GreatRepo, todo: GreatTodo, old_todo: GreatTodo | None
+) -> None:
+    """Updates todo in repo.
+
+    This function also handles recurring non-tickler todos (i.e. todos with the
+    'recur' metatag and no 'tickle' metatag).
+
+    NOTE: Recurring tickler todos are handled by a magodo todo spell (see
+    _spells.py).
+    """
+    recur = todo.metadata.get("recur")
+    if (
+        old_todo
+        and todo.done
+        and not old_todo.done
+        and recur
+        and not todo.metadata.get("tickle")
+    ):
+        # set metadata for next todo...
+        next_metadata = dict(todo.metadata.items())
+        next_metadata["prev"] = next_metadata["id"]
+        del next_metadata["id"]
+        if next_xp := next_metadata.get("p"):
+            next_metadata["xp"] = next_xp
+            del next_metadata["p"]
+        next_date = get_relative_date(recur)
+        next_metadata["snooze"] = magodo.from_date(next_date)
+
+        # set creation date + clear creation time for next todo...
+        next_create_date = dt.date.today()
+        if "ctime" in next_metadata:
+            del next_metadata["ctime"]
+
+        # add next todo to repo...
+        next_todo = todo.new(
+            create_date=next_create_date,
+            done=False,
+            done_date=None,
+            metadata=next_metadata,
+        )
+        next_key = repo.add(next_todo).unwrap()
+
+        # add 'next' metatag to old todo...
+        metadata = dict(todo.metadata.items())
+        metadata["next"] = next_key
+        todo = todo.new(metadata=metadata)
+
+    repo.update(todo.ident, todo).unwrap()
