@@ -25,7 +25,7 @@ from ._tag import Tag
 
 INBOX_QUERY: Final = f"@{CTX_INBOX} done=0"
 TICKLER_QUERY: Final = "tickle<=0d !snooze done=0"
-TODAY_QUERY: Final = f"@{CTX_TODAY} !snooze"
+TODAY_QUERY: Final = f"@{CTX_TODAY}"
 
 
 class GreatHeader(Header):

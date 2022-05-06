@@ -89,17 +89,23 @@ def snooze_spell(todo: T) -> T:
     """Handles the 'snooze' metadata tag."""
     make_new_todo = False
     metadata = dict(todo.metadata.items())
+
+    # SNOOZE KEY
+    skey: str
+    if todo.metadata.get("tickle"):
+        skey = "snooze"
+    else:
+        skey = "due"
+
     s = metadata.get("s")
     if s is not None:
-        metadata["snooze"] = s
+        metadata[skey] = s
         del metadata["s"]
         make_new_todo = True
 
-    snooze = metadata.get("snooze")
+    snooze = metadata.get(skey)
     if snooze is None:
         return todo
-
-    desc = drop_word_if_startswith(todo.desc, "snooze:")
 
     today = dt.date.today()
 
@@ -108,13 +114,11 @@ def snooze_spell(todo: T) -> T:
     else:
         snooze_date = get_relative_date(snooze)
 
-    desc = todo.desc
-
     if snooze_date <= today:
-        del metadata["snooze"]
-        return todo.new(desc=todo.desc, metadata=metadata)
+        del metadata[skey]
+        return todo.new(metadata=metadata)
     elif make_new_todo:
-        return todo.new(desc=desc, metadata=metadata)
+        return todo.new(metadata=metadata)
     else:
         return todo
 
