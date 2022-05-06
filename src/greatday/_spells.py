@@ -20,7 +20,12 @@ from magodo.spells import (
 from magodo.types import LineSpell, T, TodoSpell
 
 from ._common import CTX_TODAY, drop_word_from_desc
-from ._dates import dt_from_date_and_hhmm, get_relative_date, matches_date_fmt
+from ._dates import (
+    dt_from_date_and_hhmm,
+    get_relative_date,
+    matches_date_fmt,
+    matches_relative_date_fmt,
+)
 
 
 logger = Logger(__name__)
@@ -124,13 +129,13 @@ def render_relative_dates(todo: T) -> T:
     desc = todo.desc
     metadata = dict(todo.metadata.items())
 
-    for key in ["snooze", "tickle", "until"]:
+    for key in ["snooze", "tickle", "until", "due"]:
         # t_or_s: Tickle or Snooze
         t_o_s = todo.metadata.get(key)
         if not t_o_s:
             continue
 
-        if matches_date_fmt(t_o_s):
+        if not matches_relative_date_fmt(t_o_s):
             continue
 
         found_tag = True
@@ -148,7 +153,7 @@ def render_relative_dates(todo: T) -> T:
 
 
 @todo_spell
-def due_to_today_context(todo: T) -> T:
+def due_context_spell(todo: T) -> T:
     """Converts @due context into today context."""
     if "due" not in todo.contexts:
         return todo
@@ -157,6 +162,33 @@ def due_to_today_context(todo: T) -> T:
     contexts.append(CTX_TODAY)
     desc = drop_word_from_desc(todo.desc, "@due")
     return todo.new(desc=desc, contexts=contexts)
+
+
+@todo_spell
+def due_metatag_spell(todo: T) -> T:
+    """Handles the 'due' metatag."""
+    due = todo.metadata.get("due")
+    if not due or not matches_date_fmt(due):
+        return todo
+
+    today = dt.date.today()
+    due_date = magodo.to_date(due)
+    if due_date <= today:
+        metadata = dict(todo.metadata.items())
+        recur = todo.metadata.get("recur")
+        if not recur or not recur.upper():
+            del metadata["due"]
+
+        contexts = list(todo.contexts)
+        if CTX_TODAY not in contexts:
+            contexts.append(CTX_TODAY)
+
+        return todo.new(contexts=contexts, metadata=metadata)
+    elif CTX_TODAY in todo.contexts:
+        contexts = [ctx for ctx in todo.contexts if ctx != CTX_TODAY]
+        return todo.new(contexts=contexts)
+
+    return todo
 
 
 @todo_spell

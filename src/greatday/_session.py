@@ -145,9 +145,15 @@ def _commit_todo_changes(
             next_metadata["xp"] = next_xp
             del next_metadata["p"]
 
-        # set 'snooze' metatag for next todo...
-        next_date = get_relative_date(recur)
-        next_metadata["snooze"] = magodo.from_date(next_date)
+        # set 'due' metatag for next todo...
+        due = todo.metadata.get("due")
+        if recur.islower() or due is None:
+            start_date = today
+        else:
+            start_date = magodo.to_date(due)
+
+        next_date = get_relative_date(recur, start_date=start_date)
+        next_metadata["due"] = magodo.from_date(next_date)
 
         # set creation date + clear creation time for next todo...
         next_create_date = today
