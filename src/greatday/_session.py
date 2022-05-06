@@ -43,7 +43,9 @@ class GreatSession(UnitOfWork[GreatRepo]):
             for todo in self._master_repo.get_by_tag(tag).unwrap():
                 self.repo.add(todo, key=todo.ident)
 
-        self._old_todos = list(self._temp_repo.todo_group)
+        self._old_todo_map = {
+            todo.ident: todo for todo in self._temp_repo.todo_group
+        }
 
     def __enter__(self) -> GreatSession:
         """Called before entering a GreatSession with-block."""
@@ -68,18 +70,20 @@ class GreatSession(UnitOfWork[GreatRepo]):
         We achieve this by copying the contents of the backup file created on
         instantiation back to the original.
         """
-        old_todo_keys = [todo.ident for todo in self._old_todos]
+        removed_todo_keys = list(self._old_todo_map.keys())
         new_todos = {}
         for todo in self.repo.todo_group:
             key = todo.ident
+            if key in removed_todo_keys:
+                removed_todo_keys.remove(key)
+
+            old_todo = self._old_todo_map.get(key)
             if key == NULL_ID:
                 logger.info("New todo was added while editing?", todo=todo)
                 key = self._master_repo.add(todo).unwrap()
                 new_todos[key] = todo
-            else:
+            elif todo != old_todo:
                 self._master_repo.update(key, todo).unwrap()
-                if key in old_todo_keys:
-                    old_todo_keys.remove(key)
 
         if new_todos:
             old_lines = self.path.read_text().split("\n")
@@ -90,10 +94,10 @@ class GreatSession(UnitOfWork[GreatRepo]):
         for key, todo in new_todos.items():
             self.repo.add(todo, key=key)
 
-        for key in old_todo_keys:
+        for key in removed_todo_keys:
             removed_todo = self._master_repo.remove(key).unwrap()
             if removed_todo is not None:
-                self._old_todos.remove(removed_todo)
+                del self._old_todo_map[removed_todo.ident]
 
     def rollback(self) -> None:
         """Revert any changes made while in this GreatSession's with-block."""
