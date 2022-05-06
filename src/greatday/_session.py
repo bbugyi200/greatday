@@ -136,13 +136,16 @@ def _commit_todo_changes(
         and not expired
         and not todo.metadata.get("tickle")
     ):
-        # set metadata for next todo...
         next_metadata = dict(todo.metadata.items())
+
+        # set 'prev' and 'xp' metatags for next todo...
         next_metadata["prev"] = next_metadata["id"]
         del next_metadata["id"]
         if next_xp := next_metadata.get("p"):
             next_metadata["xp"] = next_xp
             del next_metadata["p"]
+
+        # set 'snooze' metatag for next todo...
         next_date = get_relative_date(recur)
         next_metadata["snooze"] = magodo.from_date(next_date)
 
