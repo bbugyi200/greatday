@@ -26,7 +26,7 @@ class GreatSession(UnitOfWork[GreatRepo]):
     def __init__(
         self,
         data_dir: PathLike,
-        tag: Tag,
+        tag: Tag = None,
         *,
         name: str = None,
     ) -> None:
@@ -39,8 +39,9 @@ class GreatSession(UnitOfWork[GreatRepo]):
         self._temp_repo = GreatRepo(self.data_dir, self.path)
 
         self._master_repo = GreatRepo(self.data_dir)
-        for todo in self._master_repo.get_by_tag(tag).unwrap():
-            self.repo.add(todo, key=todo.ident)
+        if tag is not None:
+            for todo in self._master_repo.get_by_tag(tag).unwrap():
+                self.repo.add(todo, key=todo.ident)
 
         self._old_todos = list(self._temp_repo.todo_group)
 
