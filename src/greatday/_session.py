@@ -26,13 +26,11 @@ class GreatSession(UnitOfWork[GreatRepo]):
     def __init__(
         self,
         data_dir: PathLike,
-        repo_path: PathLike,
         tag: Tag,
         *,
         name: str = None,
     ) -> None:
         self.data_dir = Path(data_dir)
-        self._master_path = Path(repo_path)
 
         prefix = None if name is None else f"{name}."
         _, temp_path = tempfile.mkstemp(prefix=prefix, suffix=".txt")
@@ -40,7 +38,7 @@ class GreatSession(UnitOfWork[GreatRepo]):
 
         self._temp_repo = GreatRepo(self.data_dir, self.path)
 
-        self._master_repo = GreatRepo(self.data_dir, self._master_path)
+        self._master_repo = GreatRepo(self.data_dir)
         for todo in self._master_repo.get_by_tag(tag).unwrap():
             self.repo.add(todo, key=todo.ident)
 

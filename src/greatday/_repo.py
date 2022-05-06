@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Final
 
 from eris import ErisResult, Ok
 from logrus import Logger
@@ -18,13 +19,18 @@ from ._todo import GreatTodo
 
 logger = Logger(__name__)
 
+DEFAULT_TODO_DIR: Final = "todos"
+
 
 class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
     """Repo that stores Todos on disk."""
 
-    def __init__(self, data_dir: PathLike, path: PathLike) -> None:
+    def __init__(self, data_dir: PathLike, path: PathLike = None) -> None:
         self.data_dir = Path(data_dir)
-        self.path = Path(path)
+        if path is None:
+            self.path = self.data_dir / DEFAULT_TODO_DIR
+        else:
+            self.path = Path(path)
 
     @property
     def todo_group(self) -> TodoGroup[GreatTodo]:

@@ -22,7 +22,6 @@ runner = clack.register_runner_factory(ALL_RUNNERS)
 logger = Logger(__name__)
 
 CTX_X: Final = "x"
-TODO_DIR: Final = "todos"
 
 
 @runner
@@ -30,8 +29,7 @@ def run_add(cfg: AddConfig) -> int:
     """Runner for the 'add' subcommand."""
     log = logger.bind_fargs(locals())
 
-    todo_dir = cfg.data_dir / TODO_DIR
-    repo = GreatRepo(cfg.data_dir, todo_dir)
+    repo = GreatRepo(cfg.data_dir)
     todo = GreatTodo.from_line(cfg.todo_line).unwrap()
 
     x_found = False
@@ -61,8 +59,7 @@ def run_add(cfg: AddConfig) -> int:
 @runner
 def run_list(cfg: ListConfig) -> int:
     """Runner for the 'list' subcommand."""
-    repo_path = cfg.data_dir / TODO_DIR
-    repo = GreatRepo(cfg.data_dir, repo_path)
+    repo = GreatRepo(cfg.data_dir)
 
     todo_iter: Iterable[GreatTodo]
     if cfg.query is None:
@@ -80,6 +77,5 @@ def run_list(cfg: ListConfig) -> int:
 @runner
 def run_tui(cfg: TUIConfig) -> int:
     """Runer for the 'tui' subcommand."""
-    repo_path = cfg.data_dir / TODO_DIR
-    start_textual_app(cfg.data_dir, repo_path)
+    start_textual_app(cfg.data_dir)
     return 0

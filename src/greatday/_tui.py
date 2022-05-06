@@ -256,9 +256,9 @@ def _todo_lines_from_query(repo: GreatRepo, query: str) -> str:
     return result
 
 
-def start_textual_app(data_dir: PathLike, repo_path: PathLike) -> None:
+def start_textual_app(data_dir: PathLike) -> None:
     """Starts the TUI using the GreatApp class."""
-    repo = GreatRepo(data_dir, repo_path)
+    repo = GreatRepo(data_dir)
     ctx = Context(TODAY_QUERY)
     run_app = partial(
         GreatApp.run,
@@ -271,7 +271,7 @@ def start_textual_app(data_dir: PathLike, repo_path: PathLike) -> None:
 
     while ctx.edit_todos:
         tag = Tag.from_query(ctx.query)
-        with GreatSession(data_dir, repo_path, tag) as session:
+        with GreatSession(data_dir, tag) as session:
             edit_and_commit_todos(session)
 
         ctx.edit_todos = False
