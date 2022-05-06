@@ -181,9 +181,15 @@ def _make_metadata_func(
     def check(x: str) -> bool:
         actual: dt.date | str | int
         if isinstance(expected, dt.date):
-            actual = magodo.to_date(x)
+            if matches_date_fmt(x):
+                actual = magodo.to_date(x)
+            else:
+                return False
         elif isinstance(expected, int):
-            actual = int(x)
+            if x.isdigit():
+                actual = int(x)
+            else:
+                return False
         else:
             actual = x
 
