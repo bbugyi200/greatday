@@ -176,7 +176,7 @@ def due_metatag_spell(todo: T) -> T:
     if due_date <= today:
         metadata = dict(todo.metadata.items())
         recur = todo.metadata.get("recur")
-        if not recur or not recur.upper():
+        if not recur or recur.islower():
             del metadata["due"]
 
         contexts = list(todo.contexts)
