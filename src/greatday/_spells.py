@@ -192,21 +192,30 @@ def due_metatag_spell(todo: T) -> T:
 
 
 @todo_spell
-def remove_today_context(todo: T) -> T:
-    """Removes the today context from done todos completed before today."""
+def handle_today_context(todo: T) -> T:
+    """Handles the context tag that marks a todo as planned to be done today.
+
+    By "handles", we mean that this spell makes sure that todos which should
+    have the today context do and vice-versa.
+    """
     if not todo.done_date:
         return todo
 
-    if CTX_TODAY not in todo.contexts:
-        return todo
-
     today = dt.date.today()
-    if todo.done_date == today:
+
+    should_have_today_ctx = bool(
+        todo.done_date == today
+        and any(key in todo.metadata for key in ["p", "xp"])
+    )
+    has_today_ctx = bool(CTX_TODAY in todo.contexts)
+    if has_today_ctx == should_have_today_ctx:
         return todo
 
     contexts = [ctx for ctx in todo.contexts if ctx != CTX_TODAY]
-    desc = drop_word_from_desc(todo.desc, f"@{CTX_TODAY}")
-    return todo.new(desc=desc, contexts=contexts)
+    if should_have_today_ctx:
+        contexts.append(CTX_TODAY)
+
+    return todo.new(contexts=contexts)
 
 
 @todo_spell
