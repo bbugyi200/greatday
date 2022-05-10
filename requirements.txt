@@ -4,7 +4,7 @@
 #
 #    "make update-requirements"
 #
-bolton-clack==0.3.3
+bolton-clack==0.3.4
     # via -r requirements.in
 bolton-eris==0.2.3
     # via
