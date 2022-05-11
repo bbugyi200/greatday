@@ -123,15 +123,15 @@ def _commit_todo_changes(
     NOTE: Recurring tickler todos are handled by a magodo todo spell (see
     _spells.py).
     """
-    today = dt.date.today()
-
     recur = todo.metadata.get("recur")
     until = todo.metadata.get("until")
-    expired = bool(until and magodo.to_date(until) <= today)
+    expired = bool(
+        todo.done_date and until and magodo.to_date(until) <= todo.done_date
+    )
     if (
         old_todo
-        and todo.done
-        and not old_todo.done
+        and todo.done_date
+        and not old_todo.done_date
         and recur
         and not expired
         and not todo.metadata.get("tickle")
@@ -148,7 +148,7 @@ def _commit_todo_changes(
         # set 'due' metatag for next todo...
         due = todo.metadata.get("due")
         if recur.islower() or due is None:
-            start_date = today
+            start_date = todo.done_date
         else:
             start_date = magodo.to_date(due)
 
@@ -156,7 +156,7 @@ def _commit_todo_changes(
         next_metadata["due"] = magodo.from_date(next_date)
 
         # set creation date + clear creation time for next todo...
-        next_create_date = today
+        next_create_date = dt.date.today()
         if "ctime" in next_metadata:
             del next_metadata["ctime"]
 

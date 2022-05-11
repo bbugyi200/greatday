@@ -223,7 +223,7 @@ def recur_tickler_spell(todo: T) -> T:
     """Handles the 'recur:' metatag for tickler todos."""
     mdata = todo.metadata
 
-    if not todo.done:
+    if not todo.done_date:
         return todo
 
     recur = mdata.get("recur")
@@ -234,10 +234,9 @@ def recur_tickler_spell(todo: T) -> T:
     if not tickle:
         return todo
 
-    today = dt.date.today()
     assert isinstance(recur, str)
     if recur.islower():
-        start_date = today
+        start_date = todo.done_date
     else:
         start_date = magodo.to_date(tickle)
 
@@ -249,7 +248,7 @@ def recur_tickler_spell(todo: T) -> T:
     next_date = get_relative_date(recur, start_date=start_date)
     metadata = dict(mdata.items())
 
-    if magodo.to_date(tickle) <= today:
+    if magodo.to_date(tickle) <= todo.done_date:
         next_tickle_date = next_date
         new_tickle = magodo.from_date(next_tickle_date)
         metadata["tickle"] = new_tickle
