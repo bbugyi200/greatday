@@ -284,23 +284,18 @@ def appt_todos(todo: T) -> T:
     if todo.done or todo.done_date:
         return todo
 
-    create_date = todo.create_date
-    if create_date is None:
+    if CTX_TODAY not in todo.contexts:
         return todo
 
+    today = dt.date.today()
     now = dt.datetime.now()
-    appt_dt = dt_from_date_and_hhmm(create_date, appt)
-
+    appt_dt = dt_from_date_and_hhmm(today, appt)
     if appt_dt < now + dt.timedelta(minutes=30):
         priority = "C"
     else:
         priority = "T"
 
-    contexts = todo.contexts
-    if "appt" not in contexts:
-        contexts = tuple(list(contexts) + ["appt"])
-
-    return todo.new(contexts=contexts, priority=priority)
+    return todo.new(priority=priority)
 
 
 @todo_spell
