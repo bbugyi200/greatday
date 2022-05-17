@@ -155,10 +155,11 @@ def _commit_todo_changes(
         next_date = get_relative_date(recur, start_date=start_date)
         next_metadata["due"] = magodo.from_date(next_date)
 
-        # set creation date + clear creation time for next todo...
+        # set creation date + clear creation/done time for next todo...
         next_create_date = dt.date.today()
-        if "ctime" in next_metadata:
-            del next_metadata["ctime"]
+        for key in ["ctime", "dtime"]:
+            if key in next_metadata:
+                del next_metadata[key]
 
         # add next todo to repo...
         next_todo = todo.new(
