@@ -45,7 +45,7 @@ class GreatSession(UnitOfWork[GreatRepo]):
         self._master_repo = GreatRepo(self.data_dir)
         if tag is not None:
             for todo in self._master_repo.get_by_tag(tag).unwrap():
-                self.repo.add(todo, key=todo.ident)
+                self._repo.add(todo, key=todo.ident)
 
         self._old_todo_map = {
             todo.ident: todo for todo in self._repo.todo_group
