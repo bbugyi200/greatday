@@ -40,7 +40,7 @@ class GreatSession(UnitOfWork[GreatRepo]):
         _, temp_path = tempfile.mkstemp(prefix=prefix, suffix=".txt")
         self.path = Path(temp_path)
 
-        self._temp_repo = GreatRepo(self.data_dir, self.path)
+        self._repo = GreatRepo(self.data_dir, self.path)
 
         self._master_repo = GreatRepo(self.data_dir)
         if tag is not None:
@@ -48,7 +48,7 @@ class GreatSession(UnitOfWork[GreatRepo]):
                 self.repo.add(todo, key=todo.ident)
 
         self._old_todo_map = {
-            todo.ident: todo for todo in self._temp_repo.todo_group
+            todo.ident: todo for todo in self._repo.todo_group
         }
 
     def __enter__(self) -> GreatSession:
@@ -109,7 +109,7 @@ class GreatSession(UnitOfWork[GreatRepo]):
     @property
     def repo(self) -> GreatRepo:
         """Returns the GreatRepo object associated with this GreatSession."""
-        return self._temp_repo
+        return self._repo
 
 
 def _commit_todo_changes(
