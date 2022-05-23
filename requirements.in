@@ -1,6 +1,7 @@
 bolton-clack ~= 0.3.3
 bolton-eris ~= 0.2.3
 bolton-logrus ~= 0.1.0
+<<<<<<< ours
 bolton-typist ~= 0.2.0
 magodo ~= 0.9.4
 more-itertools ~= 8.12
@@ -10,3 +11,6 @@ rich ~= 12.3
 textual ~= 0.1.17
 textual-inputs ~= 0.2.5
 vimala ~= 0.1.2
+=======
+pip != 21.1.1  # HACK: See https://github.com/jazzband/pip-tools/issues/1623.
+>>>>>>> theirs
