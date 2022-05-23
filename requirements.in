@@ -11,6 +11,4 @@ rich ~= 12.3
 textual ~= 0.1.17
 textual-inputs ~= 0.2.5
 vimala ~= 0.1.2
-=======
 pip != 21.1.1  # HACK: See https://github.com/jazzband/pip-tools/issues/1623.
->>>>>>> theirs
