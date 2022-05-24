@@ -49,7 +49,7 @@ python-dateutil==2.8.2
     # via -r requirements.in
 pyyaml==6.0
     # via bolton-clack
-rich==12.4.1
+rich==12.4.4
     # via
     #   -r requirements.in
     #   textual
