@@ -302,11 +302,11 @@ def appt_todos(todo: T) -> T:
 ###############################################################################
 @post_todo_spell
 def remove_priorities(todo: T) -> T:
-    """Remove prioritis for done todos or non-today todos."""
+    """Remove priorities for done todos."""
     if todo.priority == magodo.DEFAULT_PRIORITY:
         return todo
 
-    if not todo.done and CTX_TODAY in todo.contexts:
+    if not todo.done:
         return todo
 
     priority = magodo.DEFAULT_PRIORITY
