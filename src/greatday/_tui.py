@@ -25,21 +25,18 @@ from ._todo import GreatTodo
 
 _TICKLER_QUERY: Final = "tickle<=0d !snooze"
 INBOX_QUERY: Final = f"@{CTX_INBOX} done=0"
-FIRST_QUERY: Final = f"{CTX_FIRST} {_TICKLER_QUERY}"
-LAST_QUERY: Final = f"{CTX_LAST} {_TICKLER_QUERY}"
+FIRST_QUERY: Final = f"@{CTX_FIRST} {_TICKLER_QUERY}"
+LAST_QUERY: Final = f"@{CTX_LAST} {_TICKLER_QUERY}"
 TODAY_QUERY: Final = f"@{CTX_TODAY}"
 
 # A mapping of names to queries that will be displayed in the "Stats" textual
 # panel.
 STATS_QUERY_MAP: dict[str, str] = {
     "inbox": INBOX_QUERY,
-    "\nfirst": FIRST_QUERY,
+    "first": FIRST_QUERY,
     "today": TODAY_QUERY,
     "last": LAST_QUERY,
 }
-
-# The width of each column in the stats panel.
-STATS_WIDTH: Final = 20
 
 
 class GreatHeader(Header):
