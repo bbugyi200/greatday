@@ -127,7 +127,8 @@ class StatsWidget(Static):
 
             text += (
                 f"{pretty_name}   "
-                f"{group.done_stats.count}.{group.done_stats.points} / "
+                f"{group.open_stats.count}.{group.open_stats.points} + "
+                f"{group.done_stats.count}.{group.done_stats.points} = "
                 f"{group.all_stats.count}.{group.all_stats.points}\n"
             )
 
@@ -138,6 +139,7 @@ class StatsWidget(Static):
 class StatsGroup:
     all_stats: Stats
     done_stats: Stats
+    open_stats: Stats
 
     @classmethod
     def from_todos(cls, todos: Sequence[GreatTodo] | None) -> StatsGroup:
@@ -159,9 +161,18 @@ class StatsGroup:
             int(todo.metadata.get("p", "0")) for todo in done_todos
         )
 
+        open_todos = [todo for todo in all_todos if not todo.done]
+        open_count = len(open_todos)
+        open_points = sum(
+            int(todo.metadata.get("xp", "0")) for todo in open_todos
+        )
+
         all_stats = Stats(count=all_count, points=all_points)
         done_stats = Stats(count=done_count, points=done_points)
-        return cls(all_stats=all_stats, done_stats=done_stats)
+        open_stats = Stats(count=open_count, points=open_points)
+        return cls(
+            all_stats=all_stats, done_stats=done_stats, open_stats=open_stats
+        )
 
 
 @dataclass
