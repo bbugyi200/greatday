@@ -120,7 +120,7 @@ class StatsWidget(Static):
 
             pretty_name = name.upper()
             spaces = ""
-            if (size := len(pretty_name)) < max_name_size + 1:
+            if (size := len(pretty_name.strip())) < max_name_size + 1:
                 spaces += (max_name_size - size) * " "
             pretty_name += ":"
             pretty_name += spaces
