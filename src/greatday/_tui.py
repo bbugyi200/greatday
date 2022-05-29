@@ -23,7 +23,7 @@ from ._tag import Tag
 from ._todo import GreatTodo
 
 
-_TICKLER_QUERY: Final = "tickle<=0d !snooze"
+_TICKLER_QUERY: Final = "tickle<=0d !snooze done=0"
 INBOX_QUERY: Final = f"@{CTX_INBOX} done=0"
 FIRST_QUERY: Final = f"@{CTX_FIRST} {_TICKLER_QUERY}"
 LAST_QUERY: Final = f"@{CTX_LAST} {_TICKLER_QUERY}"
