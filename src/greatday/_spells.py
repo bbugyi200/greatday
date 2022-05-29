@@ -167,24 +167,29 @@ def due_context_spell(todo: T) -> T:
 @todo_spell
 def due_metatag_spell(todo: T) -> T:
     """Handles the 'due' metatag."""
-    due = todo.metadata.get("due")
-    if not due or not matches_date_fmt(due):
+    if todo.done:
         return todo
 
-    today = dt.date.today()
-    due_date = magodo.to_date(due)
-    if due_date <= today:
-        metadata = dict(todo.metadata.items())
-        recur = todo.metadata.get("recur")
-        if not recur or recur.islower():
-            del metadata["due"]
+    due = todo.metadata.get("due")
+    if due and not matches_date_fmt(due):
+        return todo
 
+    has_today_ctx = bool(CTX_TODAY in todo.contexts)
+
+    today = dt.date.today()
+    if due and magodo.to_date(due) <= today:
         contexts = list(todo.contexts)
         if CTX_TODAY not in contexts:
             contexts.append(CTX_TODAY)
-
-        return todo.new(contexts=contexts, metadata=metadata)
-    elif CTX_TODAY in todo.contexts:
+            return todo.new(contexts=contexts)
+        else:
+            return todo
+    elif not due and has_today_ctx:
+        metadata = dict(todo.metadata.items())
+        due = magodo.from_date(today)
+        metadata["due"] = due
+        return todo.new(metadata=metadata)
+    elif has_today_ctx:
         contexts = [ctx for ctx in todo.contexts if ctx != CTX_TODAY]
         return todo.new(contexts=contexts)
 
