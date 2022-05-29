@@ -205,7 +205,9 @@ def handle_today_context(todo: T) -> T:
 
     should_have_today_ctx = bool(
         todo.done_date == today
-        and any(key in todo.metadata for key in ["p", "xp"])
+        and any(
+            todo.metadata.get(key) not in ["0", None] for key in ["p", "xp"]
+        )
     )
     has_today_ctx = bool(CTX_TODAY in todo.contexts)
     if has_today_ctx == should_have_today_ctx:

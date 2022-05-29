@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import partial
-from typing import Any, Final
+from typing import Any, Final, Iterator, Sequence
 
-import more_itertools as mit
 from rich.panel import Panel
 from rich.style import Style
 from rich.table import Table
@@ -17,15 +16,30 @@ from textual_inputs import TextInput
 from typist import PathLike
 from vimala import vim
 
-from ._common import CTX_INBOX, CTX_TODAY
+from ._common import CTX_FIRST, CTX_INBOX, CTX_LAST, CTX_TODAY
 from ._repo import GreatRepo
 from ._session import GreatSession
 from ._tag import Tag
+from ._todo import GreatTodo
 
 
+_TICKLER_QUERY: Final = "tickle<=0d !snooze"
 INBOX_QUERY: Final = f"@{CTX_INBOX} done=0"
-TICKLER_QUERY: Final = "tickle<=0d !snooze done=0"
+FIRST_QUERY: Final = f"{CTX_FIRST} {_TICKLER_QUERY}"
+LAST_QUERY: Final = f"{CTX_LAST} {_TICKLER_QUERY}"
 TODAY_QUERY: Final = f"@{CTX_TODAY}"
+
+# A mapping of names to queries that will be displayed in the "Stats" textual
+# panel.
+STATS_QUERY_MAP: dict[str, str] = {
+    "inbox": INBOX_QUERY,
+    "\nfirst": FIRST_QUERY,
+    "today": TODAY_QUERY,
+    "last": LAST_QUERY,
+}
+
+# The width of each column in the stats panel.
+STATS_WIDTH: Final = 20
 
 
 class GreatHeader(Header):
@@ -95,44 +109,67 @@ class StatsWidget(Static):
         """Render the statistics widget."""
         assert self.repo is not None
 
-        tag = Tag.from_query(INBOX_QUERY)
-        inbox_todos = self.repo.get_by_tag(tag).unwrap()
-        inbox_count = len(inbox_todos) if inbox_todos else 0
-
-        tag = Tag.from_query(TICKLER_QUERY)
-        tickler_todos = self.repo.get_by_tag(tag).unwrap()
-        tickler_count = len(tickler_todos) if tickler_todos else 0
-
-        tag = Tag.from_query(TODAY_QUERY)
-        today_todos = self.repo.get_by_tag(tag).unwrap()
-        all_today_count = len(today_todos)
-        done_today_count = len([todo for todo in today_todos if todo.done])
-
-        tag = Tag.from_query(self.ctx.query)
-        query_todos = self.repo.get_by_tag(tag).unwrap()
-        open_todos, done_query_todos = [
-            list(x) for x in mit.partition(lambda todo: todo.done, query_todos)
-        ]
-        open_count = len(open_todos)
-        open_points = sum(
-            int(todo.metadata.get("xp", 0)) for todo in open_todos
-        )
-        done_count = len(done_query_todos)
-        done_points = sum(
-            int(todo.metadata.get("p", 0)) for todo in done_query_todos
-        )
-        all_count = len(query_todos)
-        all_points = open_points + done_points
+        stats_query_map = STATS_QUERY_MAP.copy()
+        stats_query_map.update({"\ncurrent": self.ctx.query})
 
         text = ""
-        text += f"INBOX: {inbox_count}\n"
-        text += f"TICKLERS: {tickler_count}\n"
-        text += f"TODAY: {done_today_count}/{all_today_count}\n\n"
-        text += (
-            f"done({done_count}.{done_points}) +"
-            f" open({open_count}.{open_points}) = {all_count}.{all_points}"
+        max_name_size = max(
+            len(name.strip()) for name in stats_query_map.keys()
         )
+        for name, query in stats_query_map.items():
+            tag = Tag.from_query(query)
+            todos = self.repo.get_by_tag(tag).unwrap()
+            group = StatsGroup.from_todos(todos)
+
+            pretty_name = name.upper()
+            spaces = ""
+            if (size := len(pretty_name)) < max_name_size + 1:
+                spaces += (max_name_size - size) * " "
+            pretty_name += ":"
+            pretty_name += spaces
+
+            text += (
+                f"{pretty_name}   "
+                f"{group.done_stats.count}.{group.done_stats.points} / "
+                f"{group.all_stats.count}.{group.all_stats.points}\n"
+            )
+
         return Panel(text, title="Statistics")
+
+
+@dataclass
+class StatsGroup:
+    all_stats: Stats
+    done_stats: Stats
+
+    @classmethod
+    def from_todos(cls, todos: Sequence[GreatTodo] | None) -> StatsGroup:
+        """Constructs a StatsGroup from an iterable of todos (or None)."""
+        if todos is not None:
+            all_todos = todos
+        else:
+            all_todos = []
+
+        all_count = len(all_todos)
+        all_points = sum(
+            int(todo.metadata.get("p", "0")) for todo in all_todos
+        )
+
+        done_todos = [todo for todo in all_todos if todo.done]
+        done_count = len(done_todos)
+        done_points = sum(
+            int(todo.metadata.get("p", "0")) for todo in done_todos
+        )
+
+        all_stats = Stats(count=all_count, points=all_points)
+        done_stats = Stats(count=done_count, points=done_points)
+        return cls(all_stats=all_stats, done_stats=done_stats)
+
+
+@dataclass
+class Stats:
+    count: int
+    points: int
 
 
 @dataclass
@@ -185,9 +222,11 @@ class GreatApp(App):
 
     async def on_load(self) -> None:
         """Configure key bindings."""
-        await self.bind("1", f"new_query('{INBOX_QUERY}')", "Inbox Query")
-        await self.bind("2", f"new_query('{TICKLER_QUERY}')", "Tickler Query")
-        await self.bind("3", f"new_query('{TODAY_QUERY}')", "Today Query")
+        n = _counter(start=1)
+        await self.bind(next(n), f"new_query('{INBOX_QUERY}')", "INBOX Query")
+        await self.bind(next(n), f"new_query('{FIRST_QUERY}')", "FIRST Query")
+        await self.bind(next(n), f"new_query('{TODAY_QUERY}')", "TODAY Query")
+        await self.bind(next(n), f"new_query('{LAST_QUERY}')", "LAST Query")
         await self.bind("escape", "change_mode('normal')", "Normal Mode")
         await self.bind("enter", "submit", "Submit")
         await self.bind("e", "edit", "Edit Todos")
@@ -243,6 +282,13 @@ class GreatApp(App):
         text = _todo_lines_from_query(self.repo, self.ctx.query)
         await self.main_widget.update(Panel(text, title="Todo List"))
         await self.action_change_mode("normal")
+
+
+def _counter(start: int = 1) -> Iterator[str]:
+    n = start
+    while True:
+        yield str(n)
+        n += 1
 
 
 def _todo_lines_from_query(repo: GreatRepo, query: str) -> str:

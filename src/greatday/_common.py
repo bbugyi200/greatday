@@ -9,7 +9,9 @@ if TYPE_CHECKING:
     from ._todo import GreatTodo
 
 
+CTX_FIRST: Final = "FIRST"
 CTX_INBOX: Final = "INBOX"
+CTX_LAST: Final = "LAST"
 CTX_TODAY: Final = "TODAY"
 
 
@@ -18,7 +20,7 @@ def drop_word_from_desc(
     *bad_words: str,
     op: Callable[[str, str], bool] = lambda x, y: x == y,
 ) -> str:
-    """Removes `bad_word` from the todo description `desc`."""
+    """Removes all `bad_words` from the todo description `desc`."""
     desc_words = desc.split(" ")
     new_desc_words = []
     for word in desc_words:
