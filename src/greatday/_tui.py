@@ -23,19 +23,28 @@ from ._tag import Tag
 from ._todo import GreatTodo
 
 
-_TICKLER_QUERY: Final = "tickle<=0d !snooze done=0"
+# Characters that should be removed from query names in most cases.
+BAD_QUERY_NAME_CHARS: Final = "() 0123456789\n"
+
+
+def _due_query(op: str = "<=") -> str:
+    return f"done=0 due{op}0d !snooze"
+
+
 INBOX_QUERY: Final = f"@{CTX_INBOX} done=0"
-FIRST_QUERY: Final = f"@{CTX_FIRST} {_TICKLER_QUERY}"
-LAST_QUERY: Final = f"@{CTX_LAST} {_TICKLER_QUERY}"
-TODAY_QUERY: Final = f"@{CTX_TODAY}"
+FIRST_QUERY: Final = f"@{CTX_FIRST} @{CTX_TODAY} !snooze"
+LAST_QUERY: Final = f"@{CTX_LAST} {_due_query()}"
+LATE_QUERY: Final = f"{_due_query('<')}"
+TODAY_QUERY: Final = f"@{CTX_TODAY} !@{CTX_FIRST} !@{CTX_LAST}"
 
 # A mapping of names to queries that will be displayed in the "Stats" textual
 # panel.
 STATS_QUERY_MAP: dict[str, str] = {
-    "inbox": INBOX_QUERY,
-    "first": FIRST_QUERY,
-    "today": TODAY_QUERY,
-    "last": LAST_QUERY,
+    "(0) inbox": INBOX_QUERY,
+    "(1) first": FIRST_QUERY,
+    "(2) late": LATE_QUERY,
+    "(3) today": TODAY_QUERY,
+    "(4) last": LAST_QUERY,
 }
 
 
@@ -77,12 +86,13 @@ class GreatFooter(Footer):
                 key if binding.key_display is None else binding.key_display
             )
             hovered = self.highlight_key == binding.key
+            description = binding.description.strip(BAD_QUERY_NAME_CHARS)
             key_text = Text.assemble(
                 (
                     f" {key_display} ",
                     "reverse" if hovered else "default on default",
                 ),
-                f" {binding.description} ",
+                f" {description} ",
                 meta={
                     "@click": f"app.press('{binding.key}')",
                     "key": binding.key,
@@ -107,12 +117,16 @@ class StatsWidget(Static):
         assert self.repo is not None
 
         stats_query_map = STATS_QUERY_MAP.copy()
-        stats_query_map.update({"\ncurrent": self.ctx.query})
 
-        text = ""
+        text = Text()
         max_name_size = max(
             len(name.strip()) for name in stats_query_map.keys()
         )
+        if not any(
+            query == self.ctx.query for query in stats_query_map.values()
+        ):
+            stats_query_map.update({"\n<custom>": self.ctx.query})
+
         for name, query in stats_query_map.items():
             tag = Tag.from_query(query)
             todos = self.repo.get_by_tag(tag).unwrap()
@@ -125,11 +139,19 @@ class StatsWidget(Static):
             pretty_name += ":"
             pretty_name += spaces
 
-            text += (
-                f"{pretty_name}   "
-                f"{group.open_stats.count}.{group.open_stats.points} + "
-                f"{group.done_stats.count}.{group.done_stats.points} = "
-                f"{group.all_stats.count}.{group.all_stats.points}\n"
+            if self.ctx.query == query:
+                style = "bold italic blue"
+            else:
+                style = ""
+
+            text.append_text(
+                Text(
+                    f"{pretty_name}   "
+                    f"{group.open_stats.count}.{group.open_stats.points} + "
+                    f"{group.done_stats.count}.{group.done_stats.points} = "
+                    f"{group.all_stats.count}.{group.all_stats.points}\n",
+                    style=style,
+                )
             )
 
         return Panel(text, title="Statistics")
@@ -248,11 +270,12 @@ class GreatApp(App):
 
     async def on_load(self) -> None:
         """Configure key bindings."""
-        n = _counter(start=1)
-        await self.bind(next(n), f"new_query('{INBOX_QUERY}')", "INBOX Query")
-        await self.bind(next(n), f"new_query('{FIRST_QUERY}')", "FIRST Query")
-        await self.bind(next(n), f"new_query('{TODAY_QUERY}')", "TODAY Query")
-        await self.bind(next(n), f"new_query('{LAST_QUERY}')", "LAST Query")
+        n = 0
+        for name, query in STATS_QUERY_MAP.items():
+            description = f"{name.lstrip(BAD_QUERY_NAME_CHARS).upper()} Query"
+            await self.bind(str(n), f"new_query('{query}')", description)
+            n += 1
+
         await self.bind("escape", "change_mode('normal')", "Normal Mode")
         await self.bind("enter", "submit", "Submit")
         await self.bind("e", "edit", "Edit Todos")
