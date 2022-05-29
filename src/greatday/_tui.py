@@ -149,7 +149,8 @@ class StatsGroup:
 
         all_count = len(all_todos)
         all_points = sum(
-            int(todo.metadata.get("p", "0")) for todo in all_todos
+            int(todo.metadata.get("p" if todo.done else "xp", "0"))
+            for todo in all_todos
         )
 
         done_todos = [todo for todo in all_todos if todo.done]
