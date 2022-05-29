@@ -137,6 +137,15 @@ class StatsWidget(Static):
 
 @dataclass
 class StatsGroup:
+    """Todo query stats group.
+
+    Attributes:
+        all_stats: Stats on all todos matching this query.
+        done_stats: Stats on all completed todos matching this query.
+        open_stats: Stats on all un-completed (i.e. not done) todos matching
+          this query.
+    """
+
     all_stats: Stats
     done_stats: Stats
     open_stats: Stats
@@ -177,6 +186,14 @@ class StatsGroup:
 
 @dataclass
 class Stats:
+    """Todo query stats.
+
+    Attributes:
+        count: number of todos matched by this query.
+        points: Sum of points (i.e. 'p') or expected points (i.e. 'xp') for
+          todos matching this query.
+    """
+
     count: int
     points: int
 
