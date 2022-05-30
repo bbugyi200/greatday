@@ -155,11 +155,11 @@ class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
             list(
                 self.todo_group.filter_by(
                     contexts=tag.contexts,
-                    create_date=tag.create_date,
-                    done_date=tag.done_date,
+                    create_date_ranges=tag.create_date_ranges,
+                    done_date_ranges=tag.done_date_ranges,
                     done=tag.done,
                     epics=tag.epics,
-                    metadata_checks=tag.metadata_checks,
+                    metadata_filters=tag.metadata_filters,
                     priorities=tag.priorities,
                     projects=tag.projects,
                 )

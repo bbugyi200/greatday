@@ -9,13 +9,14 @@ from typing import Any, Callable, Iterable
 
 from logrus import Logger
 import magodo
-from magodo import MetadataCheck
-from magodo.types import MetadataFunc, Priority
+from magodo import DateRange, DescFilter, MetadataFilter
+from magodo.types import Priority, SinglePredicate
 
 from ._dates import (
     get_relative_date,
     matches_date_fmt,
     matches_relative_date_fmt,
+    to_great_date,
 )
 
 
@@ -27,11 +28,12 @@ class Tag:
     """Tag used to filter Todos."""
 
     contexts: Iterable[str] = ()
-    create_date: dt.date | None = None
-    done_date: dt.date | None = None
+    create_date_ranges: Iterable[DateRange] = ()
+    desc_filters: Iterable[DescFilter] = ()
+    done_date_ranges: Iterable[DateRange] = ()
     done: bool | None = None
     epics: Iterable[str] = ()
-    metadata_checks: Iterable[MetadataCheck] = ()
+    metadata_filters: Iterable[MetadataFilter] = ()
     priorities: Iterable[Priority] = ()
     projects: Iterable[str] = ()
 
@@ -39,10 +41,12 @@ class Tag:
     def from_query(cls, query: str) -> Tag:  # noqa: C901
         """Build a Tag using a query string."""
         contexts: list[str] = []
-        create_and_done: list[dt.date | None] = [None, None]
+        create_date_ranges: list[DateRange] = []
+        desc_filters: list[DescFilter] = []
         done: bool | None = None
+        done_date_ranges: list[DateRange] = []
         epics: list[str] = []
-        metadata_checks: list[MetadataCheck] = []
+        metadata_filters: list[MetadataFilter] = []
         priorities: list[Priority] = []
         projects: list[str] = []
 
@@ -70,53 +74,43 @@ class Tag:
                 continue
 
             # ----- Create and Done Dates
-            is_date_range = False
-            for i, date_prefix in enumerate(["create=", "done="]):
-                if word.startswith(date_prefix):
-                    date_spec = word[len(date_prefix) :]
-                    if not matches_date_fmt(date_spec):
-                        logger.debug(
-                            "Date does not match required date format.",
-                            date_spec=date_spec,
-                        )
-                        continue
+            is_a_date_range = False
+            for ch, date_ranges in [
+                ("^", create_date_ranges),
+                ("$", done_date_ranges),
+            ]:
+                if word.startswith(ch):
+                    date_range = get_date_range(word[1:])
+                    date_ranges.append(date_range)
+                    is_a_date_range = True
 
-                    create_and_done[i] = magodo.to_date(date_spec)
                     logger.debug(
-                        "Filter on date.",
-                        prefix=date_prefix,
-                        date=create_and_done[i],
+                        "Filtering on date range.",
+                        prefix=ch,
+                        date_range=date_range,
                     )
-                    is_date_range = True
+                    break
 
-            if is_date_range:
+            if is_a_date_range:
                 continue
 
             # ----- Is open todo or done todo?
-            done_prefix = "done="
-            if word.startswith(done_prefix):
-                zero_or_one = word[len(done_prefix) :]
-                if zero_or_one not in ["1", "0"]:
-                    logger.warning(
-                        "When using 'done=N', N must be either 0 or 1.",
-                        N=zero_or_one,
-                    )
-                    continue
+            if word.lower() == "x":
+                done = True
+                continue
 
-                done = bool(int(zero_or_one))
-                logger.debug(
-                    "Filter on whether todo is done or not.", done=done
-                )
+            if word.lower() == "o":
+                done = False
                 continue
 
             # ----- Metatag Checks
             if word.isalpha():
-                metadata_checks.append(MetadataCheck(word))
+                metadata_filters.append(MetadataFilter(word))
                 continue
 
             if word.startswith("!") and word[1:].isalpha():
-                metadata_checks.append(
-                    MetadataCheck(
+                metadata_filters.append(
+                    MetadataFilter(
                         word[1:], check=lambda _: False, required=False
                     )
                 )
@@ -153,8 +147,8 @@ class Tag:
                     value = value_string
 
                 check = _make_metadata_func(op, value)
-                metadata_checks.append(
-                    MetadataCheck(key, check=check, required=required)
+                metadata_filters.append(
+                    MetadataFilter(key, check=check, required=required)
                 )
                 break
             else:
@@ -165,19 +159,38 @@ class Tag:
 
         return cls(
             contexts=contexts,
-            create_date=create_and_done[0],
-            done_date=create_and_done[1],
+            create_date_ranges=create_date_ranges,
+            desc_filters=desc_filters,
+            done_date_ranges=done_date_ranges,
             done=done,
             epics=epics,
-            metadata_checks=metadata_checks,
+            metadata_filters=metadata_filters,
             priorities=priorities,
             projects=projects,
         )
 
 
+def get_date_range(spec: str) -> DateRange:
+    """Constructs a date range from a `spec`.
+
+    Args:
+        spec: date specification which MUST use a format of START:END where
+          START and END are valid date specs (e.g. `2000-01-01`; '1d'; '5m:0d').
+    """
+    start_and_end = [to_great_date(x, reverse=True) for x in spec.split(":")]
+    if len(start_and_end) > 1:
+        assert len(start_and_end) == 2
+        start, end = start_and_end
+    else:
+        start = start_and_end[0]
+        end = None
+
+    return DateRange(start, end)
+
+
 def _make_metadata_func(
     op: Callable[[Any, Any], bool], expected: Any
-) -> MetadataFunc:
+) -> SinglePredicate:
     def check(x: str) -> bool:
         actual: dt.date | str | int
         if isinstance(expected, dt.date):
