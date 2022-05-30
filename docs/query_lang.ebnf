@@ -15,7 +15,7 @@ spec = create_date
 
 {* variables required by spec... *}
 create_date = "^" DATE [":" DATE];
-desc = ["!"] ('"' NOT_DOUBLE_QUOTE+ '"' | "'" NOT_SINGLE_QUOTE+ "'");
+desc = ["!"] ["c" | "i"] ('"' NOT_DOUBLE_QUOTE+ '"' | "'" NOT_SINGLE_QUOTE+ "'");
 done_date = "$" DATE [":" DATE];
 metatag = ["!"] word | word ["?"] op any;
 priority = "(" letter_range {"," letter_range} ")";
