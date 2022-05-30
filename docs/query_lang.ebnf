@@ -1,20 +1,22 @@
 {* This file contains the EBNF specification of greatday's todo query language (e.g. used by 'greatday list'). *}
 
-start = [spec_or];
+start = [spec_or | spec_or_group];
 spec_or = spec_and {space "|" space spec_and};
+spec_or_group = "(" spec_or ")";
 spec_and = spec {space spec};
-spec = create
+spec = create_date
      | desc
-     | done
+     | done_date
      | metatag
      | priority
+     | spec_or_group
      | tag
      | x_or_o;
 
 {* variables required by spec... *}
-create = "^" DATE [":" DATE];
+create_date = "^" DATE [":" DATE];
 desc = ["!"] ('"' NOT_DOUBLE_QUOTE+ '"' | "'" NOT_SINGLE_QUOTE+ "'");
-done = "$" DATE [":" DATE];
+done_date = "$" DATE [":" DATE];
 metatag = ["!"] word | word ["?"] op any;
 priority = "(" letter_range {"," letter_range} ")";
 tag = ["!"] ("@" | "#" | "+") word;
@@ -24,7 +26,7 @@ x_or_o = "X" | "O";
 any = (letter | DIGIT | "-" | ".")+;
 letter = UPPER_LETTER | LOWER_LETTER;
 op = "=" | "!=" | "<=" | ">=" | "<" | ">";
-letter_range = letter | letter "-" letter;
+letter_range = letter ["-" letter];
 space = " ";
 word = letter+;
 
