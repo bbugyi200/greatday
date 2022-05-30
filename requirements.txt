@@ -35,7 +35,7 @@ bolton-typist==0.2.0
     #   vimala
 commonmark==0.9.1
     # via rich
-magodo==0.9.5
+magodo==0.10.0
     # via -r requirements.in
 potoroo==0.3.2
     # via -r requirements.in
