@@ -1,6 +1,6 @@
 {* This file contains the EBNF specification of greatday's todo query language (e.g. used by 'greatday list'). *}
 
-start = [spec_or | spec_or_group];
+query = [spec_or];
 spec_or = spec_and {space "|" space spec_and};
 spec_or_group = "(" spec_or ")";
 spec_and = spec {space spec};

@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Final
 
 from dateutil.relativedelta import relativedelta
+import magodo
 from typist import PathLike
 
 
@@ -111,18 +112,36 @@ def dt_from_date_and_hhmm(date: dt.date, hhmm: str) -> dt.datetime:
     return result
 
 
-def matches_date_fmt(date_spec: str) -> bool:
-    """Returns True iff date_spec matches the magodo date format.."""
-    return len(date_spec) == 10 and date_spec.count("-") == 2
+def matches_date_fmt(spec: str) -> bool:
+    """Returns True iff spec matches the magodo date format.."""
+    return len(spec) == 10 and spec.count("-") == 2
 
 
-def matches_relative_date_fmt(date_spec: str) -> bool:
-    """Returns True iff date_spec appears to be a relative date (e.g. 1d)."""
+def matches_relative_date_fmt(spec: str) -> bool:
+    """Returns True iff spec appears to be a relative date (e.g. 1d)."""
     return (
-        len(date_spec) > 1
-        and date_spec[:-1].isdigit()
-        and date_spec[-1].lower() in ["d", "m", "y"]
+        len(spec) > 1
+        and spec[:-1].isdigit()
+        and spec[-1].lower() in ["d", "m", "y"]
     )
+
+
+def to_great_date(spec: str, reverse: bool = False) -> dt.date:
+    """Converts a date string into a date.
+
+    Args:
+        spec: The date string specification (use a supported date format).
+        reverse: Treat relative dates (e.g. when `spec == "1d"`) as dates in
+          the past instead of the future.
+
+    NOTE: `spec` must match a date string specification supported by
+    greatday (e.g. 'YYYY-MM-DD').
+    """
+    if matches_date_fmt(spec):
+        return magodo.to_date(spec)
+    else:
+        assert matches_relative_date_fmt(spec)
+        return get_relative_date(spec, reverse=reverse)
 
 
 def init_yyyymm_path(root: PathLike, *, date: dt.date = None) -> Path:

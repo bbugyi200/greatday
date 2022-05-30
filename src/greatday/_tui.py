@@ -28,14 +28,14 @@ BAD_QUERY_NAME_CHARS: Final = "() 0123456789\n"
 
 
 def _due_query(op: str = "<=") -> str:
-    return f"done=0 due{op}0d !snooze"
+    return f"o due{op}0d !snooze"
 
 
 # TODO(bugyi): Implement GTDLang OR? (e.g. support syntax like '(<q1>) | (<q2>)'?)
-INBOX_QUERY: Final = f"@{CTX_INBOX} done=0"
-FIRST_QUERY: Final = f"@{CTX_FIRST} {_due_query()}"
-LAST_QUERY: Final = f"@{CTX_LAST} {_due_query()}"
-LATE_QUERY: Final = f"@{CTX_LAST} {_due_query('<')}"
+INBOX_QUERY: Final = f"o @{CTX_INBOX}"
+FIRST_QUERY: Final = f"{_due_query()} @{CTX_FIRST}"
+LAST_QUERY: Final = f"{_due_query()} @{CTX_LAST}"
+LATE_QUERY: Final = f"{_due_query('<')} @{CTX_LAST}"
 TODAY_QUERY: Final = f"@{CTX_TODAY}"
 
 # A mapping of names to queries that will be displayed in the "Stats" textual
