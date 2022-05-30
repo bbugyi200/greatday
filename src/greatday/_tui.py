@@ -148,9 +148,9 @@ class StatsWidget(Static):
             text.append_text(
                 Text(
                     f"{pretty_name}   "
-                    f"{group.done_stats.count}.{group.done_stats.points} + "
-                    f"{group.open_stats.count}.{group.open_stats.points} = "
-                    f"{group.all_stats.count}.{group.all_stats.points}\n",
+                    f"{group.all_stats.count}.{group.all_stats.points} - "
+                    f"{group.done_stats.count}.{group.done_stats.points} = "
+                    f"{group.open_stats.count}.{group.open_stats.points}\n",
                     style=style,
                 )
             )
