@@ -3,21 +3,29 @@
 start = [spec_or];
 spec_or = spec_and {space "|" space spec_and};
 spec_and = spec {space spec};
-spec = desc
+spec = create
+     | desc
+     | done
      | metatag
      | priority
-     | tag;
+     | tag
+     | x_or_o;
 
 {* variables required by spec... *}
+create = "^" date [":" date];
 desc = ["!"] ('"' NOT_DOUBLE_QUOTE+ '"' | "'" NOT_SINGLE_QUOTE+ "'");
+done = "$" date [":" date];
 metatag = ["!"] word | word ["?"] op any;
-priority = "(" UPPER_LETTER ")";
+priority = "(" letter_range {"," letter_range} ")";
 tag = ["!"] ("@" | "#" | "+") word;
+x_or_o = "X" | "O";
 
 {* all other non-special variables... *}
 any = (letter | DIGIT | "-" | ".")+;
+date = 4*DIGIT "-" 2*DIGIT "-" 2*DIGIT;
 letter = UPPER_LETTER | LOWER_LETTER;
 op = "=" | "!=" | "<=" | ">=" | "<" | ">";
+letter_range = UPPER_LETTER | UPPER_LETTER "-" UPPER_LETTER;
 space = " ";
 word = letter+;
 
