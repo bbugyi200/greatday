@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import partial
-from typing import Any, Final, Iterator, Sequence
+from typing import Any, Final, Sequence
 
 from rich.panel import Panel
 from rich.style import Style
@@ -332,13 +332,6 @@ class GreatApp(App):
         text = _todo_lines_from_query(self.repo, self.ctx.query)
         await self.main_widget.update(Panel(text, title="Todo List"))
         await self.action_change_mode("normal")
-
-
-def _counter(start: int = 1) -> Iterator[str]:
-    n = start
-    while True:
-        yield str(n)
-        n += 1
 
 
 def _todo_lines_from_query(repo: GreatRepo, query: str) -> str:
