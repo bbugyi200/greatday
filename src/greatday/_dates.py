@@ -19,7 +19,9 @@ SATURDAY: Final = 5
 SUNDAY: Final = 6
 
 
-def get_relative_date(spec: str, *, start_date: dt.date = None) -> dt.date:
+def get_relative_date(
+    spec: str, *, start_date: dt.date = None, reverse: bool = False
+) -> dt.date:
     """Converts `spec` to a timedelta and adds it to `date`.
 
     Args:
@@ -27,6 +29,8 @@ def get_relative_date(spec: str, *, start_date: dt.date = None) -> dt.date:
           'weekdays').
         start_date: The return value is a function of this argument and the
           timedelta constructed from `spec`. Defaults to today's date.
+        reverse: If set, we use a relative date from the past instead of the
+          future (e.g. '1d' will yield yesterday's date instead of today's).
 
     Examples:
         # Imports
@@ -37,6 +41,9 @@ def get_relative_date(spec: str, *, start_date: dt.date = None) -> dt.date:
         >>> from_date = lambda x: x.strftime("%Y-%m-%d")
         >>> grd = lambda x, y: from_date(
         ...   get_relative_date(x, start_date=to_date(y))
+        ... )
+        >>> reverse_grd = lambda x, y: from_date(
+        ...   get_relative_date(x, start_date=to_date(y), reverse=True)
         ... )
 
         # Default start date.
@@ -66,6 +73,9 @@ def get_relative_date(spec: str, *, start_date: dt.date = None) -> dt.date:
 
         >>> grd("weekdays", "2022-02-11")
         '2022-02-14'
+
+        >>> reverse_grd("1d", D)
+        '2000-01-30'
     """
     spec = spec.lower()
     if start_date is None:
@@ -88,7 +98,10 @@ def get_relative_date(spec: str, *, start_date: dt.date = None) -> dt.date:
             assert ch == "y"
             delta = relativedelta(years=N)
 
-    return start_date + delta
+    if reverse:
+        return start_date - delta
+    else:
+        return start_date + delta
 
 
 def dt_from_date_and_hhmm(date: dt.date, hhmm: str) -> dt.datetime:
