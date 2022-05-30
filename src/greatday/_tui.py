@@ -31,11 +31,12 @@ def _due_query(op: str = "<=") -> str:
     return f"done=0 due{op}0d !snooze"
 
 
+# TODO(bugyi): Implement GTDLang OR? (e.g. support syntax like '(<q1>) | (<q2>)'?)
 INBOX_QUERY: Final = f"@{CTX_INBOX} done=0"
-FIRST_QUERY: Final = f"@{CTX_FIRST} @{CTX_TODAY} !snooze"
+FIRST_QUERY: Final = f"@{CTX_FIRST} {_due_query()}"
 LAST_QUERY: Final = f"@{CTX_LAST} {_due_query()}"
-LATE_QUERY: Final = f"{_due_query('<')}"
-TODAY_QUERY: Final = f"@{CTX_TODAY} !@{CTX_FIRST} !@{CTX_LAST}"
+LATE_QUERY: Final = f"@{CTX_LAST} {_due_query('<')}"
+TODAY_QUERY: Final = f"@{CTX_TODAY}"
 
 # A mapping of names to queries that will be displayed in the "Stats" textual
 # panel.
@@ -147,8 +148,8 @@ class StatsWidget(Static):
             text.append_text(
                 Text(
                     f"{pretty_name}   "
-                    f"{group.open_stats.count}.{group.open_stats.points} + "
-                    f"{group.done_stats.count}.{group.done_stats.points} = "
+                    f"{group.done_stats.count}.{group.done_stats.points} + "
+                    f"{group.open_stats.count}.{group.open_stats.points} = "
                     f"{group.all_stats.count}.{group.all_stats.points}\n",
                     style=style,
                 )

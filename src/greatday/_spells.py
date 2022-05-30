@@ -19,7 +19,7 @@ from magodo.spells import (
 )
 from magodo.types import LineSpell, T, TodoSpell
 
-from ._common import CTX_TODAY, drop_word_from_desc
+from ._common import CTX_FIRST, CTX_LAST, CTX_TODAY, drop_word_from_desc
 from ._dates import (
     dt_from_date_and_hhmm,
     get_relative_date,
@@ -347,3 +347,19 @@ def remove_priorities(todo: T) -> T:
     priority = magodo.DEFAULT_PRIORITY
     desc = drop_word_from_desc(todo.desc, f"({todo.priority})")
     return todo.new(desc=desc, priority=priority)
+
+
+@post_todo_spell
+def no_today_for_first_and_last(todo: T) -> T:
+    """Removes the today context when the first or last context is found."""
+    if todo.done:
+        return todo
+
+    if not any(ctx in todo.contexts for ctx in [CTX_FIRST, CTX_LAST]):
+        return todo
+
+    if CTX_TODAY not in todo.contexts:
+        return todo
+
+    contexts = [ctx for ctx in todo.contexts if ctx != CTX_TODAY]
+    return todo.new(contexts=contexts)
