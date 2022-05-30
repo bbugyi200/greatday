@@ -306,4 +306,5 @@ def no_today_for_first_and_last(todo: T) -> T:
         return todo
 
     contexts = [ctx for ctx in todo.contexts if ctx != CTX_TODAY]
-    return todo.new(contexts=contexts)
+    desc = drop_word_from_desc(todo.desc, f"@{CTX_TODAY}")
+    return todo.new(contexts=contexts, desc=desc)
