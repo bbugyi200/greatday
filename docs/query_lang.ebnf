@@ -12,9 +12,9 @@ spec = create
      | x_or_o;
 
 {* variables required by spec... *}
-create = "^" date [":" date];
+create = "^" DATE [":" DATE];
 desc = ["!"] ('"' NOT_DOUBLE_QUOTE+ '"' | "'" NOT_SINGLE_QUOTE+ "'");
-done = "$" date [":" date];
+done = "$" DATE [":" DATE];
 metatag = ["!"] word | word ["?"] op any;
 priority = "(" letter_range {"," letter_range} ")";
 tag = ["!"] ("@" | "#" | "+") word;
@@ -22,14 +22,14 @@ x_or_o = "X" | "O";
 
 {* all other non-special variables... *}
 any = (letter | DIGIT | "-" | ".")+;
-date = 4*DIGIT "-" 2*DIGIT "-" 2*DIGIT;
 letter = UPPER_LETTER | LOWER_LETTER;
 op = "=" | "!=" | "<=" | ">=" | "<" | ">";
-letter_range = UPPER_LETTER | UPPER_LETTER "-" UPPER_LETTER;
+letter_range = letter | letter "-" letter;
 space = " ";
 word = letter+;
 
 {* all special variables... *}
+DATE = ? a valid date spec (e.g. YYYY-MM-DD) ?;
 DIGIT = ? an integer between 0-9 ?;
 LOWER_LETTER = ? a lowercase letter (i.e. a-z) ?;
 NOT_DOUBLE_QUOTE = ? any character NOT including a double quote ?;
