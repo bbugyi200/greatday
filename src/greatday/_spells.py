@@ -123,24 +123,23 @@ def snooze_spell(todo: T) -> T:
 def render_relative_dates(todo: T) -> T:
     """Renders metatags that support relative dates.
 
-    (e.g. 'tickle:1d' -> 'tickle:2022-02-16')
+    (e.g. 'due:1d' -> 'due:2022-02-16')
     """
     found_tag = False
     desc = todo.desc
     metadata = dict(todo.metadata.items())
 
-    for key in ["snooze", "tickle", "until", "due"]:
-        # t_or_s: Tickle or Snooze
-        t_o_s = todo.metadata.get(key)
-        if not t_o_s:
+    for key in ["snooze", "until", "due"]:
+        value = todo.metadata.get(key)
+        if not value:
             continue
 
-        if not matches_relative_date_fmt(t_o_s):
+        if not matches_relative_date_fmt(value):
             continue
 
         found_tag = True
 
-        new_t_or_s_date = get_relative_date(t_o_s)
+        new_t_or_s_date = get_relative_date(value)
         new_t_or_s = magodo.from_date(new_t_or_s_date)
         metadata[key] = new_t_or_s
 
@@ -225,61 +224,6 @@ def today_context_for_done_todos(todo: T) -> T:
         contexts.append(CTX_TODAY)
 
     return todo.new(contexts=contexts)
-
-
-@todo_spell
-def recur_tickler_spell(todo: T) -> T:
-    """Handles the 'recur:' metatag for tickler todos."""
-    mdata = todo.metadata
-
-    if not todo.done_date:
-        return todo
-
-    recur = mdata.get("recur")
-    if not recur:
-        return todo
-
-    tickle = mdata.get("tickle")
-    if not tickle:
-        return todo
-
-    assert isinstance(recur, str)
-    if recur.islower():
-        start_date = todo.done_date
-    else:
-        start_date = magodo.to_date(tickle)
-
-    until = mdata.get("until")
-    if until and magodo.to_date(until) <= start_date:
-        logger.debug("Recurring todo has reached its 'until' date.", todo=todo)
-        return todo
-
-    next_date = get_relative_date(recur, start_date=start_date)
-    metadata = dict(mdata.items())
-
-    if magodo.to_date(tickle) <= todo.done_date:
-        next_tickle_date = next_date
-        new_tickle = magodo.from_date(next_tickle_date)
-        metadata["tickle"] = new_tickle
-    else:
-        new_tickle = tickle
-
-    if "dtime" in metadata:
-        del metadata["dtime"]
-
-    desc_words = todo.desc.split(" ")
-    new_desc_words = []
-    for word in desc_words:
-        if word.startswith("tickle:"):
-            new_desc_words.append(f"tickle:{new_tickle}")
-        elif word.startswith("dtime:"):
-            continue
-        else:
-            new_desc_words.append(word)
-
-    desc = " ".join(new_desc_words)
-
-    return todo.new(desc=desc, metadata=metadata, done=False, done_date=None)
 
 
 @todo_spell

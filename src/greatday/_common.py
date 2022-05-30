@@ -2,11 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable, Final
-
-
-if TYPE_CHECKING:
-    from ._todo import GreatTodo
+from typing import Callable, Final
 
 
 CTX_FIRST: Final = "FIRST"
@@ -27,8 +23,3 @@ def drop_word_from_desc(
         if not any(op(word, bad_word) for bad_word in bad_words):
             new_desc_words.append(word)
     return " ".join(new_desc_words)
-
-
-def is_tickler(todo: GreatTodo) -> bool:
-    """Returns True iff `todo` is a tickler todo."""
-    return bool(todo.metadata.get("tickle", None) is not None)
