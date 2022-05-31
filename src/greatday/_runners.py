@@ -8,10 +8,10 @@ import clack
 from clack.types import ClackRunner
 from logrus import Logger
 
-from ._common import CTX_INBOX, CTX_TODAY, drop_word_from_desc
+from ._common import CTX_INBOX, drop_word_from_desc
 from ._config import AddConfig, ListConfig, TUIConfig
 from ._repo import GreatRepo
-from ._tag import Tag
+from ._tag import GreatTag
 from ._todo import GreatTodo
 from ._tui import start_textual_app
 
@@ -42,7 +42,6 @@ def run_add(cfg: AddConfig) -> int:
     if cfg.add_inbox_context == "y" or (
         cfg.add_inbox_context == "default"
         and not x_found
-        and CTX_TODAY not in todo.contexts
         and CTX_INBOX not in todo.contexts
     ):
         contexts = list(todo.contexts) + [CTX_INBOX]
@@ -64,7 +63,7 @@ def run_list(cfg: ListConfig) -> int:
     if cfg.query is None:
         todo_iter = repo.todo_group
     else:
-        tag = Tag.from_query(cfg.query)
+        tag = GreatTag.from_query(cfg.query)
         todo_iter = repo.get_by_tag(tag).unwrap()
 
     for todo in sorted(todo_iter):

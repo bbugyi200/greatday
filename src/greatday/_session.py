@@ -17,7 +17,7 @@ from typist import PathLike
 from ._dates import get_relative_date
 from ._ids import NULL_ID
 from ._repo import GreatRepo
-from ._tag import Tag
+from ._tag import GreatTag
 from ._todo import GreatTodo
 
 
@@ -30,7 +30,7 @@ class GreatSession(UnitOfWork[GreatRepo]):
     def __init__(
         self,
         data_dir: PathLike,
-        tag: Tag = None,
+        tag: GreatTag = None,
         *,
         name: str = None,
     ) -> None:

@@ -8,7 +8,6 @@ from typing import Callable, Final
 CTX_FIRST: Final = "FIRST"
 CTX_INBOX: Final = "INBOX"
 CTX_LAST: Final = "LAST"
-CTX_TODAY: Final = "TODAY"
 
 
 def drop_word_from_desc(
