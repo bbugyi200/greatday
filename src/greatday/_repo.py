@@ -153,17 +153,18 @@ class GreatRepo(TaggedRepo[str, GreatTodo, GreatTag]):
 
         todos: set[GreatTodo] = set()
         todo_group = self.todo_group
-        for inner_tag in tag.tags:
+        for child_tag in tag.tags:
             todos |= set(
                 todo_group.filter_by(
-                    contexts=inner_tag.contexts,
-                    create_date_ranges=inner_tag.create_date_ranges,
-                    done_date_ranges=inner_tag.done_date_ranges,
-                    done=inner_tag.done,
-                    epics=inner_tag.epics,
-                    metadata_filters=inner_tag.metadata_filters,
-                    priorities=inner_tag.priorities,
-                    projects=inner_tag.projects,
+                    contexts=child_tag.contexts,
+                    create_date_ranges=child_tag.create_date_ranges,
+                    desc_filters=child_tag.desc_filters,
+                    done_date_ranges=child_tag.done_date_ranges,
+                    done=child_tag.done,
+                    epics=child_tag.epics,
+                    metadata_filters=child_tag.metadata_filters,
+                    priorities=child_tag.priorities,
+                    projects=child_tag.projects,
                 )
             )
         return Ok(list(todos))
