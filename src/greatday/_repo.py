@@ -151,10 +151,10 @@ class GreatRepo(TaggedRepo[str, GreatTodo, GreatTag]):
         as search criteria.
         """
 
-        todos: list[GreatTodo] = []
+        todos: set[GreatTodo] = set()
         todo_group = self.todo_group
         for inner_tag in tag.tags:
-            todos.extend(
+            todos |= set(
                 todo_group.filter_by(
                     contexts=inner_tag.contexts,
                     create_date_ranges=inner_tag.create_date_ranges,
@@ -166,7 +166,7 @@ class GreatRepo(TaggedRepo[str, GreatTodo, GreatTag]):
                     projects=inner_tag.projects,
                 )
             )
-        return Ok(todos)
+        return Ok(list(todos))
 
     def remove_by_tag(self, tag: GreatTag) -> ErisResult[list[GreatTodo]]:
         """Remove a Todo from disk by using a tag.
