@@ -5,7 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import datetime as dt
 import operator
-from typing import Any, Callable
+import string
+from typing import Any, Callable, cast
 
 from eris import ErisResult, Err, Ok
 from logrus import Logger
@@ -72,6 +73,7 @@ class Tag:
                 tag.metadata_parser,
                 tag.desc_parser_factory("'"),
                 tag.desc_parser_factory('"'),
+                tag.priority_parser,
             ]:
                 q_result = parse(q)
                 if not isinstance(q_result, Err):
@@ -235,6 +237,35 @@ class Tag:
             return Ok(q[end_idx + 2 :])
 
         return parser
+
+    def priority_parser(self, query: str) -> ErisResult[str]:
+        """Parser for todo priority ranges."""
+        word, *rest = query.split(" ")
+        if word[0] != "(" or word[-1] != ")":
+            return Err("Not a priority range.")
+
+        for p in word[1:-1].split(","):
+            priority: Priority
+            if len(p) == 1:
+                priority = cast(Priority, p.upper())
+                assert (
+                    priority in string.ascii_uppercase
+                ), f"Bad priority value: {p}"
+                self.priorities.append(priority)
+            else:
+                assert "-" in p, f"Bad priority range (no dash found): {p}"
+                p_range = p.upper()
+                start_p, end_p = p_range.split("-")
+                n = ord(start_p)
+                while n <= ord(end_p):
+                    priority = cast(Priority, chr(n))
+                    assert (
+                        priority in string.ascii_uppercase
+                    ), f"Bad priority value: {p}"
+                    self.priorities.append(priority)
+                    n += 1
+
+        return Ok(" ".join(rest))
 
 
 def _make_metadata_func(
