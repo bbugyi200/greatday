@@ -8,6 +8,7 @@ from typing import Final
 
 from dateutil.relativedelta import relativedelta
 import magodo
+from magodo import DateRange
 from typist import PathLike
 
 
@@ -159,3 +160,39 @@ def init_yyyymm_path(root: PathLike, *, date: dt.date = None) -> Path:
     result = root / str(year) / f"{month:0>2}.txt"
     result.parent.mkdir(parents=True, exist_ok=True)
     return result
+
+
+def get_date_range(spec: str) -> DateRange:
+    """Constructs a date range from a `spec`.
+
+    Args:
+        spec: date specification which MUST use a format of START:END where
+          START and END are valid date specs (e.g. `2000-01-01`; '1d'; '5m:0d').
+
+    Examples:
+        # setup
+        >>> a = "2000-01-01"
+        >>> b = "2000-01-31"
+
+        # tests
+        >>> a_range = get_date_range(a)
+        >>> a_range.start
+        datetime.date(2000, 1, 1)
+        >>> a_range.end is None
+        True
+
+        >>> ab_range = get_date_range(f"{a}:{b}")
+        >>> ab_range.start
+        datetime.date(2000, 1, 1)
+        >>> ab_range.end
+        datetime.date(2000, 1, 31)
+    """
+    start_and_end = [to_great_date(x, reverse=True) for x in spec.split(":")]
+    if len(start_and_end) > 1:
+        assert len(start_and_end) == 2
+        start, end = start_and_end
+    else:
+        start = start_and_end[0]
+        end = None
+
+    return DateRange(start, end)
