@@ -2,7 +2,7 @@
 
 query = [spec_or];
 spec_or = spec_and {space "|" space spec_and};
-spec_or_group = "(" spec_or ")";
+spec_or_group = "(" [space] spec_or [space] ")";
 spec_and = spec {space spec};
 spec = create_date
      | desc
@@ -20,7 +20,7 @@ done_date = "$" DATE [":" DATE];
 metatag = ["!"] word | word ["?"] op any;
 priority = "(" letter_range {"," letter_range} ")";
 tag = ["!"] ("@" | "#" | "+") word;
-x_or_o = "X" | "O";
+x_or_o = "x" | "X" | "o" | "O";
 
 {* all other non-special variables... *}
 any = (letter | DIGIT | "-" | ".")+;
