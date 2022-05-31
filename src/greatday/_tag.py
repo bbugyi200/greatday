@@ -70,6 +70,8 @@ class Tag:
                 tag.date_range_parser_factory("^", "create_date_ranges"),
                 tag.date_range_parser_factory("$", "done_date_ranges"),
                 tag.metadata_parser,
+                tag.desc_parser_factory("'"),
+                tag.desc_parser_factory('"'),
             ]:
                 q_result = parse(q)
                 if not isinstance(q_result, Err):
@@ -191,6 +193,50 @@ class Tag:
                 return Err("Next token is not a metadata check.")
 
         return Ok(" ".join(rest))
+
+    def desc_parser_factory(
+        self, quote: str
+    ) -> Callable[[str], ErisResult[str]]:
+        """Factory for parser that handles description tokens."""
+
+        def parser(query: str) -> ErisResult[str]:
+            start_idx = 1
+
+            filter_check = lambda desc, todo_desc: desc in todo_desc
+            q = query
+            if q.startswith(f"!{quote}") or q.startswith(f"!c{quote}"):
+                q = q[1:]
+                filter_check = lambda desc, todo_desc: desc not in todo_desc
+
+            case_sensitive = False
+            if q.startswith(f"c{quote}"):
+                start_idx += 1
+                case_sensitive = True
+
+            if not q[start_idx - 1 :].startswith(quote):
+                return Err(
+                    "Not a desc token (used to filter against a todo's"
+                    " description)."
+                )
+
+            end_idx = q[start_idx:].find(quote) + 1
+            assert not q[end_idx + 1 :] or q[end_idx + 1] == " ", (
+                "The character after the last quote should be a space."
+                f" query={query}"
+            )
+            if end_idx == -1:
+                return Err("Bad desc token. No ending quote found.")
+
+            filter_value = q[start_idx:end_idx]
+            desc_filter = DescFilter(
+                value=filter_value,
+                check=filter_check,
+                case_sensitive=case_sensitive,
+            )
+            self.desc_filters.append(desc_filter)
+            return Ok(q[end_idx + 2 :])
+
+        return parser
 
 
 def _make_metadata_func(
