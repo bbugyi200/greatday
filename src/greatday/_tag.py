@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import datetime as dt
 import operator
-from typing import Any, Callable, Iterable
+from typing import Any, Callable
 
+from eris import ErisResult, Err, Ok
 from logrus import Logger
 import magodo
 from magodo import DateRange, DescFilter, MetadataFilter
@@ -40,100 +41,118 @@ class GreatTag:
         return cls(tags)
 
 
-@dataclass(frozen=True)
+@dataclass
 class Tag:
     """Tag used to filter Todos."""
 
-    contexts: Iterable[str] = ()
-    create_date_ranges: Iterable[DateRange] = ()
-    desc_filters: Iterable[DescFilter] = ()
-    done_date_ranges: Iterable[DateRange] = ()
+    contexts: list[str] = field(default_factory=list)
+    create_date_ranges: list[DateRange] = field(default_factory=list)
+    desc_filters: list[DescFilter] = field(default_factory=list)
+    done_date_ranges: list[DateRange] = field(default_factory=list)
     done: bool | None = None
-    epics: Iterable[str] = ()
-    metadata_filters: Iterable[MetadataFilter] = ()
-    priorities: Iterable[Priority] = ()
-    projects: Iterable[str] = ()
+    epics: list[str] = field(default_factory=list)
+    metadata_filters: list[MetadataFilter] = field(default_factory=list)
+    priorities: list[Priority] = field(default_factory=list)
+    projects: list[str] = field(default_factory=list)
 
     @classmethod
-    def from_query(cls, query: str) -> Tag:  # noqa: C901
+    def from_query(cls, query: str) -> Tag:
         """Build a Tag using a query string."""
-        contexts: list[str] = []
-        create_date_ranges: list[DateRange] = []
-        desc_filters: list[DescFilter] = []
-        done: bool | None = None
-        done_date_ranges: list[DateRange] = []
-        epics: list[str] = []
-        metadata_filters: list[MetadataFilter] = []
-        priorities: list[Priority] = []
-        projects: list[str] = []
+        tag = cls()
 
-        for word in query.split(" "):
-            # ----- Regular Tags (i.e. projects, epics, and contexts)
-            is_a_tag = True
-            for prefix, prop_list in [
-                ("@", contexts),
-                ("#", epics),
-                ("+", projects),
+        q = query
+        while q:
+            for parse in [
+                tag.normal_tag_parser_factory("#", "epics"),
+                tag.normal_tag_parser_factory("@", "contexts"),
+                tag.normal_tag_parser_factory("+", "projects"),
+                tag.done_parser,
+                tag.date_range_parser_factory("^", "create_date_ranges"),
+                tag.date_range_parser_factory("$", "done_date_ranges"),
+                tag.metadata_parser,
             ]:
-                if word.startswith(prefix):
-                    logger.debug("Filter on property.", word=word)
-                    prop_list.append(word[1:])
-                    break
-
-                if word.startswith(f"!{prefix}"):
-                    logger.debug("Filter on negative property.", word=word)
-                    prop_list.append(f"-{word[2:]}")
+                q_result = parse(q)
+                if not isinstance(q_result, Err):
+                    q = q_result.ok()
                     break
             else:
-                is_a_tag = False
-
-            if is_a_tag:
-                continue
-
-            # ----- Create and Done Dates
-            is_a_date_range = False
-            for ch, date_ranges in [
-                ("^", create_date_ranges),
-                ("$", done_date_ranges),
-            ]:
-                if word.startswith(ch):
-                    date_range = get_date_range(word[1:])
-                    date_ranges.append(date_range)
-                    is_a_date_range = True
-
-                    logger.debug(
-                        "Filtering on date range.",
-                        prefix=ch,
-                        date_range=date_range,
-                    )
-                    break
-
-            if is_a_date_range:
-                continue
-
-            # ----- Is open todo or done todo?
-            if word.lower() == "x":
-                done = True
-                continue
-
-            if word.lower() == "o":
-                done = False
-                continue
-
-            # ----- Metatag Checks
-            if word.isalpha():
-                metadata_filters.append(MetadataFilter(word))
-                continue
-
-            if word.startswith("!") and word[1:].isalpha():
-                metadata_filters.append(
-                    MetadataFilter(
-                        word[1:], check=lambda _: False, required=False
-                    )
+                raise RuntimeError(
+                    "No parsers are able to parse this query. |"
+                    f" query={query!r}"
                 )
-                continue
 
-            is_metatag_constraint = True
+        return tag
+
+    def normal_tag_parser_factory(
+        self, ch: str, attr: str
+    ) -> Callable[[str], ErisResult[str]]:
+        """Factory for parsers that handle normal tags (e.g. project tags)."""
+
+        def parser(query: str) -> ErisResult[str]:
+            prop_list = getattr(self, attr)
+            word, *rest = query.split(" ")
+
+            if word.startswith(ch):
+                logger.debug("Filter on property.", word=word)
+                prop_list.append(word[1:])
+            elif word.startswith(f"!{ch}"):
+                logger.debug("Filter on negative property.", word=word)
+                prop_list.append(f"-{word[2:]}")
+            else:
+                return Err(
+                    "First word of query does not match required tag prefix."
+                    f" | prefix={ch} word={word}",
+                )
+
+            return Ok(" ".join(rest))
+
+        return parser
+
+    def done_parser(self, query: str) -> ErisResult[str]:
+        """Parser for 'done' status (e.g. 'o' for open, 'x' for done)."""
+        word, *rest = query.split(" ")
+        if word.lower() == "o":
+            self.done = False
+        elif word.lower() == "x":
+            self.done = True
+        else:
+            return Err("Next token is not 'o' or 'x'.")
+
+        return Ok(" ".join(rest))
+
+    def date_range_parser_factory(
+        self, ch: str, attr: str
+    ) -> Callable[[str], ErisResult[str]]:
+        """Factory for create/done date range tokens."""
+
+        def parser(query: str) -> ErisResult[str]:
+            word, *rest = query.split(" ")
+            if not word.startswith(ch):
+                return Err("Next token is not a date range.")
+
+            date_ranges = getattr(self, attr)
+            date_range = get_date_range(word[1:])
+            date_ranges.append(date_range)
+
+            logger.debug(
+                "Filtering on date range.",
+                prefix=ch,
+                date_range=date_range,
+            )
+            return Ok(" ".join(rest))
+
+        return parser
+
+    def metadata_parser(self, query: str) -> ErisResult[str]:
+        """Parser for metadata checks."""
+        word, *rest = query.split(" ")
+        if word.isalpha():
+            self.metadata_filters.append(MetadataFilter(word))
+        elif word.startswith("!") and word[1:].isalpha():
+            self.metadata_filters.append(
+                MetadataFilter(word[1:], check=lambda _: False, required=False)
+            )
+        else:
             for op_string, op in [
                 ("<=", operator.le),
                 (">=", operator.ge),
@@ -164,27 +183,14 @@ class Tag:
                     value = value_string
 
                 check = _make_metadata_func(op, value)
-                metadata_filters.append(
+                self.metadata_filters.append(
                     MetadataFilter(key, check=check, required=required)
                 )
                 break
             else:
-                is_metatag_constraint = False
+                return Err("Next token is not a metadata check.")
 
-            if is_metatag_constraint:
-                continue
-
-        return cls(
-            contexts=contexts,
-            create_date_ranges=create_date_ranges,
-            desc_filters=desc_filters,
-            done_date_ranges=done_date_ranges,
-            done=done,
-            epics=epics,
-            metadata_filters=metadata_filters,
-            priorities=priorities,
-            projects=projects,
-        )
+        return Ok(" ".join(rest))
 
 
 def _make_metadata_func(
