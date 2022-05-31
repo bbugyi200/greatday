@@ -28,7 +28,7 @@ BAD_QUERY_NAME_CHARS: Final = "() 0123456789\n"
 
 
 def _due_query(op: str = "<=") -> str:
-    return f"o due{op}0d !snooze"
+    return f"o due{op}0d"
 
 
 INBOX_QUERY: Final = f"o @{CTX_INBOX}"
