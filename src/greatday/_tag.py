@@ -208,7 +208,7 @@ class Tag:
                 q = q[1:]
                 filter_check = lambda desc, todo_desc: desc not in todo_desc
 
-            case_sensitive = False
+            case_sensitive = None
             if q.startswith(f"c{quote}"):
                 start_idx += 1
                 case_sensitive = True
