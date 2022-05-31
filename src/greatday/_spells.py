@@ -210,8 +210,7 @@ def today_context_for_done_todos(todo: T) -> T:
     today = dt.date.today()
 
     should_have_today_ctx = bool(
-        todo.done_date == today
-        and todo.metadata.get("p") not in ["0", None]
+        todo.done_date == today and todo.metadata.get("p") not in ["0", None]
     )
     has_today_ctx = bool(CTX_TODAY in todo.contexts)
     if has_today_ctx == should_have_today_ctx:
