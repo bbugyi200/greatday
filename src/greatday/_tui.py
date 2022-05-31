@@ -150,7 +150,7 @@ class StatsWidget(Static):
                     f"{pretty_name}   "
                     f"X({group.done_stats.count}.{group.done_stats.points}) + "
                     f"O({group.open_stats.count}.{group.open_stats.points}) = "
-                    f"{group.all_stats.count}.{group.all_stats.points}\n",
+                    f"XO({group.all_stats.count}.{group.all_stats.points})\n",
                     style=style,
                 )
             )
