@@ -23,6 +23,23 @@ from ._dates import (
 logger = Logger(__name__)
 
 
+@dataclass
+class GreatTag:
+    """A collection of `Tag`s that have been ORed together."""
+
+    tags: list[Tag]
+
+    @classmethod
+    def from_query(cls, query: str) -> GreatTag:
+        """Build a GreatTag using a query string."""
+        tags: list[Tag] = []
+        for subquery in query.split(" | "):
+            tag = Tag.from_query(subquery)
+            tags.append(tag)
+
+        return cls(tags)
+
+
 @dataclass(frozen=True)
 class Tag:
     """Tag used to filter Todos."""

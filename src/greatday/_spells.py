@@ -19,7 +19,7 @@ from magodo.spells import (
 )
 from magodo.types import LineSpell, T, TodoSpell
 
-from ._common import CTX_FIRST, CTX_LAST, CTX_TODAY, drop_word_from_desc
+from ._common import drop_word_from_desc
 from ._dates import (
     dt_from_date_and_hhmm,
     get_relative_date,
@@ -153,74 +153,17 @@ def render_relative_dates(todo: T) -> T:
 
 @todo_spell
 def due_context_spell(todo: T) -> T:
-    """Converts @due context into today context."""
+    """Converts @due context into 'due' metatag."""
     if "due" not in todo.contexts:
         return todo
 
+    today = dt.date.today()
+
     contexts = [ctx for ctx in todo.contexts if ctx != "due"]
-    contexts.append(CTX_TODAY)
     desc = drop_word_from_desc(todo.desc, "@due")
-    return todo.new(desc=desc, contexts=contexts)
-
-
-@todo_spell
-def due_metatag_spell(todo: T) -> T:
-    """Handles the 'due' metatag."""
-    if todo.done:
-        return todo
-
-    due = todo.metadata.get("due")
-    if due and not matches_date_fmt(due):
-        return todo
-
-    has_today_ctx = bool(CTX_TODAY in todo.contexts)
-
-    today = dt.date.today()
-    if due and magodo.to_date(due) <= today:
-        contexts = list(todo.contexts)
-        if CTX_TODAY not in contexts:
-            contexts.append(CTX_TODAY)
-            return todo.new(contexts=contexts)
-        else:
-            return todo
-    elif not due and has_today_ctx:
-        metadata = dict(todo.metadata.items())
-        due = magodo.from_date(today)
-        metadata["due"] = due
-        return todo.new(metadata=metadata)
-    elif has_today_ctx:
-        contexts = [ctx for ctx in todo.contexts if ctx != CTX_TODAY]
-        return todo.new(contexts=contexts)
-
-    return todo
-
-
-@todo_spell
-def today_context_for_done_todos(todo: T) -> T:
-    """Spell that adds/removes today context for done todos.
-
-    Handles the today context (i.e. the context tag that marks a todo as
-    planned to be done today) for todos that have been completed. By "handles",
-    we mean that this spell makes sure that todos which should have the today
-    context do and vice-versa.
-    """
-    if not todo.done_date:
-        return todo
-
-    today = dt.date.today()
-
-    should_have_today_ctx = bool(
-        todo.done_date == today and todo.metadata.get("p") not in ["0", None]
-    )
-    has_today_ctx = bool(CTX_TODAY in todo.contexts)
-    if has_today_ctx == should_have_today_ctx:
-        return todo
-
-    contexts = [ctx for ctx in todo.contexts if ctx != CTX_TODAY]
-    if should_have_today_ctx:
-        contexts.append(CTX_TODAY)
-
-    return todo.new(contexts=contexts)
+    metadata = dict(todo.metadata.items())
+    metadata["due"] = magodo.from_date(today)
+    return todo.new(desc=desc, contexts=contexts, metadata=metadata)
 
 
 @todo_spell
@@ -233,10 +176,17 @@ def appt_todos(todo: T) -> T:
     if todo.done or todo.done_date:
         return todo
 
-    if CTX_TODAY not in todo.contexts:
+    due = todo.metadata.get("due")
+    if due is None:
+        return todo
+
+    if not matches_date_fmt(due):
         return todo
 
     today = dt.date.today()
+    if magodo.to_date(due) > today:
+        return todo
+
     now = dt.datetime.now()
     appt_dt = dt_from_date_and_hhmm(today, appt)
     if appt_dt < now + dt.timedelta(minutes=30):
@@ -288,20 +238,3 @@ def remove_priorities(todo: T) -> T:
     priority = magodo.DEFAULT_PRIORITY
     desc = drop_word_from_desc(todo.desc, f"({todo.priority})")
     return todo.new(desc=desc, priority=priority)
-
-
-@post_todo_spell
-def no_today_for_first_and_last(todo: T) -> T:
-    """Removes the today context when the first or last context is found."""
-    if todo.done:
-        return todo
-
-    if not any(ctx in todo.contexts for ctx in [CTX_FIRST, CTX_LAST]):
-        return todo
-
-    if CTX_TODAY not in todo.contexts:
-        return todo
-
-    contexts = [ctx for ctx in todo.contexts if ctx != CTX_TODAY]
-    desc = drop_word_from_desc(todo.desc, f"@{CTX_TODAY}")
-    return todo.new(contexts=contexts, desc=desc)
