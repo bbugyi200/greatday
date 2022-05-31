@@ -200,8 +200,6 @@ class Tag:
         """Factory for parser that handles description tokens."""
 
         def parser(query: str) -> ErisResult[str]:
-            start_idx = 1
-
             filter_check = lambda desc, todo_desc: desc in todo_desc
             q = query
             if q.startswith(f"!{quote}") or q.startswith(f"!c{quote}"):
@@ -210,16 +208,16 @@ class Tag:
 
             case_sensitive = None
             if q.startswith(f"c{quote}"):
-                start_idx += 1
+                q = q[1:]
                 case_sensitive = True
 
-            if not q[start_idx - 1 :].startswith(quote):
+            if not q[0] == quote:
                 return Err(
                     "Not a desc token (used to filter against a todo's"
                     " description)."
                 )
 
-            end_idx = q[start_idx:].find(quote) + 1
+            end_idx = q[1:].find(quote) + 1
             assert not q[end_idx + 1 :] or q[end_idx + 1] == " ", (
                 "The character after the last quote should be a space."
                 f" query={query}"
@@ -227,7 +225,7 @@ class Tag:
             if end_idx == -1:
                 return Err("Bad desc token. No ending quote found.")
 
-            filter_value = q[start_idx:end_idx]
+            filter_value = q[1:end_idx]
             desc_filter = DescFilter(
                 value=filter_value,
                 check=filter_check,
