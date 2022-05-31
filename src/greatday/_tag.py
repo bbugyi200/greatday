@@ -13,10 +13,10 @@ from magodo import DateRange, DescFilter, MetadataFilter
 from magodo.types import Priority, SinglePredicate
 
 from ._dates import (
+    get_date_range,
     get_relative_date,
     matches_date_fmt,
     matches_relative_date_fmt,
-    to_great_date,
 )
 
 
@@ -168,24 +168,6 @@ class Tag:
             priorities=priorities,
             projects=projects,
         )
-
-
-def get_date_range(spec: str) -> DateRange:
-    """Constructs a date range from a `spec`.
-
-    Args:
-        spec: date specification which MUST use a format of START:END where
-          START and END are valid date specs (e.g. `2000-01-01`; '1d'; '5m:0d').
-    """
-    start_and_end = [to_great_date(x, reverse=True) for x in spec.split(":")]
-    if len(start_and_end) > 1:
-        assert len(start_and_end) == 2
-        start, end = start_and_end
-    else:
-        start = start_and_end[0]
-        end = None
-
-    return DateRange(start, end)
 
 
 def _make_metadata_func(
