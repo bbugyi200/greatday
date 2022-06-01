@@ -182,7 +182,7 @@ pygments==2.12.0
     # via
     #   rich
     #   sphinx
-pylint==2.13.9
+pylint==2.14.0
     # via -r requirements-dev.in
 pyparsing==3.0.9
     # via packaging
@@ -280,6 +280,8 @@ tomli==2.0.1
     #   pylint
     #   pytest
     #   setuptools-scm
+tomlkit==0.11.0
+    # via pylint
 tox==3.25.0
     # via
     #   -r requirements-dev.in
