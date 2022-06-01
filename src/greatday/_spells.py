@@ -99,7 +99,8 @@ def snooze_spell(todo: T) -> T:
 
     del metadata["snooze"]
     metadata["due"] = snooze
-    return todo.new(metadata=metadata)
+
+    return todo.new(metadata=metadata, priority=magodo.DEFAULT_PRIORITY)
 
 
 @todo_spell
