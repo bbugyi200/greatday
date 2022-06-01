@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Final
 
 from dateutil.relativedelta import relativedelta
+import magodo
+from magodo import DateRange
 from typist import PathLike
 
 
@@ -18,8 +20,13 @@ FRIDAY: Final = 4
 SATURDAY: Final = 5
 SUNDAY: Final = 6
 
+# metatags (i.e. key-value tags) that accept relative date strings (e.g. '1d')
+RELATIVE_DATE_METATAGS: Final = ["snooze", "until", "due"]
 
-def get_relative_date(spec: str, *, start_date: dt.date = None) -> dt.date:
+
+def get_relative_date(
+    spec: str, *, start_date: dt.date = None, reverse: bool = False
+) -> dt.date:
     """Converts `spec` to a timedelta and adds it to `date`.
 
     Args:
@@ -27,6 +34,8 @@ def get_relative_date(spec: str, *, start_date: dt.date = None) -> dt.date:
           'weekdays').
         start_date: The return value is a function of this argument and the
           timedelta constructed from `spec`. Defaults to today's date.
+        reverse: If set, we use a relative date from the past instead of the
+          future (e.g. '1d' will yield yesterday's date instead of today's).
 
     Examples:
         # Imports
@@ -37,6 +46,9 @@ def get_relative_date(spec: str, *, start_date: dt.date = None) -> dt.date:
         >>> from_date = lambda x: x.strftime("%Y-%m-%d")
         >>> grd = lambda x, y: from_date(
         ...   get_relative_date(x, start_date=to_date(y))
+        ... )
+        >>> reverse_grd = lambda x, y: from_date(
+        ...   get_relative_date(x, start_date=to_date(y), reverse=True)
         ... )
 
         # Default start date.
@@ -66,6 +78,9 @@ def get_relative_date(spec: str, *, start_date: dt.date = None) -> dt.date:
 
         >>> grd("weekdays", "2022-02-11")
         '2022-02-14'
+
+        >>> reverse_grd("1d", D)
+        '2000-01-30'
     """
     spec = spec.lower()
     if start_date is None:
@@ -88,7 +103,10 @@ def get_relative_date(spec: str, *, start_date: dt.date = None) -> dt.date:
             assert ch == "y"
             delta = relativedelta(years=N)
 
-    return start_date + delta
+    if reverse:
+        return start_date - delta
+    else:
+        return start_date + delta
 
 
 def dt_from_date_and_hhmm(date: dt.date, hhmm: str) -> dt.datetime:
@@ -98,18 +116,36 @@ def dt_from_date_and_hhmm(date: dt.date, hhmm: str) -> dt.datetime:
     return result
 
 
-def matches_date_fmt(date_spec: str) -> bool:
-    """Returns True iff date_spec matches the magodo date format.."""
-    return len(date_spec) == 10 and date_spec.count("-") == 2
+def matches_date_fmt(spec: str) -> bool:
+    """Returns True iff spec matches the magodo date format.."""
+    return len(spec) == 10 and spec.count("-") == 2
 
 
-def matches_relative_date_fmt(date_spec: str) -> bool:
-    """Returns True iff date_spec appears to be a relative date (e.g. 1d)."""
+def matches_relative_date_fmt(spec: str) -> bool:
+    """Returns True iff spec appears to be a relative date (e.g. 1d)."""
     return (
-        len(date_spec) > 1
-        and date_spec[:-1].isdigit()
-        and date_spec[-1].lower() in ["d", "m", "y"]
+        len(spec) > 1
+        and spec[:-1].isdigit()
+        and spec[-1].lower() in ["d", "m", "y"]
     )
+
+
+def to_great_date(spec: str, reverse: bool = False) -> dt.date:
+    """Converts a date string into a date.
+
+    Args:
+        spec: The date string specification (use a supported date format).
+        reverse: Treat relative dates (e.g. when `spec == "1d"`) as dates in
+          the past instead of the future.
+
+    NOTE: `spec` must match a date string specification supported by
+    greatday (e.g. 'YYYY-MM-DD').
+    """
+    if matches_date_fmt(spec):
+        return magodo.to_date(spec)
+    else:
+        assert matches_relative_date_fmt(spec)
+        return get_relative_date(spec, reverse=reverse)
 
 
 def init_yyyymm_path(root: PathLike, *, date: dt.date = None) -> Path:
@@ -127,3 +163,39 @@ def init_yyyymm_path(root: PathLike, *, date: dt.date = None) -> Path:
     result = root / str(year) / f"{month:0>2}.txt"
     result.parent.mkdir(parents=True, exist_ok=True)
     return result
+
+
+def get_date_range(spec: str) -> DateRange:
+    """Constructs a date range from a `spec`.
+
+    Args:
+        spec: date specification which MUST use a format of START:END where
+          START and END are valid date specs (e.g. `2000-01-01`; '1d'; '5m:0d').
+
+    Examples:
+        # setup
+        >>> a = "2000-01-01"
+        >>> b = "2000-01-31"
+
+        # tests
+        >>> a_range = get_date_range(a)
+        >>> a_range.start
+        datetime.date(2000, 1, 1)
+        >>> a_range.end is None
+        True
+
+        >>> ab_range = get_date_range(f"{a}:{b}")
+        >>> ab_range.start
+        datetime.date(2000, 1, 1)
+        >>> ab_range.end
+        datetime.date(2000, 1, 31)
+    """
+    start_and_end = [to_great_date(x, reverse=True) for x in spec.split(":")]
+    if len(start_and_end) > 1:
+        assert len(start_and_end) == 2
+        start, end = start_and_end
+    else:
+        start = start_and_end[0]
+        end = None
+
+    return DateRange(start, end)

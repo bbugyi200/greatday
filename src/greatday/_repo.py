@@ -13,7 +13,7 @@ from typist import PathLike
 
 from ._dates import init_yyyymm_path
 from ._ids import NULL_ID, init_next_todo_id
-from ._tag import Tag
+from ._tag import GreatTag
 from ._todo import GreatTodo
 
 
@@ -22,7 +22,7 @@ logger = Logger(__name__)
 DEFAULT_TODO_DIR: Final = "todos"
 
 
-class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
+class GreatRepo(TaggedRepo[str, GreatTodo, GreatTag]):
     """Repo that stores Todos on disk."""
 
     def __init__(self, data_dir: PathLike, path: PathLike = None) -> None:
@@ -144,29 +144,32 @@ class GreatRepo(TaggedRepo[str, GreatTodo, Tag]):
 
         return Ok(old_todo)
 
-    def get_by_tag(self, tag: Tag) -> ErisResult[list[GreatTodo]]:
+    def get_by_tag(self, tag: GreatTag) -> ErisResult[list[GreatTodo]]:
         """Get Todos from disk by using a tag.
 
         Retrieves a list of Todos from disk by using another Todo's properties
         as search criteria.
         """
 
-        return Ok(
-            list(
-                self.todo_group.filter_by(
-                    contexts=tag.contexts,
-                    create_date=tag.create_date,
-                    done_date=tag.done_date,
-                    done=tag.done,
-                    epics=tag.epics,
-                    metadata_checks=tag.metadata_checks,
-                    priorities=tag.priorities,
-                    projects=tag.projects,
+        todos: set[GreatTodo] = set()
+        todo_group = self.todo_group
+        for child_tag in tag.tags:
+            todos |= set(
+                todo_group.filter_by(
+                    contexts=child_tag.contexts,
+                    create_date_ranges=child_tag.create_date_ranges,
+                    desc_filters=child_tag.desc_filters,
+                    done_date_ranges=child_tag.done_date_ranges,
+                    done=child_tag.done,
+                    epics=child_tag.epics,
+                    metadata_filters=child_tag.metadata_filters,
+                    priorities=child_tag.priorities,
+                    projects=child_tag.projects,
                 )
             )
-        )
+        return Ok(list(todos))
 
-    def remove_by_tag(self, tag: Tag) -> ErisResult[list[GreatTodo]]:
+    def remove_by_tag(self, tag: GreatTag) -> ErisResult[list[GreatTodo]]:
         """Remove a Todo from disk by using a tag.
 
         Removes a list of Todos from disk by using another Todo's properties

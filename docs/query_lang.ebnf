@@ -1,27 +1,37 @@
 {* This file contains the EBNF specification of greatday's todo query language (e.g. used by 'greatday list'). *}
 
-start = [spec_or];
+query = [spec_or];
 spec_or = spec_and {space "|" space spec_and};
+spec_or_group = "(" [space] spec_or [space] ")";
 spec_and = spec {space spec};
-spec = desc
+spec = create_date
+     | desc
+     | done_date
      | metatag
      | priority
-     | tag;
+     | spec_or_group
+     | tag
+     | x_or_o;
 
 {* variables required by spec... *}
-desc = ["!"] ('"' NOT_DOUBLE_QUOTE+ '"' | "'" NOT_SINGLE_QUOTE+ "'");
+create_date = "^" DATE [":" DATE];
+desc = ["!"] ["c"] ('"' NOT_DOUBLE_QUOTE+ '"' | "'" NOT_SINGLE_QUOTE+ "'");
+done_date = "$" DATE [":" DATE];
 metatag = ["!"] word | word ["?"] op any;
-priority = "(" UPPER_LETTER ")";
+priority = "(" letter_range {"," letter_range} ")";
 tag = ["!"] ("@" | "#" | "+") word;
+x_or_o = "x" | "X" | "o" | "O";
 
 {* all other non-special variables... *}
 any = (letter | DIGIT | "-" | ".")+;
 letter = UPPER_LETTER | LOWER_LETTER;
 op = "=" | "!=" | "<=" | ">=" | "<" | ">";
+letter_range = letter ["-" letter];
 space = " ";
 word = letter+;
 
 {* all special variables... *}
+DATE = ? a valid date spec (e.g. YYYY-MM-DD) ?;
 DIGIT = ? an integer between 0-9 ?;
 LOWER_LETTER = ? a lowercase letter (i.e. a-z) ?;
 NOT_DOUBLE_QUOTE = ? any character NOT including a double quote ?;

@@ -16,10 +16,10 @@ from textual_inputs import TextInput
 from typist import PathLike
 from vimala import vim
 
-from ._common import CTX_FIRST, CTX_INBOX, CTX_LAST, CTX_TODAY
+from ._common import CTX_FIRST, CTX_INBOX, CTX_LAST
 from ._repo import GreatRepo
 from ._session import GreatSession
-from ._tag import Tag
+from ._tag import GreatTag
 from ._todo import GreatTodo
 
 
@@ -28,15 +28,14 @@ BAD_QUERY_NAME_CHARS: Final = "() 0123456789\n"
 
 
 def _due_query(op: str = "<=") -> str:
-    return f"done=0 due{op}0d !snooze"
+    return f"o due{op}0d"
 
 
-# TODO(bugyi): Implement GTDLang OR? (e.g. support syntax like '(<q1>) | (<q2>)'?)
-INBOX_QUERY: Final = f"@{CTX_INBOX} done=0"
-FIRST_QUERY: Final = f"@{CTX_FIRST} {_due_query()}"
-LAST_QUERY: Final = f"@{CTX_LAST} {_due_query()}"
-LATE_QUERY: Final = f"@{CTX_LAST} {_due_query('<')}"
-TODAY_QUERY: Final = f"@{CTX_TODAY}"
+INBOX_QUERY: Final = f"o @{CTX_INBOX}"
+FIRST_QUERY: Final = f"{_due_query()} @{CTX_FIRST} | $0d @{CTX_FIRST}"
+LAST_QUERY: Final = f"{_due_query()} @{CTX_LAST} | $0d @{CTX_LAST}"
+LATE_QUERY: Final = f"{_due_query('<')} @{CTX_LAST} | $0d @{CTX_LAST} due<0d"
+TODAY_QUERY: Final = f"{_due_query()} !@{CTX_FIRST} !@{CTX_LAST} | $0d p>0"
 
 # A mapping of names to queries that will be displayed in the "Stats" textual
 # panel.
@@ -129,7 +128,7 @@ class StatsWidget(Static):
             stats_query_map.update({"\n<custom>": self.ctx.query})
 
         for name, query in stats_query_map.items():
-            tag = Tag.from_query(query)
+            tag = GreatTag.from_query(query)
             todos = self.repo.get_by_tag(tag).unwrap()
             group = StatsGroup.from_todos(todos)
 
@@ -148,9 +147,9 @@ class StatsWidget(Static):
             text.append_text(
                 Text(
                     f"{pretty_name}   "
-                    f"{group.all_stats.count}.{group.all_stats.points} - "
-                    f"{group.done_stats.count}.{group.done_stats.points} = "
-                    f"{group.open_stats.count}.{group.open_stats.points}\n",
+                    f"X({group.done_stats.count}.{group.done_stats.points}) + "
+                    f"O({group.open_stats.count}.{group.open_stats.points}) = "
+                    f"XO({group.all_stats.count}.{group.all_stats.points})\n",
                     style=style,
                 )
             )
@@ -335,7 +334,7 @@ class GreatApp(App):
 
 
 def _todo_lines_from_query(repo: GreatRepo, query: str) -> str:
-    tag = Tag.from_query(query)
+    tag = GreatTag.from_query(query)
     todos = repo.get_by_tag(tag).unwrap()
 
     result = ""
@@ -359,7 +358,7 @@ def start_textual_app(data_dir: PathLike) -> None:
     run_app()
 
     while ctx.edit_todos:
-        tag = Tag.from_query(ctx.query)
+        tag = GreatTag.from_query(ctx.query)
         with GreatSession(data_dir, tag) as session:
             vim(session.path).unwrap()
             session.commit()
