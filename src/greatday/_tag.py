@@ -209,11 +209,11 @@ class Tag:
         """Factory for parser that handles description tokens."""
 
         def parser(query: str) -> ErisResult[str]:
-            filter_check = lambda desc, todo_desc: desc in todo_desc
+            filter_check = _contains
             q = query
             if q.startswith(f"!{quote}") or q.startswith(f"!c{quote}"):
                 q = q[1:]
-                filter_check = lambda desc, todo_desc: desc not in todo_desc
+                filter_check = _does_not_contain
 
             case_sensitive = None
             if q.startswith(f"c{quote}"):
@@ -274,6 +274,14 @@ class Tag:
                     n += 1
 
         return Ok(" ".join(rest))
+
+
+def _contains(small: str, big: str) -> bool:
+    return small in big
+
+
+def _does_not_contain(small: str, big: str) -> bool:
+    return small not in big
 
 
 def _make_metadata_func(
