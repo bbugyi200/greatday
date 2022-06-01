@@ -227,12 +227,13 @@ class Tag:
                 )
 
             end_idx = q[1:].find(quote) + 1
+            if end_idx == -1:
+                return Err("Bad desc token. No ending quote found.")
+
             assert not q[end_idx + 1 :] or q[end_idx + 1] == " ", (
                 "The character after the last quote should be a space."
                 f" query={query}"
             )
-            if end_idx == -1:
-                return Err("Bad desc token. No ending quote found.")
 
             filter_value = q[1:end_idx]
             desc_filter = DescFilter(
