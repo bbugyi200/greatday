@@ -67,13 +67,13 @@ class Tag:
         q = query
         while q:
             for parser in [
-                tag.normal_tag_parser_factory("#", "epics"),
-                tag.normal_tag_parser_factory("@", "contexts"),
-                tag.normal_tag_parser_factory("+", "projects"),
+                tag.prefix_tag_parser_factory("#", "epics"),
+                tag.prefix_tag_parser_factory("@", "contexts"),
+                tag.prefix_tag_parser_factory("+", "projects"),
                 tag.done_parser,
                 tag.date_range_parser_factory("^", "create_date_ranges"),
                 tag.date_range_parser_factory("$", "done_date_ranges"),
-                tag.metadata_parser,
+                tag.metatag_parser,
                 tag.desc_parser_factory("'"),
                 tag.desc_parser_factory('"'),
                 tag.priority_parser,
@@ -97,7 +97,7 @@ class Tag:
 
         return tag
 
-    def normal_tag_parser_factory(self, ch: str, attr: str) -> GreatLangParser:
+    def prefix_tag_parser_factory(self, ch: str, attr: str) -> GreatLangParser:
         """Factory for parsers that handle normal tags (e.g. project tags)."""
 
         def parser(query: str) -> ErisResult[str]:
@@ -153,7 +153,7 @@ class Tag:
 
         return parser
 
-    def metadata_parser(self, query: str) -> ErisResult[str]:
+    def metatag_parser(self, query: str) -> ErisResult[str]:
         """Parser for metadata checks."""
         word, *rest = query.split(" ")
         if word.isalpha():
