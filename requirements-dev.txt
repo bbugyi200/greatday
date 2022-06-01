@@ -90,7 +90,7 @@ docutils==0.17.1
     #   m2r2
     #   sphinx
     #   sphinx-rtd-theme
-filelock==3.7.0
+filelock==3.7.1
     # via
     #   tox
     #   virtualenv
