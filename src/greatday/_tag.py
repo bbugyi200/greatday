@@ -24,6 +24,8 @@ from ._dates import (
 
 logger = Logger(__name__)
 
+GreatLangParser = Callable[[str], ErisResult[str]]
+
 
 @dataclass(frozen=True)
 class GreatTag:
@@ -94,9 +96,7 @@ class Tag:
 
         return tag
 
-    def normal_tag_parser_factory(
-        self, ch: str, attr: str
-    ) -> Callable[[str], ErisResult[str]]:
+    def normal_tag_parser_factory(self, ch: str, attr: str) -> GreatLangParser:
         """Factory for parsers that handle normal tags (e.g. project tags)."""
 
         def parser(query: str) -> ErisResult[str]:
@@ -131,9 +131,7 @@ class Tag:
 
         return Ok(" ".join(rest))
 
-    def date_range_parser_factory(
-        self, ch: str, attr: str
-    ) -> Callable[[str], ErisResult[str]]:
+    def date_range_parser_factory(self, ch: str, attr: str) -> GreatLangParser:
         """Factory for create/done date range tokens."""
 
         def parser(query: str) -> ErisResult[str]:
@@ -203,9 +201,7 @@ class Tag:
 
         return Ok(" ".join(rest))
 
-    def desc_parser_factory(
-        self, quote: str
-    ) -> Callable[[str], ErisResult[str]]:
+    def desc_parser_factory(self, quote: str) -> GreatLangParser:
         """Factory for parser that handles description tokens."""
 
         def parser(query: str) -> ErisResult[str]:
