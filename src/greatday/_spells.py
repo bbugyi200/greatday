@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import datetime as dt
 from functools import partial
-from typing import List
+from typing import Final, List
 
 from logrus import Logger
 import magodo
@@ -31,6 +31,10 @@ from ._dates import (
 
 logger = Logger(__name__)
 
+# priority that indicates that a todo is "in progress"
+IN_PROGRESS_PRIORITY: Final = "D"
+
+# initialize magodo decorators
 GREAT_PRE_TODO_SPELLS: List[TodoSpell] = list(DEFAULT_PRE_TODO_SPELLS)
 pre_todo_spell = register_todo_spell_factory(GREAT_PRE_TODO_SPELLS)
 
@@ -183,10 +187,10 @@ def appt_todos(todo: T) -> T:
 
 
 @todo_spell
-def i_priority_spell(todo: T) -> T:
-    """Handles todos with the in-prigress [i.e. (I)] priority."""
+def in_progress_priority_spell(todo: T) -> T:
+    """Handles todos with the in-prigress priority."""
     start = todo.metadata.get("start")
-    if todo.priority != "I":
+    if todo.priority != IN_PROGRESS_PRIORITY:
         if start:
             metadata = dict(todo.metadata.items())
             del metadata["start"]
