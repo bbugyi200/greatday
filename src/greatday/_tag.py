@@ -220,7 +220,7 @@ class Tag:
                 q = q[1:]
                 case_sensitive = True
 
-            if not q[0] == quote:
+            if q[0] != quote:
                 return Err(
                     "Not a desc token (used to filter against a todo's"
                     " description)."
