@@ -76,7 +76,14 @@ class Tag:
                 tag.priority_parser,
             ]:
                 q_result = parser(q)
-                if not isinstance(q_result, Err):
+                if isinstance(q_result, Err):
+                    err = q_result.err()
+                    logger.debug(
+                        "Parser failed to find match.",
+                        parser=parser.__name__,
+                        error=err.to_json(),
+                    )
+                else:
                     q = q_result.ok()
                     break
             else:
