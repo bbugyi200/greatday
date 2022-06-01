@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 import datetime as dt
 import operator
 import string
-from typing import Any, Callable, cast
+from typing import Any, Callable, Iterable, cast
 
 from eris import ErisResult, Err, Ok
 from logrus import Logger
@@ -25,11 +25,11 @@ from ._dates import (
 logger = Logger(__name__)
 
 
-@dataclass
+@dataclass(frozen=True)
 class GreatTag:
     """A collection of `Tag`s that have been ORed together."""
 
-    tags: list[Tag]
+    tags: Iterable[Tag]
 
     @classmethod
     def from_query(cls, query: str) -> GreatTag:
@@ -39,7 +39,7 @@ class GreatTag:
             tag = Tag.from_query(subquery)
             tags.append(tag)
 
-        return cls(tags)
+        return cls(tuple(tags))
 
 
 @dataclass
@@ -63,7 +63,7 @@ class Tag:
 
         q = query
         while q:
-            for parse in [
+            for parser in [
                 tag.normal_tag_parser_factory("#", "epics"),
                 tag.normal_tag_parser_factory("@", "contexts"),
                 tag.normal_tag_parser_factory("+", "projects"),
@@ -75,7 +75,7 @@ class Tag:
                 tag.desc_parser_factory('"'),
                 tag.priority_parser,
             ]:
-                q_result = parse(q)
+                q_result = parser(q)
                 if not isinstance(q_result, Err):
                     q = q_result.ok()
                     break
