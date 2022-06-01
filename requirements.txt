@@ -37,8 +37,6 @@ commonmark==0.9.1
     # via rich
 magodo==0.9.5
     # via -r requirements.in
-more-itertools==8.13.0
-    # via -r requirements.in
 potoroo==0.3.2
     # via -r requirements.in
 pydantic==1.9.1

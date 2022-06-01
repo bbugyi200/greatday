@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import partial
-from typing import Any, Final
+from typing import Any, Final, Sequence
 
-import more_itertools as mit
 from rich.panel import Panel
 from rich.style import Style
 from rich.table import Table
@@ -17,15 +16,37 @@ from textual_inputs import TextInput
 from typist import PathLike
 from vimala import vim
 
-from ._common import CTX_INBOX, CTX_TODAY
+from ._common import CTX_FIRST, CTX_INBOX, CTX_LAST, CTX_TODAY
 from ._repo import GreatRepo
 from ._session import GreatSession
 from ._tag import Tag
+from ._todo import GreatTodo
 
 
+# Characters that should be removed from query names in most cases.
+BAD_QUERY_NAME_CHARS: Final = "() 0123456789\n"
+
+
+def _due_query(op: str = "<=") -> str:
+    return f"done=0 due{op}0d !snooze"
+
+
+# TODO(bugyi): Implement GTDLang OR? (e.g. support syntax like '(<q1>) | (<q2>)'?)
 INBOX_QUERY: Final = f"@{CTX_INBOX} done=0"
-TICKLER_QUERY: Final = "tickle<=0d !snooze done=0"
+FIRST_QUERY: Final = f"@{CTX_FIRST} {_due_query()}"
+LAST_QUERY: Final = f"@{CTX_LAST} {_due_query()}"
+LATE_QUERY: Final = f"@{CTX_LAST} {_due_query('<')}"
 TODAY_QUERY: Final = f"@{CTX_TODAY}"
+
+# A mapping of names to queries that will be displayed in the "Stats" textual
+# panel.
+STATS_QUERY_MAP: dict[str, str] = {
+    "(0) inbox": INBOX_QUERY,
+    "(1) first": FIRST_QUERY,
+    "(2) late": LATE_QUERY,
+    "(3) today": TODAY_QUERY,
+    "(4) last": LAST_QUERY,
+}
 
 
 class GreatHeader(Header):
@@ -66,12 +87,13 @@ class GreatFooter(Footer):
                 key if binding.key_display is None else binding.key_display
             )
             hovered = self.highlight_key == binding.key
+            description = binding.description.strip(BAD_QUERY_NAME_CHARS)
             key_text = Text.assemble(
                 (
                     f" {key_display} ",
                     "reverse" if hovered else "default on default",
                 ),
-                f" {binding.description} ",
+                f" {description} ",
                 meta={
                     "@click": f"app.press('{binding.key}')",
                     "key": binding.key,
@@ -95,44 +117,108 @@ class StatsWidget(Static):
         """Render the statistics widget."""
         assert self.repo is not None
 
-        tag = Tag.from_query(INBOX_QUERY)
-        inbox_todos = self.repo.get_by_tag(tag).unwrap()
-        inbox_count = len(inbox_todos) if inbox_todos else 0
+        stats_query_map = STATS_QUERY_MAP.copy()
 
-        tag = Tag.from_query(TICKLER_QUERY)
-        tickler_todos = self.repo.get_by_tag(tag).unwrap()
-        tickler_count = len(tickler_todos) if tickler_todos else 0
+        text = Text()
+        max_name_size = max(
+            len(name.strip()) for name in stats_query_map.keys()
+        )
+        if not any(
+            query == self.ctx.query for query in stats_query_map.values()
+        ):
+            stats_query_map.update({"\n<custom>": self.ctx.query})
 
-        tag = Tag.from_query(TODAY_QUERY)
-        today_todos = self.repo.get_by_tag(tag).unwrap()
-        all_today_count = len(today_todos)
-        done_today_count = len([todo for todo in today_todos if todo.done])
+        for name, query in stats_query_map.items():
+            tag = Tag.from_query(query)
+            todos = self.repo.get_by_tag(tag).unwrap()
+            group = StatsGroup.from_todos(todos)
 
-        tag = Tag.from_query(self.ctx.query)
-        query_todos = self.repo.get_by_tag(tag).unwrap()
-        open_todos, done_query_todos = [
-            list(x) for x in mit.partition(lambda todo: todo.done, query_todos)
-        ]
+            pretty_name = name.upper()
+            spaces = ""
+            if (size := len(pretty_name.strip())) < max_name_size + 1:
+                spaces += (max_name_size - size) * " "
+            pretty_name += ":"
+            pretty_name += spaces
+
+            if self.ctx.query == query:
+                style = "bold italic blue"
+            else:
+                style = ""
+
+            text.append_text(
+                Text(
+                    f"{pretty_name}   "
+                    f"{group.all_stats.count}.{group.all_stats.points} - "
+                    f"{group.done_stats.count}.{group.done_stats.points} = "
+                    f"{group.open_stats.count}.{group.open_stats.points}\n",
+                    style=style,
+                )
+            )
+
+        return Panel(text, title="Statistics")
+
+
+@dataclass
+class StatsGroup:
+    """Todo query stats group.
+
+    Attributes:
+        all_stats: Stats on all todos matching this query.
+        done_stats: Stats on all completed todos matching this query.
+        open_stats: Stats on all un-completed (i.e. not done) todos matching
+          this query.
+    """
+
+    all_stats: Stats
+    done_stats: Stats
+    open_stats: Stats
+
+    @classmethod
+    def from_todos(cls, todos: Sequence[GreatTodo] | None) -> StatsGroup:
+        """Constructs a StatsGroup from an iterable of todos (or None)."""
+        if todos is not None:
+            all_todos = todos
+        else:
+            all_todos = []
+
+        all_count = len(all_todos)
+        all_points = sum(
+            int(todo.metadata.get("p" if todo.done else "xp", "0"))
+            for todo in all_todos
+        )
+
+        done_todos = [todo for todo in all_todos if todo.done]
+        done_count = len(done_todos)
+        done_points = sum(
+            int(todo.metadata.get("p", "0")) for todo in done_todos
+        )
+
+        open_todos = [todo for todo in all_todos if not todo.done]
         open_count = len(open_todos)
         open_points = sum(
-            int(todo.metadata.get("xp", 0)) for todo in open_todos
+            int(todo.metadata.get("xp", "0")) for todo in open_todos
         )
-        done_count = len(done_query_todos)
-        done_points = sum(
-            int(todo.metadata.get("p", 0)) for todo in done_query_todos
-        )
-        all_count = len(query_todos)
-        all_points = open_points + done_points
 
-        text = ""
-        text += f"INBOX: {inbox_count}\n"
-        text += f"TICKLERS: {tickler_count}\n"
-        text += f"TODAY: {done_today_count}/{all_today_count}\n\n"
-        text += (
-            f"done({done_count}.{done_points}) +"
-            f" open({open_count}.{open_points}) = {all_count}.{all_points}"
+        all_stats = Stats(count=all_count, points=all_points)
+        done_stats = Stats(count=done_count, points=done_points)
+        open_stats = Stats(count=open_count, points=open_points)
+        return cls(
+            all_stats=all_stats, done_stats=done_stats, open_stats=open_stats
         )
-        return Panel(text, title="Statistics")
+
+
+@dataclass
+class Stats:
+    """Todo query stats.
+
+    Attributes:
+        count: number of todos matched by this query.
+        points: Sum of points (i.e. 'p') or expected points (i.e. 'xp') for
+          todos matching this query.
+    """
+
+    count: int
+    points: int
 
 
 @dataclass
@@ -185,9 +271,12 @@ class GreatApp(App):
 
     async def on_load(self) -> None:
         """Configure key bindings."""
-        await self.bind("1", f"new_query('{INBOX_QUERY}')", "Inbox Query")
-        await self.bind("2", f"new_query('{TICKLER_QUERY}')", "Tickler Query")
-        await self.bind("3", f"new_query('{TODAY_QUERY}')", "Today Query")
+        n = 0
+        for name, query in STATS_QUERY_MAP.items():
+            description = f"{name.lstrip(BAD_QUERY_NAME_CHARS).upper()} Query"
+            await self.bind(str(n), f"new_query('{query}')", description)
+            n += 1
+
         await self.bind("escape", "change_mode('normal')", "Normal Mode")
         await self.bind("enter", "submit", "Submit")
         await self.bind("e", "edit", "Edit Todos")

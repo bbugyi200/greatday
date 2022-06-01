@@ -19,7 +19,7 @@ from magodo.spells import (
 )
 from magodo.types import LineSpell, T, TodoSpell
 
-from ._common import CTX_TODAY, drop_word_from_desc
+from ._common import CTX_FIRST, CTX_LAST, CTX_TODAY, drop_word_from_desc
 from ._dates import (
     dt_from_date_and_hhmm,
     get_relative_date,
@@ -123,24 +123,23 @@ def snooze_spell(todo: T) -> T:
 def render_relative_dates(todo: T) -> T:
     """Renders metatags that support relative dates.
 
-    (e.g. 'tickle:1d' -> 'tickle:2022-02-16')
+    (e.g. 'due:1d' -> 'due:2022-02-16')
     """
     found_tag = False
     desc = todo.desc
     metadata = dict(todo.metadata.items())
 
-    for key in ["snooze", "tickle", "until", "due"]:
-        # t_or_s: Tickle or Snooze
-        t_o_s = todo.metadata.get(key)
-        if not t_o_s:
+    for key in ["snooze", "until", "due"]:
+        value = todo.metadata.get(key)
+        if not value:
             continue
 
-        if not matches_relative_date_fmt(t_o_s):
+        if not matches_relative_date_fmt(value):
             continue
 
         found_tag = True
 
-        new_t_or_s_date = get_relative_date(t_o_s)
+        new_t_or_s_date = get_relative_date(value)
         new_t_or_s = magodo.from_date(new_t_or_s_date)
         metadata[key] = new_t_or_s
 
@@ -167,24 +166,29 @@ def due_context_spell(todo: T) -> T:
 @todo_spell
 def due_metatag_spell(todo: T) -> T:
     """Handles the 'due' metatag."""
-    due = todo.metadata.get("due")
-    if not due or not matches_date_fmt(due):
+    if todo.done:
         return todo
 
-    today = dt.date.today()
-    due_date = magodo.to_date(due)
-    if due_date <= today:
-        metadata = dict(todo.metadata.items())
-        recur = todo.metadata.get("recur")
-        if not recur or recur.islower():
-            del metadata["due"]
+    due = todo.metadata.get("due")
+    if due and not matches_date_fmt(due):
+        return todo
 
+    has_today_ctx = bool(CTX_TODAY in todo.contexts)
+
+    today = dt.date.today()
+    if due and magodo.to_date(due) <= today:
         contexts = list(todo.contexts)
         if CTX_TODAY not in contexts:
             contexts.append(CTX_TODAY)
-
-        return todo.new(contexts=contexts, metadata=metadata)
-    elif CTX_TODAY in todo.contexts:
+            return todo.new(contexts=contexts)
+        else:
+            return todo
+    elif not due and has_today_ctx:
+        metadata = dict(todo.metadata.items())
+        due = magodo.from_date(today)
+        metadata["due"] = due
+        return todo.new(metadata=metadata)
+    elif has_today_ctx:
         contexts = [ctx for ctx in todo.contexts if ctx != CTX_TODAY]
         return todo.new(contexts=contexts)
 
@@ -192,11 +196,13 @@ def due_metatag_spell(todo: T) -> T:
 
 
 @todo_spell
-def handle_today_context(todo: T) -> T:
-    """Handles the context tag that marks a todo as planned to be done today.
+def today_context_for_done_todos(todo: T) -> T:
+    """Spell that adds/removes today context for done todos.
 
-    By "handles", we mean that this spell makes sure that todos which should
-    have the today context do and vice-versa.
+    Handles the today context (i.e. the context tag that marks a todo as
+    planned to be done today) for todos that have been completed. By "handles",
+    we mean that this spell makes sure that todos which should have the today
+    context do and vice-versa.
     """
     if not todo.done_date:
         return todo
@@ -205,7 +211,9 @@ def handle_today_context(todo: T) -> T:
 
     should_have_today_ctx = bool(
         todo.done_date == today
-        and any(key in todo.metadata for key in ["p", "xp"])
+        and any(
+            todo.metadata.get(key) not in ["0", None] for key in ["p", "xp"]
+        )
     )
     has_today_ctx = bool(CTX_TODAY in todo.contexts)
     if has_today_ctx == should_have_today_ctx:
@@ -216,61 +224,6 @@ def handle_today_context(todo: T) -> T:
         contexts.append(CTX_TODAY)
 
     return todo.new(contexts=contexts)
-
-
-@todo_spell
-def recur_tickler_spell(todo: T) -> T:
-    """Handles the 'recur:' metatag for tickler todos."""
-    mdata = todo.metadata
-
-    if not todo.done_date:
-        return todo
-
-    recur = mdata.get("recur")
-    if not recur:
-        return todo
-
-    tickle = mdata.get("tickle")
-    if not tickle:
-        return todo
-
-    assert isinstance(recur, str)
-    if recur.islower():
-        start_date = todo.done_date
-    else:
-        start_date = magodo.to_date(tickle)
-
-    until = mdata.get("until")
-    if until and magodo.to_date(until) <= start_date:
-        logger.debug("Recurring todo has reached its 'until' date.", todo=todo)
-        return todo
-
-    next_date = get_relative_date(recur, start_date=start_date)
-    metadata = dict(mdata.items())
-
-    if magodo.to_date(tickle) <= todo.done_date:
-        next_tickle_date = next_date
-        new_tickle = magodo.from_date(next_tickle_date)
-        metadata["tickle"] = new_tickle
-    else:
-        new_tickle = tickle
-
-    if "dtime" in metadata:
-        del metadata["dtime"]
-
-    desc_words = todo.desc.split(" ")
-    new_desc_words = []
-    for word in desc_words:
-        if word.startswith("tickle:"):
-            new_desc_words.append(f"tickle:{new_tickle}")
-        elif word.startswith("dtime:"):
-            continue
-        else:
-            new_desc_words.append(word)
-
-    desc = " ".join(new_desc_words)
-
-    return todo.new(desc=desc, metadata=metadata, done=False, done_date=None)
 
 
 @todo_spell
@@ -297,6 +250,32 @@ def appt_todos(todo: T) -> T:
     return todo.new(priority=priority)
 
 
+@todo_spell
+def i_priority_spell(todo: T) -> T:
+    """Handles todos with the in-prigress [i.e. (I)] priority."""
+    start = todo.metadata.get("start")
+    if todo.priority != "I":
+        if start:
+            metadata = dict(todo.metadata.items())
+            del metadata["start"]
+            desc = drop_word_if_startswith(todo.desc, "start:")
+            return todo.new(desc=desc, metadata=metadata)
+        else:
+            return todo
+
+    if start:
+        return todo
+
+    now = dt.datetime.now()
+    start = f"{now.hour:0>2}{now.minute:0>2}"
+
+    metadata = dict(todo.metadata.items())
+    metadata["start"] = start
+    desc = todo.desc + f" start:{start}"
+
+    return todo.new(desc=desc, metadata=metadata)
+
+
 ###############################################################################
 # Lastly, all POST todo spells are cast...
 ###############################################################################
@@ -312,3 +291,20 @@ def remove_priorities(todo: T) -> T:
     priority = magodo.DEFAULT_PRIORITY
     desc = drop_word_from_desc(todo.desc, f"({todo.priority})")
     return todo.new(desc=desc, priority=priority)
+
+
+@post_todo_spell
+def no_today_for_first_and_last(todo: T) -> T:
+    """Removes the today context when the first or last context is found."""
+    if todo.done:
+        return todo
+
+    if not any(ctx in todo.contexts for ctx in [CTX_FIRST, CTX_LAST]):
+        return todo
+
+    if CTX_TODAY not in todo.contexts:
+        return todo
+
+    contexts = [ctx for ctx in todo.contexts if ctx != CTX_TODAY]
+    desc = drop_word_from_desc(todo.desc, f"@{CTX_TODAY}")
+    return todo.new(contexts=contexts, desc=desc)

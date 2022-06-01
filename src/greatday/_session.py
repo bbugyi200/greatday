@@ -117,11 +117,8 @@ def _commit_todo_changes(
 ) -> None:
     """Updates todo in repo.
 
-    This function also handles recurring non-tickler todos (i.e. todos with the
-    'recur' metatag and no 'tickle' metatag).
-
-    NOTE: Recurring tickler todos are handled by a magodo todo spell (see
-    _spells.py).
+    This function also handles recurring todos (i.e. todos with the
+    'recur' metatag).
     """
     recur = todo.metadata.get("recur")
     until = todo.metadata.get("until")
@@ -141,8 +138,7 @@ def _commit_todo_changes(
         # set 'prev' and 'xp' metatags for next todo...
         next_metadata["prev"] = next_metadata["id"]
         del next_metadata["id"]
-        if next_xp := next_metadata.get("p"):
-            next_metadata["xp"] = next_xp
+        if next_metadata.get("p"):
             del next_metadata["p"]
 
         # set 'due' metatag for next todo...
@@ -167,6 +163,7 @@ def _commit_todo_changes(
             done=False,
             done_date=None,
             metadata=next_metadata,
+            priority=old_todo.priority,
         )
         next_key = repo.add(next_todo).unwrap()
 

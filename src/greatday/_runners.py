@@ -8,7 +8,7 @@ import clack
 from clack.types import ClackRunner
 from logrus import Logger
 
-from ._common import CTX_INBOX, CTX_TODAY, drop_word_from_desc, is_tickler
+from ._common import CTX_INBOX, CTX_TODAY, drop_word_from_desc
 from ._config import AddConfig, ListConfig, TUIConfig
 from ._repo import GreatRepo
 from ._tag import Tag
@@ -42,7 +42,6 @@ def run_add(cfg: AddConfig) -> int:
     if cfg.add_inbox_context == "y" or (
         cfg.add_inbox_context == "default"
         and not x_found
-        and not is_tickler(todo)
         and CTX_TODAY not in todo.contexts
         and CTX_INBOX not in todo.contexts
     ):
