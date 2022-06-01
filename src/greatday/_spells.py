@@ -21,6 +21,7 @@ from magodo.types import LineSpell, T, TodoSpell
 
 from ._common import drop_word_from_desc
 from ._dates import (
+    RELATIVE_DATE_METATAGS,
     dt_from_date_and_hhmm,
     get_relative_date,
     matches_date_fmt,
@@ -113,7 +114,7 @@ def render_relative_dates(todo: T) -> T:
     desc = todo.desc
     metadata = dict(todo.metadata.items())
 
-    for key in ["snooze", "until", "due"]:
+    for key in RELATIVE_DATE_METATAGS:
         value = todo.metadata.get(key)
         if not value:
             continue

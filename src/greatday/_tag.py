@@ -15,6 +15,7 @@ from magodo import DateRange, DescFilter, MetadataFilter
 from magodo.types import Priority, SinglePredicate
 
 from ._dates import (
+    RELATIVE_DATE_METATAGS,
     get_date_range,
     get_relative_date,
     matches_date_fmt,
@@ -180,7 +181,10 @@ class Tag:
                 key = key.rstrip("?")
 
                 value: dt.date | str | int
-                if op_string in ["=", "!="]:
+                if (
+                    op_string in ["=", "!="]
+                    and key not in RELATIVE_DATE_METATAGS
+                ):
                     value = value_string
                 elif matches_date_fmt(value_string):
                     value = magodo.to_date(value_string)
