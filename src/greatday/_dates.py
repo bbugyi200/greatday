@@ -20,6 +20,9 @@ FRIDAY: Final = 4
 SATURDAY: Final = 5
 SUNDAY: Final = 6
 
+# metatags (i.e. key-value tags) that accept relative date strings (e.g. '1d')
+RELATIVE_DATE_METATAGS: Final = ["snooze", "until", "due"]
+
 
 def get_relative_date(
     spec: str, *, start_date: dt.date = None, reverse: bool = False
