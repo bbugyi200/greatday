@@ -100,6 +100,8 @@ gitdb==4.0.9
     # via gitpython
 gitpython==3.1.27
     # via cruft
+greenlet==1.1.2
+    # via sqlalchemy
 idna==3.3
     # via requests
 imagesize==1.3.0
@@ -173,7 +175,9 @@ py==1.11.0
 pycodestyle==2.8.0
     # via flake8
 pydantic==1.9.1
-    # via bolton-clack
+    # via
+    #   bolton-clack
+    #   sqlmodel
 pydocstyle[toml]==6.1.1
     # via -r requirements-dev.in
 pyflakes==2.4.0
@@ -251,6 +255,14 @@ sphinxcontrib-qthelp==1.0.3
     # via sphinx
 sphinxcontrib-serializinghtml==1.1.5
     # via sphinx
+sqlalchemy==1.4.37
+    # via sqlmodel
+sqlalchemy2-stubs==0.0.2a22
+    # via sqlmodel
+sqlmodel==0.0.6
+    # via
+    #   -r requirements.in
+    #   greatday
 structlog==21.5.0
     # via bolton-logrus
 syrupy==2.3.0
@@ -300,6 +312,7 @@ typing-extensions==4.2.0
     #   pydantic
     #   pylint
     #   rich
+    #   sqlalchemy2-stubs
     #   textual
 urllib3==1.26.9
     # via requests

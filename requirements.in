@@ -6,6 +6,7 @@ magodo ~= 0.10.0
 potoroo ~= 0.3.2
 python-dateutil ~= 2.8
 rich ~= 12.3
+sqlmodel ~= 0.0.6
 textual ~= 0.1.17
 textual-inputs ~= 0.2.5
 vimala ~= 0.1.2
