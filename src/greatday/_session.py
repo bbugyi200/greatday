@@ -42,15 +42,16 @@ class GreatSession(UnitOfWork[FileRepo]):
         _, temp_path = tempfile.mkstemp(prefix=prefix, suffix=".txt")
         self.path = Path(temp_path)
 
+        # will be accessed via `self.repo` from this point forward
         self._repo = FileRepo(self.data_dir, self.path)
 
         self._master_repo = FileRepo(self.data_dir)
         if tag is not None:
             for todo in self._master_repo.get_by_tag(tag).unwrap():
-                self._repo.add(todo, key=todo.ident)
+                self.repo.add(todo, key=todo.ident)
 
         self._old_todo_map = {
-            todo.ident: todo for todo in self._repo.todo_group
+            todo.ident: todo for todo in self.repo.todo_group
         }
 
     def __enter__(self) -> GreatSession:
