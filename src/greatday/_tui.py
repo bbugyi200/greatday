@@ -268,7 +268,9 @@ class GreatApp(App):
         n = 0
         for name, query in STATS_QUERY_MAP.items():
             description = f"{name.lstrip(BAD_QUERY_NAME_CHARS).upper()} Query"
-            await self.bind(str(n), f"new_query('{query}')", description)
+            await self.bind(
+                str(n), f"new_query('{query}')", description, show=False
+            )
             n += 1
 
         await self.bind("escape", "change_mode('normal')", "Normal Mode")
