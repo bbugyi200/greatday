@@ -31,7 +31,7 @@ INBOX_QUERY: Final = f"o @{CTX_INBOX}"
 FIRST_QUERY: Final = f"o due<=0d @{CTX_FIRST} | $0d @{CTX_FIRST}"
 LAST_QUERY: Final = f"o due<=0d @{CTX_LAST} | $0d @{CTX_LAST}"
 LATE_QUERY: Final = f"o due<0d @{CTX_LAST} | $0d @{CTX_LAST} due<0d"
-TODAY_QUERY: Final = f"o due<=0d !@{CTX_FIRST} !@{CTX_LAST} | $0d p>0"
+TODAY_QUERY: Final = f"o due<=0d !@{CTX_FIRST} !@{CTX_LAST} | $0d p>0 | (d)"
 
 # a mapping of name->query that will be displayed in the "Stats" textual panel
 STATS_QUERY_MAP: dict[str, str] = {
