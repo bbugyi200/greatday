@@ -77,7 +77,7 @@ commonmark==0.9.1
     # via rich
 cookiecutter==1.7.3
     # via cruft
-coverage[toml]==6.4
+coverage[toml]==6.4.1
     # via pytest-cov
 cruft[pyproject]==2.10.2
     # via -r requirements-dev.in
