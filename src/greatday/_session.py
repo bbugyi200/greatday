@@ -5,12 +5,14 @@ from __future__ import annotations
 import datetime as dt
 import os
 from pathlib import Path
+import string
 import tempfile
 from types import TracebackType
-from typing import Type
+from typing import Type, cast
 
 from logrus import Logger
 import magodo
+from magodo.types import Priority
 from potoroo import UnitOfWork
 from typist import PathLike
 
@@ -157,13 +159,25 @@ def _commit_todo_changes(
             if key in next_metadata:
                 del next_metadata[key]
 
+        # set priority for next todo...
+        priority = todo.metadata.get("priority")
+        next_priority = magodo.DEFAULT_PRIORITY
+        if (
+            priority
+            and len(priority) == 1
+            and priority.upper() in string.ascii_uppercase
+        ):
+            next_priority = cast(Priority, priority.upper())
+        elif priority:
+            logger.warning("Bad 'priority' metatag value?", priority=priority)
+
         # add next todo to repo...
         next_todo = todo.new(
             create_date=next_create_date,
             done=False,
             done_date=None,
             metadata=next_metadata,
-            priority=old_todo.priority,
+            priority=next_priority,
         )
         next_key = repo.add(next_todo).unwrap()
 
