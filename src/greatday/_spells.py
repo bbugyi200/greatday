@@ -128,9 +128,9 @@ def render_relative_dates(todo: T) -> T:
 
         found_tag = True
 
-        new_t_or_s_date = get_relative_date(value)
-        new_t_or_s = magodo.from_date(new_t_or_s_date)
-        metadata[key] = new_t_or_s
+        value_date = get_relative_date(value)
+        new_value = magodo.from_date(value_date)
+        metadata[key] = new_value
 
         desc = drop_word_if_startswith(desc, key + ":")
 
