@@ -57,8 +57,10 @@ rich==12.4.4
     #   textual
 six==1.16.0
     # via python-dateutil
-sqlalchemy==1.4.37
-    # via sqlmodel
+sqlalchemy==1.4.35
+    # via
+    #   -r requirements.in
+    #   sqlmodel
 sqlalchemy2-stubs==0.0.2a22
     # via sqlmodel
 sqlmodel==0.0.6
