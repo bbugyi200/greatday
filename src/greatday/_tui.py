@@ -23,6 +23,9 @@ from ._tag import GreatTag
 from ._todo import GreatTodo
 
 
+# HACK: Used to fix action parameter parenthesis bug (see PR:textual#562).
+FAKE_RIGHT_PAREN: Final = "]]]"
+
 # characters that should be removed from query names in most cases
 BAD_QUERY_NAME_CHARS: Final = "() 0123456789\n"
 
@@ -267,6 +270,7 @@ class GreatApp(App):
         """Configure key bindings."""
         n = 0
         for name, query in STATS_QUERY_MAP.items():
+            query = query.replace(")", FAKE_RIGHT_PAREN)
             description = f"{name.lstrip(BAD_QUERY_NAME_CHARS).upper()} Query"
             await self.bind(
                 str(n), f"new_query('{query}')", description, show=False
@@ -317,6 +321,7 @@ class GreatApp(App):
 
     async def action_new_query(self, query: str) -> None:
         """Execute a new todo query."""
+        query = query.replace(FAKE_RIGHT_PAREN, ")")
         self.input_widget.value = query
         self.input_widget._cursor_position = len(query)
         await self.action_submit()
