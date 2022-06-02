@@ -1,11 +1,16 @@
 """Contains greatday's SQL model class definitions."""
 
-from __future__ import annotations
-
 import datetime as dt
 from typing import List, Optional
 
-from sqlmodel import Field, Relationship, SQLModel, create_engine
+from sqlmodel import (
+    Column,
+    Field,
+    Relationship,
+    SQLModel,
+    create_engine,
+    String,
+)
 
 
 class Base(SQLModel):
@@ -53,8 +58,8 @@ class MetatagLink(TodoLink, table=True):
         default=None, foreign_key="metatag.id", primary_key=True
     )
 
-    todo: Todo = Relationship(back_populates="metatag_links")
-    metatag: Metatag = Relationship(back_populates="links")
+    todo: "Todo" = Relationship(back_populates="metatag_links")
+    metatag: "Metatag" = Relationship(back_populates="links")
 
     value: str
 
@@ -70,22 +75,22 @@ class Todo(Base, table=True):
     priority: str
 
     # relationships
-    contexts: List[Context] = Relationship(
+    contexts: List["Context"] = Relationship(
         back_populates="todos", link_model=ContextLink
     )
-    epics: List[Epic] = Relationship(
+    epics: List["Epic"] = Relationship(
         back_populates="todos", link_model=EpicLink
     )
-    projects: List[Project] = Relationship(
+    projects: List["Project"] = Relationship(
         back_populates="todos", link_model=ProjectLink
     )
-    metatag_links: List[MetatagLink] = Relationship(back_populates="todo")
+    metatag_links: List["MetatagLink"] = Relationship(back_populates="todo")
 
 
 class Tag(Base):
     """Abstract model class for todo.txt tags."""
 
-    name: str = Field(primary_key=True)
+    name: str = Field(sa_column=Column(String, unique=True))
 
 
 class Project(Tag, table=True):

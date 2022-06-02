@@ -238,9 +238,7 @@ class Context:
 class GreatApp(App):
     """Textual TUI Application Class."""
 
-    def __init__(
-        self, *, repo: FileRepo, ctx: Context, **kwargs: Any
-    ) -> None:
+    def __init__(self, *, repo: FileRepo, ctx: Context, **kwargs: Any) -> None:
         super().__init__(**kwargs)
 
         self.repo = repo

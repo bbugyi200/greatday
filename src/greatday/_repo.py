@@ -11,6 +11,7 @@ from magodo import TodoGroup
 from potoroo import TaggedRepo
 from typist import PathLike
 
+from . import db
 from ._dates import init_yyyymm_path
 from ._ids import NULL_ID, init_next_todo_id
 from ._tag import GreatTag
@@ -20,6 +21,39 @@ from ._todo import GreatTodo
 logger = Logger(__name__)
 
 DEFAULT_TODO_DIR: Final = "todos"
+
+
+class SQLiteRepo(TaggedRepo[str, GreatTodo, GreatTag]):
+    """Repo that stores Todos in sqlite database."""
+
+    def __init__(self, url: str) -> None:
+        self.url = url
+        self.engine = db.cached_engine(url)
+
+    def add(self, todo: GreatTodo, /, *, key: str = None) -> ErisResult[str]:
+        """Adds a new Todo to the DB.
+
+        Returns a unique identifier that has been associated with this Todo.
+        """
+
+    def get(self, key: str) -> ErisResult[GreatTodo | None]:
+        """Retrieve a Todo from the DB."""
+
+    def remove(self, key: str) -> ErisResult[GreatTodo | None]:
+        """Remove a Todo from the DB."""
+
+    def update(self, key: str, todo: GreatTodo, /) -> ErisResult[GreatTodo]:
+        """Overwrite an existing Todo on disk."""
+
+    def get_by_tag(self, tag: GreatTag) -> ErisResult[list[GreatTodo]]:
+        """Get Todo(s) from DB by using a tag."""
+
+    def remove_by_tag(self, tag: GreatTag) -> ErisResult[list[GreatTodo]]:
+        """Removes Todo(s) from DB by using a tag."""
+        removed_todos = self.get_by_tag(tag).unwrap()
+        for todo in removed_todos:
+            self.remove(todo.ident).unwrap()
+        return Ok(removed_todos)
 
 
 class FileRepo(TaggedRepo[str, GreatTodo, GreatTag]):
