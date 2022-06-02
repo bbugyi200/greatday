@@ -54,7 +54,7 @@ class MetatagLink(TodoLink, table=True):
     )
 
     todo: Todo = Relationship(back_populates="metatag_links")
-    metatag: Metatag = Relationship(back_populates="todo_links")
+    metatag: Metatag = Relationship(back_populates="links")
 
     value: str
 
@@ -112,7 +112,7 @@ class Epic(Tag, table=True):
 class Metatag(Tag, table=True):
     """Model class for metadata tags (e.g. due:2022-06-01)."""
 
-    todo_links: List[MetatagLink] = Relationship(back_populates="metatag")
+    links: List[MetatagLink] = Relationship(back_populates="metatag")
 
 
 if __name__ == "__main__":
