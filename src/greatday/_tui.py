@@ -23,22 +23,17 @@ from ._tag import GreatTag
 from ._todo import GreatTodo
 
 
-# Characters that should be removed from query names in most cases.
+# characters that should be removed from query names in most cases
 BAD_QUERY_NAME_CHARS: Final = "() 0123456789\n"
 
-
-def _due_query(op: str = "<=") -> str:
-    return f"o due{op}0d"
-
-
+# important/saved GreatLang queries
 INBOX_QUERY: Final = f"o @{CTX_INBOX}"
-FIRST_QUERY: Final = f"{_due_query()} @{CTX_FIRST} | $0d @{CTX_FIRST}"
-LAST_QUERY: Final = f"{_due_query()} @{CTX_LAST} | $0d @{CTX_LAST}"
-LATE_QUERY: Final = f"{_due_query('<')} @{CTX_LAST} | $0d @{CTX_LAST} due<0d"
-TODAY_QUERY: Final = f"{_due_query()} !@{CTX_FIRST} !@{CTX_LAST} | $0d p>0"
+FIRST_QUERY: Final = f"o due<=0d @{CTX_FIRST} | $0d @{CTX_FIRST}"
+LAST_QUERY: Final = f"o due<=0d @{CTX_LAST} | $0d @{CTX_LAST}"
+LATE_QUERY: Final = f"o due<0d @{CTX_LAST} | $0d @{CTX_LAST} due<0d"
+TODAY_QUERY: Final = f"o due<=0d !@{CTX_FIRST} !@{CTX_LAST} | $0d p>0"
 
-# A mapping of names to queries that will be displayed in the "Stats" textual
-# panel.
+# a mapping of name->query that will be displayed in the "Stats" textual panel
 STATS_QUERY_MAP: dict[str, str] = {
     "(0) inbox": INBOX_QUERY,
     "(1) first": FIRST_QUERY,
