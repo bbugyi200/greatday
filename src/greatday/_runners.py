@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Final, Iterable, List
+from typing import Final, List
 
 import clack
 from clack.types import ClackRunner
@@ -59,14 +59,16 @@ def run_list(cfg: ListConfig) -> int:
     """Runner for the 'list' subcommand."""
     repo = GreatRepo(cfg.data_dir)
 
-    todo_iter: Iterable[GreatTodo]
+    query: str
     if cfg.query is None:
-        todo_iter = repo.todo_group
+        query = ""
     else:
-        tag = GreatTag.from_query(cfg.query)
-        todo_iter = repo.get_by_tag(tag).unwrap()
+        query = cfg.query
 
-    for todo in sorted(todo_iter):
+    tag = GreatTag.from_query(query)
+    todos = repo.get_by_tag(tag).unwrap()
+
+    for todo in sorted(todos):
         print(todo.to_line())
 
     return 0
