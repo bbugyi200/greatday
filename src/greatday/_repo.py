@@ -9,9 +9,10 @@ from eris import ErisResult, Ok
 from logrus import Logger
 from magodo import TodoGroup
 from potoroo import TaggedRepo
+from sqlmodel import Session, select
 from typist import PathLike
 
-from . import db
+from . import db, models
 from ._dates import init_yyyymm_path
 from ._ids import NULL_ID, init_next_todo_id
 from ._tag import GreatTag
@@ -23,7 +24,7 @@ logger = Logger(__name__)
 DEFAULT_TODO_DIR: Final = "todos"
 
 
-class SQLiteRepo(TaggedRepo[str, GreatTodo, GreatTag]):
+class SQLRepo(TaggedRepo[str, GreatTodo, GreatTag]):
     """Repo that stores Todos in sqlite database."""
 
     def __init__(self, url: str) -> None:
@@ -35,9 +36,25 @@ class SQLiteRepo(TaggedRepo[str, GreatTodo, GreatTag]):
 
         Returns a unique identifier that has been associated with this Todo.
         """
+        with Session(self.engine) as session:
+            mtodo = todo.to_model(session, key=key)
+            session.add(mtodo)
+            session.commit()
+            session.refresh(mtodo)
+
+        return Ok(str(mtodo.id))
 
     def get(self, key: str) -> ErisResult[GreatTodo | None]:
         """Retrieve a Todo from the DB."""
+        with Session(self.engine) as session:
+            stmt = select(models.Todo).where(models.Todo.id == int(key))
+            results = session.exec(stmt)
+            mtodo = results.first()
+            if mtodo is None:
+                return Ok(None)
+            else:
+                todo = GreatTodo.from_model(mtodo)
+                return Ok(todo)
 
     def remove(self, key: str) -> ErisResult[GreatTodo | None]:
         """Remove a Todo from the DB."""
