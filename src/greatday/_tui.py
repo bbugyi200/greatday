@@ -17,7 +17,7 @@ from typist import PathLike
 from vimala import vim
 
 from ._common import CTX_FIRST, CTX_INBOX, CTX_LAST
-from ._repo import GreatRepo
+from ._repo import FileRepo
 from ._session import GreatSession
 from ._tag import GreatTag
 from ._todo import GreatTodo
@@ -101,7 +101,7 @@ class StatsWidget(Static):
     """Widget that shows Todo statistics."""
 
     def __init__(
-        self, repo: GreatRepo, ctx: Context, *args: Any, **kwargs: Any
+        self, repo: FileRepo, ctx: Context, *args: Any, **kwargs: Any
     ) -> None:
         super().__init__("", *args, **kwargs)
         self.repo = repo
@@ -236,7 +236,7 @@ class GreatApp(App):
     """Textual TUI Application Class."""
 
     def __init__(
-        self, *, repo: GreatRepo, ctx: Context, **kwargs: Any
+        self, *, repo: FileRepo, ctx: Context, **kwargs: Any
     ) -> None:
         super().__init__(**kwargs)
 
@@ -330,7 +330,7 @@ class GreatApp(App):
         await self.action_change_mode("normal")
 
 
-def _todo_lines_from_query(repo: GreatRepo, query: str) -> str:
+def _todo_lines_from_query(repo: FileRepo, query: str) -> str:
     tag = GreatTag.from_query(query)
     todos = repo.get_by_tag(tag).unwrap()
 
@@ -343,7 +343,7 @@ def _todo_lines_from_query(repo: GreatRepo, query: str) -> str:
 
 def start_textual_app(data_dir: PathLike) -> None:
     """Starts the TUI using the GreatApp class."""
-    repo = GreatRepo(data_dir)
+    repo = FileRepo(data_dir)
     ctx = Context(TODAY_QUERY)
     run_app = partial(
         GreatApp.run,

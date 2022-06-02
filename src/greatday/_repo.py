@@ -22,7 +22,7 @@ logger = Logger(__name__)
 DEFAULT_TODO_DIR: Final = "todos"
 
 
-class GreatRepo(TaggedRepo[str, GreatTodo, GreatTag]):
+class FileRepo(TaggedRepo[str, GreatTodo, GreatTag]):
     """Repo that stores Todos on disk."""
 
     def __init__(self, data_dir: PathLike, path: PathLike = None) -> None:

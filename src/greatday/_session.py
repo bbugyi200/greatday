@@ -18,7 +18,7 @@ from typist import PathLike
 
 from ._dates import get_relative_date
 from ._ids import NULL_ID
-from ._repo import GreatRepo
+from ._repo import FileRepo
 from ._tag import GreatTag
 from ._todo import GreatTodo
 
@@ -26,7 +26,7 @@ from ._todo import GreatTodo
 logger = Logger(__name__)
 
 
-class GreatSession(UnitOfWork[GreatRepo]):
+class GreatSession(UnitOfWork[FileRepo]):
     """Each time todos are opened in an editor, a new session is created."""
 
     def __init__(
@@ -42,9 +42,9 @@ class GreatSession(UnitOfWork[GreatRepo]):
         _, temp_path = tempfile.mkstemp(prefix=prefix, suffix=".txt")
         self.path = Path(temp_path)
 
-        self._repo = GreatRepo(self.data_dir, self.path)
+        self._repo = FileRepo(self.data_dir, self.path)
 
-        self._master_repo = GreatRepo(self.data_dir)
+        self._master_repo = FileRepo(self.data_dir)
         if tag is not None:
             for todo in self._master_repo.get_by_tag(tag).unwrap():
                 self._repo.add(todo, key=todo.ident)
@@ -109,13 +109,13 @@ class GreatSession(UnitOfWork[GreatRepo]):
         """Revert any changes made while in this GreatSession's with-block."""
 
     @property
-    def repo(self) -> GreatRepo:
+    def repo(self) -> FileRepo:
         """Returns the GreatRepo object associated with this GreatSession."""
         return self._repo
 
 
 def _commit_todo_changes(
-    repo: GreatRepo, todo: GreatTodo, old_todo: GreatTodo | None
+    repo: FileRepo, todo: GreatTodo, old_todo: GreatTodo | None
 ) -> None:
     """Updates todo in repo.
 
