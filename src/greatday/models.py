@@ -62,17 +62,20 @@ class MetatagLink(TodoLink, table=True):
 class Todo(Base, table=True):
     """Model class for greatday Todos."""
 
-    contexts: List[Context] = Relationship(
-        back_populates="todos", link_model=ContextLink
-    )
+    # table columns
     create_date: dt.date
     desc: str
     done: bool
-    done_date: dt.date
+    done_date: Optional[dt.date]
+    priority: str
+
+    # relationships
+    contexts: List[Context] = Relationship(
+        back_populates="todos", link_model=ContextLink
+    )
     epics: List[Epic] = Relationship(
         back_populates="todos", link_model=EpicLink
     )
-    priority: str
     projects: List[Project] = Relationship(
         back_populates="todos", link_model=ProjectLink
     )
@@ -82,7 +85,7 @@ class Todo(Base, table=True):
 class Tag(Base):
     """Abstract model class for todo.txt tags."""
 
-    key: str
+    name: str = Field(primary_key=True)
 
 
 class Project(Tag, table=True):
