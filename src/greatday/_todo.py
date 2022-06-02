@@ -10,6 +10,7 @@ from magodo.types import Priority
 from sqlmodel import Session, select
 
 from . import _spells as spells, db, models
+from ._common import drop_word_if_startswith
 from ._ids import NULL_ID
 
 
@@ -60,7 +61,7 @@ class GreatTodo(MagicTodoMixin):
         """Converts a GreatTodo into something that the DB can work with."""
         mtodo_kwargs: dict[str, Any] = dict(
             create_date=self.create_date,
-            desc=self.desc,
+            desc=drop_word_if_startswith(self.desc, "id:"),
             done=self.done,
             done_date=self.done_date,
             priority=self.priority,
