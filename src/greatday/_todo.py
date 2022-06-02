@@ -56,7 +56,7 @@ class GreatTodo(MagicTodoMixin):
         )
         return cls(magodo_todo)
 
-    def to_model(self, session: Session) -> models.Todo:
+    def to_model(self, session: Session, key: str = None) -> models.Todo:
         """Converts a GreatTodo into something that the DB can work with."""
         todo_kwargs: dict[str, Any] = dict(
             create_date=self.create_date,
@@ -66,9 +66,12 @@ class GreatTodo(MagicTodoMixin):
             priority=self.priority,
         )
 
+        if key is not None:
+            todo_kwargs["id"] = int(key)
         if self.ident != NULL_ID:
             todo_kwargs["id"] = int(self.ident)
 
+        stmt: Any
         for attr, tag_model in [
             ("contexts", models.Context),
             ("epics", models.Epic),
@@ -89,6 +92,16 @@ class GreatTodo(MagicTodoMixin):
 
         todo = models.Todo(**todo_kwargs)
 
+        for k, v in self.metadata.items():
+            stmt = select(models.Metatag).where(models.Metatag.name == k)
+            results = session.exec(stmt)
+            metatag = results.first()
+            if metatag is None:
+                metatag = models.Metatag(name=k)
+
+            mlink = models.MetatagLink(metatag=metatag, todo=todo, value=v)
+            todo.metatag_links.append(mlink)
+
         return todo
 
 
@@ -97,7 +110,9 @@ if __name__ == "__main__":
 
     engine = db.cached_engine("sqlite:///greatday.db")
     with Session(engine) as sess:
-        gtodo = GreatTodo.from_line(f"o {sys.argv[1]} | +pig @home").unwrap()
+        gtodo = GreatTodo.from_line(
+            f"o {sys.argv[1]} | @home +pig due:2022-06-02"
+        ).unwrap()
         mtodo = gtodo.to_model(sess)
         sess.add(mtodo)
         sess.commit()

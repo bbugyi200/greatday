@@ -1,5 +1,6 @@
 """Contains greatday's SQL model class definitions."""
 
+# WARNING: Don't bother importing __future__.annotations in this module!
 import datetime as dt
 from typing import List, Optional
 
