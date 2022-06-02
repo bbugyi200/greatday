@@ -8,7 +8,7 @@ import clack
 from clack.types import ClackRunner
 from logrus import Logger
 
-from ._common import CTX_INBOX, drop_word_from_desc
+from ._common import CTX_INBOX, drop_word
 from ._config import AddConfig, ListConfig, TUIConfig
 from ._repo import FileRepo
 from ._tag import GreatTag

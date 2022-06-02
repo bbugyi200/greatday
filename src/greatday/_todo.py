@@ -58,7 +58,7 @@ class GreatTodo(MagicTodoMixin):
 
     def to_model(self, session: Session, key: str = None) -> models.Todo:
         """Converts a GreatTodo into something that the DB can work with."""
-        todo_kwargs: dict[str, Any] = dict(
+        mtodo_kwargs: dict[str, Any] = dict(
             create_date=self.create_date,
             desc=self.desc,
             done=self.done,
@@ -74,9 +74,10 @@ class GreatTodo(MagicTodoMixin):
             del metadata["id"]
 
         if key is not None:
-            todo_kwargs["id"] = int(key)
-        elif id_metatag is not None:
-            todo_kwargs["id"] = int(id_metatag)
+            mtodo_kwargs["id"] = int(key)
+
+        if id_metatag is None:
+            mtodo = models.Todo(**mtodo_kwargs)
 
         stmt: Any
         for attr, tag_model in [
@@ -85,7 +86,7 @@ class GreatTodo(MagicTodoMixin):
             ("projects", models.Project),
         ]:
             tag_list = getattr(self, attr)
-            model_tag_list = []
+            model_tag_list = getattr(mtodo, attr)
             for name in tag_list:
                 stmt = select(tag_model).where(tag_model.name == name)
                 results = session.exec(stmt)
@@ -94,10 +95,6 @@ class GreatTodo(MagicTodoMixin):
                     tag = tag_model(name=name)
 
                 model_tag_list.append(tag)
-
-            todo_kwargs[attr] = model_tag_list
-
-        mtodo = models.Todo(**todo_kwargs)
 
         for k, v in metadata.items():
             stmt = select(models.Metatag).where(models.Metatag.name == k)

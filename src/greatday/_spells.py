@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import datetime as dt
-from functools import partial
 from typing import Final, List
 
 from logrus import Logger
@@ -19,7 +18,7 @@ from magodo.spells import (
 )
 from magodo.types import LineSpell, T, TodoSpell
 
-from ._common import drop_word_from_desc
+from ._common import drop_word, drop_word_if_startswith
 from ._dates import (
     RELATIVE_DATE_METATAGS,
     dt_from_date_and_hhmm,
@@ -49,14 +48,6 @@ to_line_spell = register_line_spell_factory(GREAT_TO_LINE_SPELLS)
 
 GREAT_FROM_LINE_SPELLS: List[LineSpell] = list(DEFAULT_FROM_LINE_SPELLS)
 from_line_spell = register_line_spell_factory(GREAT_FROM_LINE_SPELLS)
-
-
-def _startswith_op(x: str, y: str) -> bool:
-    """Used as the value for the 'op' kwarg of `drop_word_from_desc()`."""
-    return x.startswith(y)
-
-
-drop_word_if_startswith = partial(drop_word_from_desc, op=_startswith_op)
 
 
 ###############################################################################
@@ -149,7 +140,7 @@ def due_context_spell(todo: T) -> T:
     today = dt.date.today()
 
     contexts = [ctx for ctx in todo.contexts if ctx != "due"]
-    desc = drop_word_from_desc(todo.desc, "@due")
+    desc = drop_word(todo.desc, "@due")
     metadata = dict(todo.metadata.items())
     metadata["due"] = magodo.from_date(today)
     return todo.new(desc=desc, contexts=contexts, metadata=metadata)
@@ -225,5 +216,5 @@ def remove_priorities(todo: T) -> T:
         return todo
 
     priority = magodo.DEFAULT_PRIORITY
-    desc = drop_word_from_desc(todo.desc, f"({todo.priority})")
+    desc = drop_word(todo.desc, f"({todo.priority})")
     return todo.new(desc=desc, priority=priority)
