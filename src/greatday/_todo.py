@@ -30,25 +30,25 @@ class GreatTodo(MagicTodoMixin):
         return result
 
     @classmethod
-    def from_model(cls, todo: models.Todo) -> GreatTodo:
+    def from_model(cls, mtodo: models.Todo) -> GreatTodo:
         """Construct a GreatTodo from a Todo model class."""
-        contexts = tuple(ctx.name for ctx in todo.contexts)
-        epics = tuple(epic.name for epic in todo.epics)
-        projects = tuple(project.name for project in todo.projects)
+        contexts = tuple(ctx.name for ctx in mtodo.contexts)
+        epics = tuple(epic.name for epic in mtodo.epics)
+        projects = tuple(project.name for project in mtodo.projects)
 
-        metadata = {}
-        for mlink in todo.metatag_links:
+        metadata = {"id": str(mtodo.id)}
+        for mlink in mtodo.metatag_links:
             key = mlink.metatag.name
             value = mlink.value
             metadata[key] = value
 
-        priority = cast(Priority, todo.priority)
+        priority = cast(Priority, mtodo.priority)
         magodo_todo = magodo.Todo(
             contexts=contexts,
-            create_date=todo.create_date,
-            desc=todo.desc,
-            done=todo.done,
-            done_date=todo.done_date,
+            create_date=mtodo.create_date,
+            desc=mtodo.desc,
+            done=mtodo.done,
+            done_date=mtodo.done_date,
             epics=epics,
             priority=priority,
             projects=projects,
@@ -66,10 +66,17 @@ class GreatTodo(MagicTodoMixin):
             priority=self.priority,
         )
 
+        metadata = dict(self.metadata.items())
+        id_metatag = metadata.get("id")
+        if id_metatag:
+            # we don't want to duplicate this in our DB (the primary key will
+            # have the same value)
+            del metadata["id"]
+
         if key is not None:
             todo_kwargs["id"] = int(key)
-        if self.ident != NULL_ID:
-            todo_kwargs["id"] = int(self.ident)
+        elif id_metatag is not None:
+            todo_kwargs["id"] = int(id_metatag)
 
         stmt: Any
         for attr, tag_model in [
@@ -90,29 +97,34 @@ class GreatTodo(MagicTodoMixin):
 
             todo_kwargs[attr] = model_tag_list
 
-        todo = models.Todo(**todo_kwargs)
+        mtodo = models.Todo(**todo_kwargs)
 
-        for k, v in self.metadata.items():
+        for k, v in metadata.items():
             stmt = select(models.Metatag).where(models.Metatag.name == k)
             results = session.exec(stmt)
             metatag = results.first()
             if metatag is None:
                 metatag = models.Metatag(name=k)
 
-            mlink = models.MetatagLink(metatag=metatag, todo=todo, value=v)
-            todo.metatag_links.append(mlink)
+            mlink = models.MetatagLink(metatag=metatag, todo=mtodo, value=v)
+            mtodo.metatag_links.append(mlink)
 
-        return todo
+        return mtodo
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Test driver for this module."""
     import sys
 
     engine = db.cached_engine("sqlite:///greatday.db")
     with Session(engine) as sess:
-        gtodo = GreatTodo.from_line(
+        todo = GreatTodo.from_line(
             f"o {sys.argv[1]} | @home +pig due:2022-06-02"
         ).unwrap()
-        mtodo = gtodo.to_model(sess)
+        mtodo = todo.to_model(sess)
         sess.add(mtodo)
         sess.commit()
+
+
+if __name__ == "__main__":
+    main()
