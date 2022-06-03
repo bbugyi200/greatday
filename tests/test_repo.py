@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import warnings
 
-from pytest import fixture
+from pytest import fixture, mark
 
+from greatday import db
 from greatday._repo import SQLRepo
 from greatday._todo import GreatTodo
-from greatday import db
 
+
+params = mark.parametrize
 
 TODO_LINES = [
     "o 2000-01-01 Do Laundry | @home",
@@ -47,9 +49,9 @@ def test_sql_add(sql_repo: SQLRepo) -> None:
     assert len(TODO_LINES) == len(sql_repo.all().unwrap())
 
 
-def test_sql_get_and_remove(sql_repo: SQLRepo) -> None:
+@params("key", ["1", "2", "3"])
+def test_sql_get_and_remove(sql_repo: SQLRepo, key: str) -> None:
     """Tests the SQLRepo.get() and SQLRepo.remove() methods."""
-    key = "1"
     todo = sql_repo.get(key).unwrap()
     assert todo == sql_repo.remove(key).unwrap()
     assert len(TODO_LINES) == len(sql_repo.all().unwrap()) + 1

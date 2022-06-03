@@ -65,11 +65,22 @@ class SQLRepo(TaggedRepo[str, GreatTodo, GreatTag]):
             if mtodo is None:
                 return Ok(None)
             else:
+                todo = GreatTodo.from_model(mtodo)
+
                 for mlink in mtodo.metatag_links:
                     session.delete(mlink)
                     session.commit()
 
-                todo = GreatTodo.from_model(mtodo)
+                for mtodo_tags in [
+                    mtodo.contexts,
+                    mtodo.epics,
+                    mtodo.projects,
+                ]:
+                    for tag in mtodo_tags:  # type: ignore[attr-defined]
+                        if len(tag.todos) == 1:
+                            session.delete(tag)
+                            session.commit()
+
                 session.delete(mtodo)
                 session.commit()
                 return Ok(todo)
