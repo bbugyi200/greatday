@@ -44,7 +44,7 @@ class GreatTodo(MagicTodoMixin):
             metadata[key] = value
 
         priority = cast(Priority, mtodo.priority)
-        magodo_todo = magodo.Todo(
+        todo = magodo.Todo(
             contexts=contexts,
             create_date=mtodo.create_date,
             desc=mtodo.desc,
@@ -55,13 +55,14 @@ class GreatTodo(MagicTodoMixin):
             projects=projects,
             metadata=metadata,
         )
-        return cls(magodo_todo)
+        return cls(todo)
 
     def to_model(self, session: Session, key: str = None) -> models.Todo:
         """Converts a GreatTodo into something that the DB can work with."""
+        desc = drop_word_if_startswith(self.desc, "id:")
         mtodo_kwargs: dict[str, Any] = dict(
             create_date=self.create_date,
-            desc=drop_word_if_startswith(self.desc, "id:"),
+            desc=desc,
             done=self.done,
             done_date=self.done_date,
             priority=self.priority,
@@ -97,14 +98,14 @@ class GreatTodo(MagicTodoMixin):
             ("epics", models.Epic),
             ("projects", models.Project),
         ]:
-            tag_list = getattr(self, attr)
+            self_tag_list = getattr(self, attr)
             model_tag_list = []
-            for name in tag_list:
-                stmt = select(tag_model).where(tag_model.name == name)
+            for tag_name in self_tag_list:
+                stmt = select(tag_model).where(tag_model.name == tag_name)
                 results = session.exec(stmt)
                 tag = results.first()
                 if tag is None:
-                    tag = tag_model(name=name)
+                    tag = tag_model(name=tag_name)
 
                 model_tag_list.append(tag)
             setattr(mtodo, attr, model_tag_list)
