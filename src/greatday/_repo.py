@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Final
 
-from eris import ErisResult, Ok
+from eris import ErisResult, Err, Ok
 from logrus import Logger
 from magodo import TodoGroup
 from potoroo import TaggedRepo
@@ -58,9 +58,34 @@ class SQLRepo(TaggedRepo[str, GreatTodo, GreatTag]):
 
     def remove(self, key: str) -> ErisResult[GreatTodo | None]:
         """Remove a Todo from the DB."""
+        with Session(self.engine) as session:
+            stmt = select(models.Todo).where(models.Todo.id == int(key))
+            results = session.exec(stmt)
+            mtodo = results.first()
+            if mtodo is None:
+                return Ok(None)
+            else:
+                todo = GreatTodo.from_model(mtodo)
+                session.delete(mtodo)
+                session.commit()
+                return Ok(todo)
 
     def update(self, key: str, todo: GreatTodo, /) -> ErisResult[GreatTodo]:
         """Overwrite an existing Todo on disk."""
+        with Session(self.engine) as session:
+            stmt = select(models.Todo).where(models.Todo.id == int(key))
+            results = session.exec(stmt)
+            old_mtodo = results.first()
+            if old_mtodo is None:
+                return Err(f"Old Todo with this ID does not exist. | id={key}")
+
+            old_todo = GreatTodo.from_model(old_mtodo)
+
+            mtodo = todo.to_model(session, key=key)
+            session.add(mtodo)
+            session.commit()
+
+            return Ok(old_todo)
 
     def get_by_tag(self, tag: GreatTag) -> ErisResult[list[GreatTodo]]:
         """Get Todo(s) from DB by using a tag."""

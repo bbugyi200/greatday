@@ -69,12 +69,12 @@ class GreatTodo(MagicTodoMixin):
 
         metadata = dict(self.metadata.items())
         id_metatag = metadata.get("id")
-        if id_metatag:
+        if id_metatag is not None:
             # we don't want to duplicate this in our DB (the primary key will
             # have the same value)
             del metadata["id"]
 
-        if key is not None:
+        if key is not None and key != self.ident:
             mtodo_kwargs["id"] = int(key)
 
         stmt: Any
