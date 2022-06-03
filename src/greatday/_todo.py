@@ -77,17 +77,28 @@ class GreatTodo(MagicTodoMixin):
         if key is not None:
             mtodo_kwargs["id"] = int(key)
 
-        if id_metatag is None:
-            mtodo = models.Todo(**mtodo_kwargs)
-
         stmt: Any
+        if id_metatag is None or "id" in mtodo_kwargs:
+            mtodo = models.Todo(**mtodo_kwargs)
+        else:
+            stmt = select(models.Todo).where(models.Todo.id == int(id_metatag))
+            results = session.exec(stmt)
+            maybe_mtodo = results.first()
+            if maybe_mtodo is None:
+                mtodo = models.Todo(**mtodo_kwargs)
+                mtodo.id = int(id_metatag)
+            else:
+                mtodo = maybe_mtodo
+                for k, v in mtodo_kwargs.items():
+                    setattr(mtodo, k, v)
+
         for attr, tag_model in [
             ("contexts", models.Context),
             ("epics", models.Epic),
             ("projects", models.Project),
         ]:
             tag_list = getattr(self, attr)
-            model_tag_list = getattr(mtodo, attr)
+            model_tag_list = []
             for name in tag_list:
                 stmt = select(tag_model).where(tag_model.name == name)
                 results = session.exec(stmt)
@@ -96,7 +107,9 @@ class GreatTodo(MagicTodoMixin):
                     tag = tag_model(name=name)
 
                 model_tag_list.append(tag)
+            setattr(mtodo, attr, model_tag_list)
 
+        metatag_links = []
         for k, v in metadata.items():
             stmt = select(models.Metatag).where(models.Metatag.name == k)
             results = session.exec(stmt)
@@ -104,9 +117,22 @@ class GreatTodo(MagicTodoMixin):
             if metatag is None:
                 metatag = models.Metatag(name=k)
 
-            mlink = models.MetatagLink(metatag=metatag, todo=mtodo, value=v)
-            mtodo.metatag_links.append(mlink)
+            stmt = (
+                select(models.MetatagLink)
+                .where(models.MetatagLink.todo_id == mtodo.id)
+                .where(models.MetatagLink.metatag_id == metatag.id)
+            )
+            results = session.exec(stmt)
+            mlink = results.first()
 
+            if mlink is None:
+                mlink = models.MetatagLink(
+                    metatag=metatag, todo=mtodo, value=v
+                )
+
+            metatag_links.append(mlink)
+
+        mtodo.metatag_links = metatag_links
         return mtodo
 
 
@@ -117,11 +143,12 @@ def main() -> None:
     engine = db.cached_engine("sqlite:///greatday.db")
     with Session(engine) as sess:
         todo = GreatTodo.from_line(
-            f"o {sys.argv[1]} | @home +pig due:2022-06-02"
+            f"o {sys.argv[1]} | @home +dog +bad due:2022-06-02"
         ).unwrap()
         mtodo = todo.to_model(sess)
         sess.add(mtodo)
         sess.commit()
+        print("\n" + GreatTodo.from_model(mtodo).to_line())
 
 
 if __name__ == "__main__":
