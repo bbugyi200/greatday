@@ -14,6 +14,9 @@ from sqlmodel import (
 )
 
 
+###############################################################################
+# abstract model classes
+###############################################################################
 class Base(SQLModel):
     """Abstract base model class."""
 
@@ -28,6 +31,15 @@ class TodoLink(SQLModel):
     )
 
 
+class Tag(Base):
+    """Abstract model class for todo.txt tags."""
+
+    name: str = Field(sa_column=Column(String, unique=True))
+
+
+###############################################################################
+# link models (i.e. assocation tables for many-to-many relationships)
+###############################################################################
 class ProjectLink(TodoLink, table=True):
     """Association model for todos-to-projects relationships."""
 
@@ -65,6 +77,9 @@ class MetatagLink(TodoLink, table=True):
     value: str
 
 
+###############################################################################
+# model used to store todos
+###############################################################################
 class Todo(Base, table=True):
     """Model class for greatday Todos."""
 
@@ -88,12 +103,9 @@ class Todo(Base, table=True):
     metatag_links: List["MetatagLink"] = Relationship(back_populates="todo")
 
 
-class Tag(Base):
-    """Abstract model class for todo.txt tags."""
-
-    name: str = Field(sa_column=Column(String, unique=True))
-
-
+###############################################################################
+# tag models
+###############################################################################
 class Project(Tag, table=True):
     """Model class for todo.txt project tags (e.g. +greatday)."""
 
