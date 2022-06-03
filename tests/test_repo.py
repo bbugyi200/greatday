@@ -8,6 +8,7 @@ from pytest import fixture
 
 from greatday._repo import SQLRepo
 from greatday._todo import GreatTodo
+from greatday import db
 
 
 TODO_LINES = [
@@ -20,6 +21,10 @@ TODO_LINES = [
 @fixture(name="sql_repo")
 def sql_repo_fixture() -> SQLRepo:
     """Returns a SQLRepo populated with dummy data."""
+    # The following line is necessary so we get a new DB instance everytime
+    # this fixture is used.
+    db.cached_engine.cache_clear()
+
     # HACK: see https://github.com/tiangolo/sqlmodel/issues/189
     warnings.filterwarnings(
         "ignore",
@@ -40,3 +45,11 @@ def test_sql_add(sql_repo: SQLRepo) -> None:
     SQLRepo.add() method for us.
     """
     assert len(TODO_LINES) == len(sql_repo.all().unwrap())
+
+
+def test_sql_get_and_remove(sql_repo: SQLRepo) -> None:
+    """Tests the SQLRepo.get() and SQLRepo.remove() methods."""
+    key = "1"
+    todo = sql_repo.get(key).unwrap()
+    assert todo == sql_repo.remove(key).unwrap()
+    assert len(TODO_LINES) == len(sql_repo.all().unwrap()) + 1
