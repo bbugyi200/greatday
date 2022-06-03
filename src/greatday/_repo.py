@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Final
+from typing import Callable, Final
 
 from eris import ErisResult, Err, Ok
 from logrus import Logger
 from magodo import TodoGroup
 from potoroo import TaggedRepo
-from sqlalchemy.sql.elements import BinaryExpression
+from sqlalchemy.future import Engine
 from sqlmodel import Session, select
 from typist import PathLike
 
@@ -28,9 +28,14 @@ DEFAULT_TODO_DIR: Final = "todos"
 class SQLRepo(TaggedRepo[str, GreatTodo, GreatTag]):
     """Repo that stores Todos in sqlite database."""
 
-    def __init__(self, url: str) -> None:
+    def __init__(
+        self,
+        url: str,
+        *,
+        engine_factory: Callable[[str], Engine] = db.create_cached_engine,
+    ) -> None:
         self.url = url
-        self.engine = db.create_cached_engine(url)
+        self.engine = engine_factory(url)
 
     def add(self, todo: GreatTodo, /, *, key: str = None) -> ErisResult[str]:
         """Adds a new Todo to the DB.
@@ -105,9 +110,6 @@ class SQLRepo(TaggedRepo[str, GreatTodo, GreatTag]):
             for child_tag in tag.tags:
                 if child_tag.done is not None:
                     stmt = stmt.where(models.Todo.done == child_tag.done)
-                    pred_type = type(models.Todo.done == child_tag.done)
-                    print(pred_type, repr(pred_type))
-                    assert False
 
                 for mtodo in session.exec(stmt).all():
                     if mtodo.id not in found_mtodo_ids:

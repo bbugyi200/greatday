@@ -37,17 +37,13 @@ GET_BY_TAG_PARAMS: list[tuple[str, list[int]]] = [("o", [1, 2]), ("x", [3])]
 @fixture(name="sql_repo")
 def sql_repo_fixture() -> SQLRepo:
     """Returns a SQLRepo populated with dummy data."""
-    # The following line is necessary so we get a new DB instance everytime
-    # this fixture is used.
-    db.create_cached_engine.cache_clear()
-
     # HACK: see https://github.com/tiangolo/sqlmodel/issues/189
     warnings.filterwarnings(
         "ignore",
         ".*Class SelectOfScalar will not make use of SQL compilation"
         " caching.*",
     )
-    sql_repo = SQLRepo("sqlite://")
+    sql_repo = SQLRepo("sqlite://", engine_factory=db.create_engine)
     for line in TODO_LINES:
         todo = GreatTodo.from_line(line).unwrap()
         sql_repo.add(todo).unwrap()
