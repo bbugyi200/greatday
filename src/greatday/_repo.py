@@ -227,23 +227,25 @@ class FileRepo(TaggedRepo[str, GreatTodo, GreatTag]):
         as search criteria.
         """
 
-        todos: set[GreatTodo] = set()
+        todos: list[GreatTodo] = []
+        ids: set[str] = set()
         todo_group = self.todo_group
         for child_tag in tag.tags:
-            todos |= set(
-                todo_group.filter_by(
-                    contexts=child_tag.contexts,
-                    create_date_ranges=child_tag.create_date_ranges,
-                    desc_filters=child_tag.desc_filters,
-                    done_date_ranges=child_tag.done_date_ranges,
-                    done=child_tag.done,
-                    epics=child_tag.epics,
-                    metadata_filters=child_tag.metadata_filters,
-                    priorities=child_tag.priorities,
-                    projects=child_tag.projects,
-                )
-            )
-        return Ok(list(todos))
+            for todo in todo_group.filter_by(
+                contexts=child_tag.contexts,
+                create_date_ranges=child_tag.create_date_ranges,
+                desc_filters=child_tag.desc_filters,
+                done_date_ranges=child_tag.done_date_ranges,
+                done=child_tag.done,
+                epics=child_tag.epics,
+                metadata_filters=child_tag.metadata_filters,
+                priorities=child_tag.priorities,
+                projects=child_tag.projects,
+            ):
+                if todo.ident not in ids:
+                    ids.add(todo.ident)
+                    todos.append(todo)
+        return Ok(todos)
 
     def remove_by_tag(self, tag: GreatTag) -> ErisResult[list[GreatTodo]]:
         """Remove a Todo from disk by using a tag.
