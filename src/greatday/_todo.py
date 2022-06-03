@@ -59,6 +59,16 @@ class GreatTodo(MagicTodoMixin):
 
     def to_model(self, session: Session, key: str = None) -> models.Todo:
         """Converts a GreatTodo into something that the DB can work with."""
+        metadata = dict(self.metadata.items())
+        id_metatag = metadata.get("id")
+        if id_metatag is not None:
+            # we don't want to duplicate this in our DB (the primary key will
+            # have the same value)
+            del metadata["id"]
+
+        if key is None and id_metatag is not None:
+            key = id_metatag
+
         desc = drop_word_if_startswith(self.desc, "id:")
         mtodo_kwargs: dict[str, Any] = dict(
             create_date=self.create_date,
@@ -68,26 +78,16 @@ class GreatTodo(MagicTodoMixin):
             priority=self.priority,
         )
 
-        metadata = dict(self.metadata.items())
-        id_metatag = metadata.get("id")
-        if id_metatag is not None:
-            # we don't want to duplicate this in our DB (the primary key will
-            # have the same value)
-            del metadata["id"]
-
-        if key is not None and key != self.ident:
-            mtodo_kwargs["id"] = int(key)
-
         stmt: Any
-        if id_metatag is None or "id" in mtodo_kwargs:
+        if key is None:
             mtodo = models.Todo(**mtodo_kwargs)
         else:
-            stmt = select(models.Todo).where(models.Todo.id == int(id_metatag))
+            stmt = select(models.Todo).where(models.Todo.id == int(key))
             results = session.exec(stmt)
             maybe_mtodo = results.first()
             if maybe_mtodo is None:
                 mtodo = models.Todo(**mtodo_kwargs)
-                mtodo.id = int(id_metatag)
+                mtodo.id = int(key)
             else:
                 mtodo = maybe_mtodo
                 for k, v in mtodo_kwargs.items():
