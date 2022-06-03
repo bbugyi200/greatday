@@ -97,6 +97,25 @@ class SQLRepo(TaggedRepo[str, GreatTodo, GreatTag]):
 
     def get_by_tag(self, tag: GreatTag) -> ErisResult[list[GreatTodo]]:
         """Get Todo(s) from DB by using a tag."""
+        todos: list[GreatTodo] = []
+        found_mtodo_ids: set[int] = set()
+        with Session(self.engine) as session:
+            stmt = select(models.Todo)
+            for child_tag in tag.tags:
+                if child_tag.done is not None:
+                    stmt = stmt.where(models.Todo.done == child_tag.done)
+
+                for mtodo in session.exec(stmt).all():
+                    if mtodo.id not in found_mtodo_ids:
+                        assert mtodo.id is not None, (
+                            "All of these Todo models are being pulled from a"
+                            " SELECT statement, so they should already have an"
+                            " 'id' field."
+                        )
+                        found_mtodo_ids.add(mtodo.id)
+                        todo = GreatTodo.from_model(mtodo)
+                        todos.append(todo)
+        return Ok(todos)
 
     def remove_by_tag(self, tag: GreatTag) -> ErisResult[list[GreatTodo]]:
         """Removes Todo(s) from DB by using a tag."""
