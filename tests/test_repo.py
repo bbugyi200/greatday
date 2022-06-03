@@ -14,8 +14,8 @@ from greatday._todo import GreatTodo
 params = mark.parametrize
 
 TODO_LINES = [
-    "o 2000-01-01 Do Laundry | @home",
-    "o 2000-02-03 Buy groceries | @out +buy due:2000-02-03",
+    "o 2000-01-01 Do Laundry | @home @boring foo:bar",
+    "o 2000-02-03 Buy groceries | @out @boring +buy foo:bar due:2000-02-03",
     "x 2000-01-02 2000-01-01 Finish greatday tests | @dev +greatday",
 ]
 
@@ -64,5 +64,9 @@ def test_sql_update(sql_repo: SQLRepo, key: str) -> None:
         TODO_LINES[int(key) - 1] + f" id:{key}"
     ).unwrap()
     todo = GreatTodo.from_line(f"o foobar @foo @bar id:{key}").unwrap()
-    assert old_todo == sql_repo.update(key, todo).unwrap()
-    assert todo == sql_repo.get(key).unwrap()
+
+    actual_old_todo = sql_repo.update(key, todo).unwrap()
+    assert old_todo == actual_old_todo
+
+    actual_todo = sql_repo.get(key).unwrap()
+    assert todo == actual_todo
