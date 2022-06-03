@@ -97,6 +97,17 @@ class SQLRepo(TaggedRepo[str, GreatTodo, GreatTag]):
             self.remove(todo.ident).unwrap()
         return Ok(removed_todos)
 
+    def all(self) -> ErisResult[list[GreatTodo]]:
+        """Returns all Todos contained in the underlying SQL database."""
+        todos = []
+        with Session(self.engine) as session:
+            stmt = select(models.Todo)
+            results = session.exec(stmt)
+            for mtodo in results.all():
+                todo = GreatTodo.from_model(mtodo)
+                todos.append(todo)
+        return Ok(todos)
+
 
 class FileRepo(TaggedRepo[str, GreatTodo, GreatTag]):
     """Repo that stores Todos on disk."""
