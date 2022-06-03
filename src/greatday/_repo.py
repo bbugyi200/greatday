@@ -87,20 +87,13 @@ class SQLRepo(TaggedRepo[str, GreatTodo, GreatTag]):
 
     def update(self, key: str, todo: GreatTodo, /) -> ErisResult[GreatTodo]:
         """Overwrite an existing Todo on disk."""
-        with Session(self.engine) as session:
-            stmt = select(models.Todo).where(models.Todo.id == int(key))
-            results = session.exec(stmt)
-            old_mtodo = results.first()
-            if old_mtodo is None:
-                return Err(f"Old Todo with this ID does not exist. | id={key}")
+        old_todo = self.remove(key).unwrap()
+        if old_todo is None:
+            return Err(f"Old Todo with this ID does not exist. | id={key}")
 
-            old_todo = GreatTodo.from_model(old_mtodo)
+        self.add(todo, key=key).unwrap()
 
-            mtodo = todo.to_model(session, key=key)
-            session.add(mtodo)
-            session.commit()
-
-            return Ok(old_todo)
+        return Ok(old_todo)
 
     def get_by_tag(self, tag: GreatTag) -> ErisResult[list[GreatTodo]]:
         """Get Todo(s) from DB by using a tag."""
