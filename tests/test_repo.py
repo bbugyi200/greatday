@@ -55,3 +55,14 @@ def test_sql_get_and_remove(sql_repo: SQLRepo, key: str) -> None:
     todo = sql_repo.get(key).unwrap()
     assert todo == sql_repo.remove(key).unwrap()
     assert len(TODO_LINES) == len(sql_repo.all().unwrap()) + 1
+
+
+@params("key", ["1", "2", "3"])
+def test_sql_update(sql_repo: SQLRepo, key: str) -> None:
+    """Tests the SQLRepo.update() method."""
+    old_todo = GreatTodo.from_line(
+        TODO_LINES[int(key) - 1] + f" id:{key}"
+    ).unwrap()
+    todo = GreatTodo.from_line(f"o foobar @foo @bar id:{key}").unwrap()
+    assert old_todo == sql_repo.update(key, todo).unwrap()
+    assert todo == sql_repo.get(key).unwrap()
