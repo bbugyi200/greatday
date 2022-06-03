@@ -39,7 +39,7 @@ def sql_repo_fixture() -> SQLRepo:
     """Returns a SQLRepo populated with dummy data."""
     # The following line is necessary so we get a new DB instance everytime
     # this fixture is used.
-    db.cached_engine.cache_clear()
+    db.create_cached_engine.cache_clear()
 
     # HACK: see https://github.com/tiangolo/sqlmodel/issues/189
     warnings.filterwarnings(

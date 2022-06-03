@@ -141,7 +141,7 @@ def main() -> None:
     """Test driver for this module."""
     import sys
 
-    engine = db.cached_engine("sqlite:///greatday.db")
+    engine = db.create_cached_engine("sqlite:///greatday.db")
     with Session(engine) as sess:
         todo = GreatTodo.from_line(
             f"o {sys.argv[1]} | @home +dog +bad due:2022-06-02"

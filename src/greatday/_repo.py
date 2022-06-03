@@ -9,6 +9,7 @@ from eris import ErisResult, Err, Ok
 from logrus import Logger
 from magodo import TodoGroup
 from potoroo import TaggedRepo
+from sqlalchemy.sql.elements import BinaryExpression
 from sqlmodel import Session, select
 from typist import PathLike
 
@@ -29,7 +30,7 @@ class SQLRepo(TaggedRepo[str, GreatTodo, GreatTag]):
 
     def __init__(self, url: str) -> None:
         self.url = url
-        self.engine = db.cached_engine(url)
+        self.engine = db.create_cached_engine(url)
 
     def add(self, todo: GreatTodo, /, *, key: str = None) -> ErisResult[str]:
         """Adds a new Todo to the DB.
@@ -104,6 +105,9 @@ class SQLRepo(TaggedRepo[str, GreatTodo, GreatTag]):
             for child_tag in tag.tags:
                 if child_tag.done is not None:
                     stmt = stmt.where(models.Todo.done == child_tag.done)
+                    pred_type = type(models.Todo.done == child_tag.done)
+                    print(pred_type, repr(pred_type))
+                    assert False
 
                 for mtodo in session.exec(stmt).all():
                     if mtodo.id not in found_mtodo_ids:
