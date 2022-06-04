@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Final
 
@@ -11,18 +12,25 @@ from magodo import TodoGroup
 from potoroo import TaggedRepo
 from sqlalchemy.future import Engine
 from sqlmodel import Session, select
+from sqlmodel.sql.expression import SelectOfScalar
 from typist import PathLike
 
 from . import db, models
 from ._dates import init_yyyymm_path
 from ._ids import NULL_ID, init_next_todo_id
-from ._tag import GreatTag
+from ._tag import GreatTag, Tag
 from ._todo import GreatTodo
 
 
 logger = Logger(__name__)
 
+SelectOfTodo = SelectOfScalar[models.Todo]
+SQLStatementParser = Callable[["SQLTag", SelectOfTodo], SelectOfTodo]
+
 DEFAULT_TODO_DIR: Final = "todos"
+
+# will be populated by the @sql_stmt_parser decorator
+SQL_STMT_PARSERS: list[SQLStatementParser] = []
 
 
 class SQLRepo(TaggedRepo[str, GreatTodo, GreatTag]):
@@ -96,10 +104,8 @@ class SQLRepo(TaggedRepo[str, GreatTodo, GreatTag]):
         todos: list[GreatTodo] = []
         found_mtodo_ids: set[int] = set()
         with Session(self.engine) as session:
-            stmt = select(models.Todo)
             for child_tag in tag.tags:
-                if child_tag.done is not None:
-                    stmt = stmt.where(models.Todo.done == child_tag.done)
+                stmt = SQLTag(child_tag).to_stmt()
 
                 for mtodo in session.exec(stmt).all():
                     if mtodo.id not in found_mtodo_ids:
@@ -130,6 +136,40 @@ class SQLRepo(TaggedRepo[str, GreatTodo, GreatTag]):
                 todo = GreatTodo.from_model(mtodo)
                 todos.append(todo)
         return Ok(todos)
+
+
+def sql_stmt_parser(parser: SQLStatementParser) -> SQLStatementParser:
+    """Decorator that registers statement parsers for SQLTag class."""
+    SQL_STMT_PARSERS.append(parser)
+    return parser
+
+
+@dataclass(frozen=True)
+class SQLTag:
+    """Wrapper around Tag objects that helps build SQL statements."""
+
+    tag: Tag
+
+    def to_stmt(self) -> SelectOfTodo:
+        """Constructs a SQL statement from the provided Tag object."""
+        stmt = select(models.Todo)
+        for parse_stmt in SQL_STMT_PARSERS:
+            stmt = parse_stmt(self, stmt)
+        return stmt
+
+    @sql_stmt_parser
+    def done_parser(self, stmt: SelectOfTodo) -> SelectOfTodo:
+        """Parser for done status (i.e. 'x' or 'o')."""
+        new_stmt = stmt
+        if self.tag.done is not None:
+            new_stmt = new_stmt.where(models.Todo.done == self.tag.done)
+        return new_stmt
+
+    @sql_stmt_parser
+    def prefix_tag_parser(self, stmt: SelectOfTodo) -> SelectOfTodo:
+        """Parser for prefix tags (e.g. '@home' or '+greatday')."""
+        new_stmt = stmt
+        return new_stmt
 
 
 class FileRepo(TaggedRepo[str, GreatTodo, GreatTag]):
