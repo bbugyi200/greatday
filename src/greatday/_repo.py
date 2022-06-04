@@ -105,7 +105,7 @@ class SQLRepo(TaggedRepo[str, GreatTodo, GreatTag]):
         found_mtodo_ids: set[int] = set()
         with Session(self.engine) as session:
             for child_tag in tag.tags:
-                stmt = SQLTag(child_tag).to_stmt()
+                stmt = SQLTag(session, child_tag).to_stmt()
 
                 for mtodo in session.exec(stmt).all():
                     if mtodo.id not in found_mtodo_ids:
@@ -148,6 +148,7 @@ def sql_stmt_parser(parser: SQLStatementParser) -> SQLStatementParser:
 class SQLTag:
     """Wrapper around Tag objects that helps build SQL statements."""
 
+    session: Session
     tag: Tag
 
     def to_stmt(self) -> SelectOfTodo:
@@ -168,8 +169,13 @@ class SQLTag:
     @sql_stmt_parser
     def prefix_tag_parser(self, stmt: SelectOfTodo) -> SelectOfTodo:
         """Parser for prefix tags (e.g. '@home' or '+greatday')."""
-        new_stmt = stmt
-        return new_stmt
+        for ctx in self.tag.contexts:
+            stmt = (
+                stmt.join(models.ContextLink)
+                .join(models.Context)
+                .where(models.Context.name == ctx)
+            )
+        return stmt
 
 
 class FileRepo(TaggedRepo[str, GreatTodo, GreatTag]):

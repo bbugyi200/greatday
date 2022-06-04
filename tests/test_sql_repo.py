@@ -22,6 +22,8 @@ TODO_LINES = (
     "o 2000-02-03 Buy groceries | @out @boring +buy foo:bar due:2000-02-03",
     # ID #3
     "x 2000-01-02 2000-01-01 Finish greatday tests | @dev +greatday",
+    # ID #4
+    "o 1900-01-01 Finish greatday tests | @dev +greatday due:2000-01-01",
 )
 
 # the database IDs that should be associated with each of the todo lines above
@@ -31,7 +33,12 @@ TODO_LINE_IDS = tuple(str(n) for n in range(1, len(TODO_LINES) + 1))
 #
 # tag: used to construct GreatTag objects
 # keys: iist of todo line keys that this tag should match
-GET_BY_TAG_PARAMS: list[tuple[str, list[int]]] = [("o", [1, 2]), ("x", [3])]
+GET_BY_TAG_PARAMS: list[tuple[str, list[int]]] = [
+    ("o", [1, 2, 4]),
+    ("x", [3]),
+    ("@home", [1]),
+    ("@boring", [1, 2]),
+]
 
 
 @fixture(name="sql_repo")
