@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Callable, Final
 
-from eris import ErisResult, Err, Ok
+from eris import ErisResult, Ok
 from logrus import Logger
 from magodo import TodoGroup
 from potoroo import TaggedRepo
@@ -90,16 +90,6 @@ class SQLRepo(TaggedRepo[str, GreatTodo, GreatTag]):
                 session.delete(mtodo)
                 session.commit()
                 return Ok(todo)
-
-    def update(self, key: str, todo: GreatTodo, /) -> ErisResult[GreatTodo]:
-        """Overwrite an existing Todo on disk."""
-        old_todo = self.remove(key).unwrap()
-        if old_todo is None:
-            return Err(f"Old Todo with this ID does not exist. | id={key}")
-
-        self.add(todo, key=key).unwrap()
-
-        return Ok(old_todo)
 
     def get_by_tag(self, tag: GreatTag) -> ErisResult[list[GreatTodo]]:
         """Get Todo(s) from DB by using a tag."""
@@ -301,3 +291,7 @@ class FileRepo(TaggedRepo[str, GreatTodo, GreatTag]):
         for todo in removed_todos:
             self.remove(todo.ident).unwrap()
         return Ok(removed_todos)
+
+    def all(self) -> ErisResult[list[GreatTodo]]:
+        """Retreive all Todos stored on disk."""
+        return Ok(list(self.todo_group))
