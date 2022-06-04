@@ -39,7 +39,7 @@ greenlet==1.1.2
     # via sqlalchemy
 magodo==0.10.1
     # via -r requirements.in
-potoroo==0.3.2
+potoroo==0.4.1
     # via -r requirements.in
 pydantic==1.9.1
     # via
@@ -61,7 +61,7 @@ sqlalchemy==1.4.35
     # via
     #   -r requirements.in
     #   sqlmodel
-sqlalchemy2-stubs==0.0.2a22
+sqlalchemy2-stubs==0.0.2a23
     # via sqlmodel
 sqlmodel==0.0.6
     # via -r requirements.in
