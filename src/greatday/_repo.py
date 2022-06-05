@@ -11,7 +11,7 @@ from eris import ErisResult, Ok
 from logrus import Logger
 import magodo
 from magodo import TodoGroup
-from potoroo import TaggedRepo
+from potoroo import Repo, TaggedRepo
 from sqlalchemy import func
 from sqlalchemy.future import Engine
 from sqlmodel import Integer, Session, or_, select
@@ -282,7 +282,7 @@ def col_to_int(value: Any) -> Any:
     return func.cast(value, Integer)
 
 
-class FileRepo(TaggedRepo[str, GreatTodo, GreatTag]):
+class FileRepo(Repo[str, GreatTodo]):
     """Repo that stores Todos on disk."""
 
     def __init__(self, data_dir: PathLike, path: PathLike = None) -> None:
@@ -403,44 +403,6 @@ class FileRepo(TaggedRepo[str, GreatTodo, GreatTag]):
             f.write("\n".join(t.to_line() for t in sorted(all_todos)))
 
         return Ok(old_todo)
-
-    def get_by_tag(self, tag: GreatTag) -> ErisResult[list[GreatTodo]]:
-        """Get Todos from disk by using a tag.
-
-        Retrieves a list of Todos from disk by using another Todo's properties
-        as search criteria.
-        """
-
-        todos: list[GreatTodo] = []
-        ids: set[str] = set()
-        todo_group = self.todo_group
-        for child_tag in tag.tags:
-            for todo in todo_group.filter_by(
-                contexts=child_tag.contexts,
-                create_date_ranges=child_tag.create_date_ranges,
-                desc_filters=child_tag.desc_filters,
-                done_date_ranges=child_tag.done_date_ranges,
-                done=child_tag.done,
-                epics=child_tag.epics,
-                metadata_filters=child_tag.metadata_filters,
-                priorities=child_tag.priorities,
-                projects=child_tag.projects,
-            ):
-                if todo.ident not in ids:
-                    ids.add(todo.ident)
-                    todos.append(todo)
-        return Ok(todos)
-
-    def remove_by_tag(self, tag: GreatTag) -> ErisResult[list[GreatTodo]]:
-        """Remove a Todo from disk by using a tag.
-
-        Removes a list of Todos from disk by using another Todo's properties
-        as search criteria.
-        """
-        removed_todos = self.get_by_tag(tag).unwrap()
-        for todo in removed_todos:
-            self.remove(todo.ident).unwrap()
-        return Ok(removed_todos)
 
     def all(self) -> ErisResult[list[GreatTodo]]:
         """Retreive all Todos stored on disk."""

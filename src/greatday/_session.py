@@ -53,7 +53,7 @@ class GreatSession(UnitOfWork[FileRepo]):
                 self.repo.add(todo, key=todo.ident)
 
         self._old_todo_map = {
-            todo.ident: todo for todo in self.repo.todo_group
+            todo.ident: todo for todo in self.repo.all().unwrap()
         }
 
     def __enter__(self) -> GreatSession:
@@ -81,7 +81,7 @@ class GreatSession(UnitOfWork[FileRepo]):
         """
         removed_todo_keys = list(self._old_todo_map.keys())
         new_todos = {}
-        for todo in self.repo.todo_group:
+        for todo in self.repo.all().unwrap():
             key = todo.ident
             if key in removed_todo_keys:
                 removed_todo_keys.remove(key)
