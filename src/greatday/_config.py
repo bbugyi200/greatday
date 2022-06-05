@@ -15,6 +15,8 @@ from .types import YesNoDefault
 
 Command = Literal["add", "list", "tui"]
 
+DEFAULT_DATA_DIR = xdg.get_full_dir("data", APP_NAME)
+
 
 class Config(clack.Config):
     """Shared clack configuration class."""
@@ -22,7 +24,8 @@ class Config(clack.Config):
     command: Command
 
     # ----- CONFIG
-    data_dir: Path = xdg.get_full_dir("data", APP_NAME)
+    data_dir: Path = DEFAULT_DATA_DIR
+    database_url: str = "sqlite:///" + str(DEFAULT_DATA_DIR / "greatday.db")
 
 
 class AddConfig(Config):

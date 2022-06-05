@@ -10,7 +10,7 @@ from logrus import Logger
 
 from ._common import CTX_INBOX, drop_words
 from ._config import AddConfig, ListConfig, TUIConfig
-from ._repo import FileRepo
+from ._repo import SQLRepo
 from ._tag import GreatTag
 from ._todo import GreatTodo
 from ._tui import start_textual_app
@@ -29,7 +29,7 @@ def run_add(cfg: AddConfig) -> int:
     """Runner for the 'add' subcommand."""
     log = logger.bind_fargs(locals())
 
-    repo = FileRepo(cfg.data_dir)
+    repo = SQLRepo(cfg.database_url)
     todo = GreatTodo.from_line(cfg.todo_line).unwrap()
 
     x_found = False
@@ -57,7 +57,7 @@ def run_add(cfg: AddConfig) -> int:
 @runner
 def run_list(cfg: ListConfig) -> int:
     """Runner for the 'list' subcommand."""
-    repo = FileRepo(cfg.data_dir)
+    repo = SQLRepo(cfg.database_url)
 
     query: str
     if cfg.query is None:
@@ -77,5 +77,5 @@ def run_list(cfg: ListConfig) -> int:
 @runner
 def run_tui(cfg: TUIConfig) -> int:
     """Runer for the 'tui' subcommand."""
-    start_textual_app(cfg.data_dir)
+    start_textual_app(cfg.database_url, cfg.data_dir)
     return 0

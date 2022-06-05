@@ -13,12 +13,12 @@ from typing import Type, cast
 from logrus import Logger
 import magodo
 from magodo.types import Priority
-from potoroo import UnitOfWork
+from potoroo import Repo, UnitOfWork
 from typist import PathLike
 
 from ._dates import get_relative_date
 from ._ids import NULL_ID
-from ._repo import FileRepo
+from ._repo import FileRepo, SQLRepo
 from ._tag import GreatTag
 from ._todo import GreatTodo
 
@@ -31,11 +31,13 @@ class GreatSession(UnitOfWork[FileRepo]):
 
     def __init__(
         self,
+        db_url: str,
         data_dir: PathLike,
         tag: GreatTag = None,
         *,
         name: str = None,
     ) -> None:
+        self.db_url = db_url
         self.data_dir = Path(data_dir)
 
         prefix = None if name is None else f"{name}."
@@ -45,7 +47,7 @@ class GreatSession(UnitOfWork[FileRepo]):
         # will be accessed via `self.repo` from this point forward
         self._repo = FileRepo(self.data_dir, self.path)
 
-        self._master_repo = FileRepo(self.data_dir)
+        self._master_repo = SQLRepo(self.db_url)
         if tag is not None:
             for todo in self._master_repo.get_by_tag(tag).unwrap():
                 self.repo.add(todo, key=todo.ident)
@@ -116,7 +118,7 @@ class GreatSession(UnitOfWork[FileRepo]):
 
 
 def _commit_todo_changes(
-    repo: FileRepo, todo: GreatTodo, old_todo: GreatTodo | None
+    repo: Repo[str, GreatTodo], todo: GreatTodo, old_todo: GreatTodo | None
 ) -> None:
     """Updates todo in repo.
 
