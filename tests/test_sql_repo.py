@@ -21,9 +21,11 @@ TODO_LINES = (
     # ID #2
     "(B) 2000-02-03 Buy groceries | @out @boring +buy foo:bar due:2000-02-03",
     # ID #3
-    "x 2000-01-02 2000-01-01 Finish greatday tests | @dev +greatday",
+    "x 2000-01-02 2000-01-01 Finish greatday tests | @dev +greatday p:0",
     # ID #4
     "o 1900-01-01 Finish greatday tests | @dev +greatday due:2000-01-01",
+    # ID #5
+    "x 2022-06-05 Some other todo | @misc p:1",
 )
 
 # the database IDs that should be associated with each of the todo lines above
@@ -35,9 +37,9 @@ TODO_LINE_IDS = tuple(str(n) for n in range(1, len(TODO_LINES) + 1))
 # keys: iist of todo line keys that this tag should match
 GET_BY_TAG_PARAMS: list[tuple[str, list[int]]] = [
     ("o", [1, 2, 4]),
-    ("x", [3]),
+    ("x", [3, 5]),
     ("@home", [1]),
-    ("!@home", [2, 3, 4]),
+    ("!@home", [2, 3, 4, 5]),
     ("!@home @boring", [2]),
     ("@home @boring", [1]),
     ("@boring", [1, 2]),
@@ -48,7 +50,12 @@ GET_BY_TAG_PARAMS: list[tuple[str, list[int]]] = [
     ("(a-b)", [2]),
     ("(a,b)", [2]),
     ("due", [2, 4]),
-    ("!due", [1, 3]),
+    ("!due", [1, 3, 5]),
+    ("due=2000-01-01", [4]),
+    ("due>=2000-01-01", [2, 4]),
+    ("due>2000-01-01", [2]),
+    ("p", [3, 5]),
+    ("p>0", [5]),
 ]
 
 

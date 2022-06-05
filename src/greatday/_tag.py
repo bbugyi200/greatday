@@ -45,13 +45,22 @@ class MetatagOperator(enum.Enum):
     GE = enum.auto()
 
 
+class MetatagValueType(enum.Enum):
+    """Specifies the data type of a MetatagFilter's value."""
+
+    DATE = enum.auto()
+    INTEGER = enum.auto()
+    STRING = enum.auto()
+
+
 @dataclass(frozen=True)
 class MetatagFilter:
     """Represents a single metatag filter (e.g. 'due<=0d' or '!recur')."""
 
     key: str
-    value: str | None
-    op: MetatagOperator
+    value: str = ""
+    op: MetatagOperator = MetatagOperator.EXISTS
+    value_type: MetatagValueType = MetatagValueType.STRING
 
 
 @dataclass(frozen=True)
@@ -186,23 +195,23 @@ class Tag:
         if word.isalpha():
             self.metadata_filters.append(MetadataFilter(word))
             self.metatag_filters.append(
-                MetatagFilter(word, None, MetatagOperator.EXISTS)
+                MetatagFilter(word, op=MetatagOperator.EXISTS)
             )
         elif word.startswith("!") and word[1:].isalpha():
             self.metadata_filters.append(
                 MetadataFilter(word[1:], check=lambda _: False, required=False)
             )
             self.metatag_filters.append(
-                MetatagFilter(word[1:], None, MetatagOperator.NOT_EXISTS)
+                MetatagFilter(word[1:], op=MetatagOperator.NOT_EXISTS)
             )
         else:
-            for op_string, op in [
-                ("<=", operator.le),
-                (">=", operator.ge),
-                ("<", operator.lt),
-                (">", operator.gt),
-                ("!=", operator.ne),
-                ("=", operator.eq),
+            for op_string, op, metatag_op in [
+                ("<=", operator.le, MetatagOperator.LE),
+                (">=", operator.ge, MetatagOperator.GE),
+                ("<", operator.lt, MetatagOperator.LT),
+                (">", operator.gt, MetatagOperator.GT),
+                ("!=", operator.ne, MetatagOperator.NE),
+                ("=", operator.eq, MetatagOperator.EQ),
             ]:
                 key_and_value_string = word.split(op_string)
                 if len(key_and_value_string) != 2:
@@ -214,6 +223,7 @@ class Tag:
                 key = key.rstrip("?")
 
                 value: dt.date | str | int
+                value_type = MetatagValueType.STRING
                 if (
                     op_string in ["=", "!="]
                     and key not in RELATIVE_DATE_METATAGS
@@ -221,16 +231,27 @@ class Tag:
                     value = value_string
                 elif matches_date_fmt(value_string):
                     value = magodo.to_date(value_string)
+                    value_type = MetatagValueType.DATE
                 elif matches_relative_date_fmt(value_string):
                     value = get_relative_date(value_string)
+                    value_type = MetatagValueType.DATE
                 elif value_string.isdigit():
                     value = int(value_string)
+                    value_type = MetatagValueType.INTEGER
                 else:
                     value = value_string
 
                 check = _make_metadata_func(op, value)
                 self.metadata_filters.append(
                     MetadataFilter(key, check=check, required=required)
+                )
+                self.metatag_filters.append(
+                    MetatagFilter(
+                        key,
+                        value=value_string,
+                        op=metatag_op,
+                        value_type=value_type,
+                    )
                 )
                 break
             else:

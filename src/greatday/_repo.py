@@ -3,22 +3,25 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import operator
 from pathlib import Path
-from typing import Callable, Final
+from typing import Any, Callable, Final, TypeVar
 
 from eris import ErisResult, Ok
 from logrus import Logger
+import magodo
 from magodo import TodoGroup
 from potoroo import TaggedRepo
+from sqlalchemy import func
 from sqlalchemy.future import Engine
-from sqlmodel import Session, or_, select
+from sqlmodel import Integer, Session, or_, select
 from sqlmodel.sql.expression import SelectOfScalar
 from typist import PathLike
 
 from . import db, models
 from ._dates import init_yyyymm_path
 from ._ids import NULL_ID, init_next_todo_id
-from ._tag import GreatTag, MetadataFilter, MetatagOperator, Tag
+from ._tag import GreatTag, MetatagOperator, MetatagValueType, Tag
 from ._todo import GreatTodo
 
 
@@ -26,6 +29,7 @@ logger = Logger(__name__)
 
 SelectOfTodo = SelectOfScalar[models.Todo]
 SQLStatementParser = Callable[["SQLTag", SelectOfTodo], SelectOfTodo]
+T = TypeVar("T")
 
 DEFAULT_TODO_DIR: Final = "todos"
 
@@ -214,22 +218,57 @@ class SQLTag:
     def metatag_parser(self, stmt: SelectOfTodo) -> SelectOfTodo:
         """Parser for metatags (e.g. 'due<=0d')."""
         for mfilter in self.tag.metatag_filters:
-            if mfilter.op == MetatagOperator.EXISTS:
-                op = models.Todo.id.in_  # type: ignore[union-attr]
-            elif mfilter.op == MetatagOperator.NOT_EXISTS:
-                op = models.Todo.id.not_in  # type: ignore[union-attr]
-            else:
-                continue
-
             subquery = (
                 select(models.Todo.id)
                 .join(models.MetatagLink)
                 .join(models.Metatag)
                 .where(models.Metatag.name == mfilter.key)
             )
+
+            op = models.Todo.id.in_  # type: ignore[union-attr]
+            if mfilter.op == MetatagOperator.EXISTS:
+                pass
+            elif mfilter.op == MetatagOperator.NOT_EXISTS:
+                op = models.Todo.id.not_in  # type: ignore[union-attr]
+            else:
+                sub_op = {
+                    MetatagOperator.EQ: operator.eq,
+                    MetatagOperator.NE: operator.ne,
+                    MetatagOperator.LT: operator.lt,
+                    MetatagOperator.GT: operator.gt,
+                    MetatagOperator.LE: operator.le,
+                    MetatagOperator.GE: operator.ge,
+                }[mfilter.op]
+
+                value_type_map: dict[
+                    MetatagValueType,
+                    tuple[Callable[[Any], Any], Callable[[Any], Any]],
+                ] = {
+                    MetatagValueType.DATE: (func.date, magodo.to_date),
+                    MetatagValueType.INTEGER: (col_to_int, int),
+                    MetatagValueType.STRING: (noop, noop),
+                }
+                cast_model, cast_value = value_type_map[mfilter.value_type]
+                subquery = subquery.where(
+                    sub_op(
+                        cast_model(models.MetatagLink.value),
+                        cast_value(mfilter.value),
+                    )
+                )
+
             stmt = stmt.where(op(subquery))
 
         return stmt
+
+
+def noop(value: T) -> T:
+    """A function that does nothing."""
+    return value
+
+
+def col_to_int(value: Any) -> Any:
+    """Casts SQL table's column to integer."""
+    return func.cast(value, Integer)
 
 
 class FileRepo(TaggedRepo[str, GreatTodo, GreatTag]):
