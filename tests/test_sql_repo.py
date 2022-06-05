@@ -47,6 +47,8 @@ GET_BY_TAG_PARAMS: list[tuple[str, list[int]]] = [
     ("(b)", [2]),
     ("(a-b)", [2]),
     ("(a,b)", [2]),
+    ("due", [2, 4]),
+    ("!due", [1, 3]),
 ]
 
 

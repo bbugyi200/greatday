@@ -18,7 +18,7 @@ from typist import PathLike
 from . import db, models
 from ._dates import init_yyyymm_path
 from ._ids import NULL_ID, init_next_todo_id
-from ._tag import GreatTag, Tag
+from ._tag import GreatTag, MetadataFilter, MetatagOperator, Tag
 from ._todo import GreatTodo
 
 
@@ -213,6 +213,22 @@ class SQLTag:
     @sql_stmt_parser
     def metatag_parser(self, stmt: SelectOfTodo) -> SelectOfTodo:
         """Parser for metatags (e.g. 'due<=0d')."""
+        for mfilter in self.tag.metatag_filters:
+            if mfilter.op == MetatagOperator.EXISTS:
+                op = models.Todo.id.in_  # type: ignore[union-attr]
+            elif mfilter.op == MetatagOperator.NOT_EXISTS:
+                op = models.Todo.id.not_in  # type: ignore[union-attr]
+            else:
+                continue
+
+            subquery = (
+                select(models.Todo.id)
+                .join(models.MetatagLink)
+                .join(models.Metatag)
+                .where(models.Metatag.name == mfilter.key)
+            )
+            stmt = stmt.where(op(subquery))
+
         return stmt
 
 

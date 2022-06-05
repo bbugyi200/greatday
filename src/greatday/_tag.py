@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import datetime as dt
+import enum
 import operator
 import string
 from typing import Any, Callable, Iterable, cast
@@ -26,6 +27,31 @@ from ._dates import (
 logger = Logger(__name__)
 
 QueryParser = Callable[[str], ErisResult[str]]
+
+
+class MetatagOperator(enum.Enum):
+    """Used to determine what kind of metatag constraint has been specified."""
+
+    # exists / not exists
+    EXISTS = enum.auto()
+    NOT_EXISTS = enum.auto()
+
+    # comparison operators
+    EQ = enum.auto()
+    NE = enum.auto()
+    LT = enum.auto()
+    LE = enum.auto()
+    GT = enum.auto()
+    GE = enum.auto()
+
+
+@dataclass(frozen=True)
+class MetatagFilter:
+    """Represents a single metatag filter (e.g. 'due<=0d' or '!recur')."""
+
+    key: str
+    value: str | None
+    op: MetatagOperator
 
 
 @dataclass(frozen=True)
@@ -56,6 +82,7 @@ class Tag:
     done: bool | None = None
     epics: list[str] = field(default_factory=list)
     metadata_filters: list[MetadataFilter] = field(default_factory=list)
+    metatag_filters: list[MetatagFilter] = field(default_factory=list)
     priorities: list[Priority] = field(default_factory=list)
     projects: list[str] = field(default_factory=list)
 
@@ -158,9 +185,15 @@ class Tag:
         word, *rest = query.split(" ")
         if word.isalpha():
             self.metadata_filters.append(MetadataFilter(word))
+            self.metatag_filters.append(
+                MetatagFilter(word, None, MetatagOperator.EXISTS)
+            )
         elif word.startswith("!") and word[1:].isalpha():
             self.metadata_filters.append(
                 MetadataFilter(word[1:], check=lambda _: False, required=False)
+            )
+            self.metatag_filters.append(
+                MetatagFilter(word[1:], None, MetatagOperator.NOT_EXISTS)
             )
         else:
             for op_string, op in [
