@@ -169,12 +169,27 @@ class SQLTag:
     @sql_stmt_parser
     def prefix_tag_parser(self, stmt: SelectOfTodo) -> SelectOfTodo:
         """Parser for prefix tags (e.g. '@home' or '+greatday')."""
-        for ctx in self.tag.contexts:
-            stmt = (
-                stmt.join(models.ContextLink)
-                .join(models.Context)
-                .where(models.Context.name == ctx)
-            )
+        for prefix_tag_list, link_model, model in [
+            (self.tag.contexts, models.ContextLink, models.Context),
+            (self.tag.epics, models.EpicLink, models.Epic),
+            (self.tag.projects, models.ProjectLink, models.Project),
+        ]:
+            for prefix_tag in prefix_tag_list:
+                if prefix_tag.startswith("-"):
+                    subquery = (
+                        select(models.Todo.id)
+                        .join(link_model)
+                        .join(model)
+                        .where(model.name == prefix_tag[1:])
+                    )
+                    cond = models.Todo.id.not_in(subquery)  # type: ignore[union-attr]
+                    stmt = stmt.where(cond)
+                else:
+                    stmt = (
+                        stmt.join(link_model)
+                        .join(model)
+                        .where(model.name == prefix_tag)
+                    )
         return stmt
 
 
