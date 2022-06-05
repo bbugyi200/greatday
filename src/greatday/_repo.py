@@ -202,12 +202,12 @@ class SQLTag:
 
     @sql_stmt_parser
     def desc_parser(self, stmt: SelectOfTodo) -> SelectOfTodo:
-        """Parser for todo description."""
+        """Parser for todo description (e.g. '"foo"' or '!"bar"')"""
         return stmt
 
     @sql_stmt_parser
     def date_range_parser(self, stmt: SelectOfTodo) -> SelectOfTodo:
-        """Parser for create/done date range."""
+        """Parser for create/done dates (e.g. '^2000-01-01' or '$5d:0d')."""
         return stmt
 
     @sql_stmt_parser
