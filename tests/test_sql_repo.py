@@ -21,7 +21,7 @@ TODO_LINES = (
     # ID #2
     "(B) 2000-02-03 Buy groceries | @out @boring +buy foo:bar due:2000-02-03",
     # ID #3
-    "x 2000-01-02 2000-01-01 Finish greatday tests | @dev +greatday p:0",
+    "x 2010-01-02 2010-01-01 Finish greatday tests | @dev +greatday p:0",
     # ID #4
     "o 1900-01-01 Finish greatday tests | @dev +greatday due:2000-01-01",
     # ID #5
@@ -56,6 +56,10 @@ GET_BY_TAG_PARAMS: list[tuple[str, list[int]]] = [
     ("due>2000-01-01", [2]),
     ("p", [3, 5]),
     ("p>0", [5]),
+    ("^2000-01-01", [1]),
+    ("^2000-01-01:2010-12-31", [1, 2, 3]),
+    ("^2000-01-01:2010-12-31 $2010-01-01", []),
+    ("^2000-01-01:2010-12-31 $2010-01-02", [3]),
 ]
 
 

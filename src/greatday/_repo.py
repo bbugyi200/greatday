@@ -212,6 +212,17 @@ class SQLTag:
     @sql_stmt_parser
     def date_range_parser(self, stmt: SelectOfTodo) -> SelectOfTodo:
         """Parser for create/done dates (e.g. '^2000-01-01' or '$5d:0d')."""
+        for date_range_list, model_date in [
+            (self.tag.create_date_ranges, models.Todo.create_date),
+            (self.tag.done_date_ranges, models.Todo.done_date),
+        ]:
+            for date_range in date_range_list:
+                end_date = date_range.end or date_range.start
+                stmt = (
+                    stmt.where(model_date is not None)
+                    .where(model_date >= date_range.start)  # type: ignore[operator]
+                    .where(model_date <= end_date)  # type: ignore[operator]
+                )
         return stmt
 
     @sql_stmt_parser
