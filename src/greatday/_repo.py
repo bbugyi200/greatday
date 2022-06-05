@@ -256,8 +256,8 @@ class SQLTag:
                     tuple[Callable[[Any], Any], Callable[[Any], Any]],
                 ] = {
                     MetatagValueType.DATE: (func.date, magodo.to_date),
-                    MetatagValueType.INTEGER: (col_to_int, int),
-                    MetatagValueType.STRING: (noop, noop),
+                    MetatagValueType.INTEGER: (_col_to_int, int),
+                    MetatagValueType.STRING: (_noop, _noop),
                 }
                 cast_model, cast_value = value_type_map[mfilter.value_type]
                 subquery = subquery.where(
@@ -272,12 +272,12 @@ class SQLTag:
         return stmt
 
 
-def noop(value: T) -> T:
+def _noop(value: T) -> T:
     """A function that does nothing."""
     return value
 
 
-def col_to_int(value: Any) -> Any:
+def _col_to_int(value: Any) -> Any:
     """Casts SQL table's column to integer."""
     return func.cast(value, Integer)
 
