@@ -11,7 +11,7 @@ from logrus import Logger
 from magodo import TodoGroup
 from potoroo import TaggedRepo
 from sqlalchemy.future import Engine
-from sqlmodel import Session, select, or_
+from sqlmodel import Session, or_, select
 from sqlmodel.sql.expression import SelectOfScalar
 from typist import PathLike
 
@@ -198,6 +198,21 @@ class SQLTag:
             stmt = stmt.where(
                 or_(models.Todo.priority == p for p in self.tag.priorities)
             )
+        return stmt
+
+    @sql_stmt_parser
+    def desc_parser(self, stmt: SelectOfTodo) -> SelectOfTodo:
+        """Parser for todo description."""
+        return stmt
+
+    @sql_stmt_parser
+    def date_range_parser(self, stmt: SelectOfTodo) -> SelectOfTodo:
+        """Parser for create/done date range."""
+        return stmt
+
+    @sql_stmt_parser
+    def metatag_parser(self, stmt: SelectOfTodo) -> SelectOfTodo:
+        """Parser for metatags (e.g. 'due<=0d')."""
         return stmt
 
 

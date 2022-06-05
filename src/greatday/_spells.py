@@ -18,7 +18,7 @@ from magodo.spells import (
 )
 from magodo.types import LineSpell, T, TodoSpell
 
-from ._common import drop_words, drop_word_if_startswith
+from ._common import drop_word_if_startswith, drop_words
 from ._dates import (
     RELATIVE_DATE_METATAGS,
     dt_from_date_and_hhmm,
