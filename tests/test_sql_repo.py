@@ -15,7 +15,7 @@ params = mark.parametrize
 # dummy todo lines.. used as test data
 TODO_LINES = (
     # ID #1
-    "o 2000-01-01 Do Laundry | @home @boring foo:bar",
+    "o 2000-01-01 Do some Laundry | @home @boring foo:bar",
     # ID #2
     "(B) 2000-02-03 Buy groceries | @out @boring +buy foo:bar due:2000-02-03",
     # ID #3
@@ -58,6 +58,12 @@ GET_BY_TAG_PARAMS: list[tuple[str, list[int]]] = [
     ("^2000-01-01:2010-12-31", [1, 2, 3]),
     ("^2000-01-01:2010-12-31 $2010-01-01", []),
     ("^2000-01-01:2010-12-31 $2010-01-02", [3]),
+    ('"some"', [1, 5]),
+    ('!"some"', [2, 3, 4]),
+    ('"Some"', [5]),
+    ('!"Some"', [1, 2, 3, 4]),
+    ('c"some"', [1]),
+    ('!c"some"', [2, 3, 4, 5]),
 ]
 
 

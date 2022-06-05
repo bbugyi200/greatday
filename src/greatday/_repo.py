@@ -21,7 +21,13 @@ from typist import PathLike
 from . import db, models
 from ._dates import init_yyyymm_path
 from ._ids import NULL_ID, init_next_todo_id
-from ._tag import GreatTag, MetatagOperator, MetatagValueType, Tag
+from ._tag import (
+    DescOperator,
+    GreatTag,
+    MetatagOperator,
+    MetatagValueType,
+    Tag,
+)
 from ._todo import GreatTodo
 
 
@@ -207,6 +213,38 @@ class SQLTag:
     @sql_stmt_parser
     def desc_parser(self, stmt: SelectOfTodo) -> SelectOfTodo:
         """Parser for todo description (e.g. '"foo"' or '!"bar"')"""
+        for desc_filter in self.tag.desc_filters:
+            case_sensitive = desc_filter.case_sensitive
+            if case_sensitive is None:
+                case_sensitive = not bool(desc_filter.value.islower())
+
+            like_arg = f"%{desc_filter.value}%"
+            op_arg: Any
+            if case_sensitive:
+                cond = models.Todo.desc.like(like_arg)  # type: ignore[attr-defined]
+                subquery = select(models.Todo.id, models.Todo.desc).where(cond)
+                id_list: list[int] = []
+                for ID, desc in self.session.exec(subquery).all():
+                    assert (
+                        ID is not None
+                    ), "The DB shouldn't contain todos without an ID, right?"
+                    if desc_filter.value in desc:
+                        id_list.append(ID)
+                op_map: dict[DescOperator, Any] = {
+                    DescOperator.CONTAINS: models.Todo.id.in_,  # type: ignore[union-attr]
+                    DescOperator.NOT_CONTAINS: models.Todo.id.not_in,  # type: ignore[union-attr]
+                }
+                op = op_map[desc_filter.op]
+                op_arg = id_list
+            else:
+                op_map = {
+                    DescOperator.CONTAINS: models.Todo.desc.like,  # type: ignore[attr-defined]
+                    DescOperator.NOT_CONTAINS: models.Todo.desc.not_like,  # type: ignore[attr-defined]
+                }
+                op = op_map[desc_filter.op]
+                op_arg = like_arg
+
+            stmt = stmt.where(op(op_arg))
         return stmt
 
     @sql_stmt_parser

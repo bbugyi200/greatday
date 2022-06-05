@@ -5,7 +5,6 @@ from __future__ import annotations
 import itertools as it
 from pathlib import Path
 from typing import Any, Literal, Optional, Sequence
-import warnings
 
 import clack
 from clack import xdg
@@ -58,13 +57,6 @@ class TUIConfig(Config):
 
 def clack_parser(argv: Sequence[str]) -> dict[str, Any]:
     """Parser we pass to the `main_factory()` `parser` kwarg."""
-    # HACK: see https://github.com/tiangolo/sqlmodel/issues/189
-    warnings.filterwarnings(
-        "ignore",
-        ".*Class SelectOfScalar will not make use of SQL compilation"
-        " caching.*",
-    )
-
     # HACK: Make 'tui' the default sub-command.
     if not list(it.dropwhile(lambda x: x.startswith("-"), argv[1:])):
         argv = list(argv) + ["tui"]

@@ -10,7 +10,7 @@ from typing import Callable, Iterable, cast
 from eris import ErisResult, Err, Ok
 from logrus import Logger
 import magodo
-from magodo import DateRange, DescFilter
+from magodo import DateRange
 from magodo.types import Priority
 
 from ._dates import (
@@ -59,6 +59,22 @@ class MetatagFilter:
     value: str = ""
     op: MetatagOperator = MetatagOperator.EXISTS
     value_type: MetatagValueType = MetatagValueType.STRING
+
+
+class DescOperator(enum.Enum):
+    """Used to determine the type of description constraint specified."""
+
+    CONTAINS = enum.auto()
+    NOT_CONTAINS = enum.auto()
+
+
+@dataclass(frozen=True)
+class DescFilter:
+    """Represents a description query filter (e.g. '"foo"' or '!"bar"')."""
+
+    value: str
+    case_sensitive: bool | None = None
+    op: DescOperator = DescOperator.CONTAINS
 
 
 @dataclass(frozen=True)
@@ -245,11 +261,11 @@ class Tag:
         """Factory for parser that handles description tokens."""
 
         def parser(query: str) -> ErisResult[str]:
-            filter_check = _contains
+            desc_op = DescOperator.CONTAINS
             q = query
             if q.startswith(f"!{quote}") or q.startswith(f"!c{quote}"):
                 q = q[1:]
-                filter_check = _does_not_contain
+                desc_op = DescOperator.NOT_CONTAINS
 
             case_sensitive = None
             if q.startswith(f"c{quote}"):
@@ -274,7 +290,7 @@ class Tag:
             filter_value = q[1:end_idx]
             desc_filter = DescFilter(
                 value=filter_value,
-                check=filter_check,
+                op=desc_op,
                 case_sensitive=case_sensitive,
             )
             self.desc_filters.append(desc_filter)
