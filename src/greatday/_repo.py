@@ -185,11 +185,14 @@ class SQLTag:
                     cond = models.Todo.id.not_in(subquery)  # type: ignore[union-attr]
                     stmt = stmt.where(cond)
                 else:
-                    stmt = (
-                        stmt.join(link_model)
+                    subquery = (
+                        select(models.Todo.id)
+                        .join(link_model)
                         .join(model)
                         .where(model.name == prefix_tag)
                     )
+                    cond = models.Todo.id.in_(subquery)  # type: ignore[union-attr]
+                    stmt = stmt.where(cond)
         return stmt
 
     @sql_stmt_parser
