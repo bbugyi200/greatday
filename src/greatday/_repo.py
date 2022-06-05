@@ -11,7 +11,7 @@ from logrus import Logger
 from magodo import TodoGroup
 from potoroo import TaggedRepo
 from sqlalchemy.future import Engine
-from sqlmodel import Session, select
+from sqlmodel import Session, select, or_
 from sqlmodel.sql.expression import SelectOfScalar
 from typist import PathLike
 
@@ -190,6 +190,15 @@ class SQLTag:
                         .join(model)
                         .where(model.name == prefix_tag)
                     )
+        return stmt
+
+    @sql_stmt_parser
+    def priority_range_parser(self, stmt: SelectOfTodo) -> SelectOfTodo:
+        """Parser for priority range (e.g. '(a-c)')."""
+        if self.tag.priorities:
+            stmt = stmt.where(
+                or_(models.Todo.priority == p for p in self.tag.priorities)
+            )
         return stmt
 
 
