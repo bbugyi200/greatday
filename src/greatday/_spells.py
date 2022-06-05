@@ -18,7 +18,7 @@ from magodo.spells import (
 )
 from magodo.types import LineSpell, T, TodoSpell
 
-from ._common import drop_word, drop_word_if_startswith
+from ._common import drop_words, drop_word_if_startswith
 from ._dates import (
     RELATIVE_DATE_METATAGS,
     dt_from_date_and_hhmm,
@@ -140,7 +140,7 @@ def due_context_spell(todo: T) -> T:
     today = dt.date.today()
 
     contexts = [ctx for ctx in todo.contexts if ctx != "due"]
-    desc = drop_word(todo.desc, "@due")
+    desc = drop_words(todo.desc, "@due")
     metadata = dict(todo.metadata.items())
     metadata["due"] = magodo.from_date(today)
     return todo.new(desc=desc, contexts=contexts, metadata=metadata)
@@ -216,5 +216,5 @@ def remove_priorities(todo: T) -> T:
         return todo
 
     priority = magodo.DEFAULT_PRIORITY
-    desc = drop_word(todo.desc, f"({todo.priority})")
+    desc = drop_words(todo.desc, f"({todo.priority})")
     return todo.new(desc=desc, priority=priority)

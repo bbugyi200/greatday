@@ -8,7 +8,7 @@ import clack
 from clack.types import ClackRunner
 from logrus import Logger
 
-from ._common import CTX_INBOX, drop_word
+from ._common import CTX_INBOX, drop_words
 from ._config import AddConfig, ListConfig, TUIConfig
 from ._repo import FileRepo
 from ._tag import GreatTag
@@ -35,7 +35,7 @@ def run_add(cfg: AddConfig) -> int:
     x_found = False
     if CTX_X in todo.contexts:
         x_found = True
-        desc = drop_word(todo.desc, f"@{CTX_X}")
+        desc = drop_words(todo.desc, f"@{CTX_X}")
         contexts = [ctx for ctx in todo.contexts if ctx != CTX_X]
         todo = todo.new(desc=desc, contexts=contexts)
 

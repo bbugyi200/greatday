@@ -11,7 +11,7 @@ CTX_INBOX: Final = "INBOX"
 CTX_LAST: Final = "LAST"
 
 
-def drop_word(
+def drop_words(
     desc: str,
     *bad_words: str,
     op: Callable[[str, str], bool] = lambda x, y: x == y,
@@ -30,4 +30,4 @@ def _startswith_op(x: str, y: str) -> bool:
     return x.startswith(y)
 
 
-drop_word_if_startswith = partial(drop_word, op=_startswith_op)
+drop_word_if_startswith = partial(drop_words, op=_startswith_op)
