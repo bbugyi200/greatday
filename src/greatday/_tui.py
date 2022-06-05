@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Any, Final, Sequence
 
+from potoroo import TaggedRepo
 from rich.panel import Panel
 from rich.style import Style
 from rich.table import Table
@@ -17,7 +18,7 @@ from typist import PathLike
 from vimala import vim
 
 from ._common import CTX_FIRST, CTX_INBOX, CTX_LAST
-from ._repo import FileRepo
+from ._repo import SQLRepo
 from ._session import GreatSession
 from ._tag import GreatTag
 from ._todo import GreatTodo
@@ -104,7 +105,11 @@ class StatsWidget(Static):
     """Widget that shows Todo statistics."""
 
     def __init__(
-        self, repo: FileRepo, ctx: Context, *args: Any, **kwargs: Any
+        self,
+        repo: TaggedRepo[str, GreatTodo, GreatTag],
+        ctx: Context,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
         super().__init__("", *args, **kwargs)
         self.repo = repo
@@ -238,7 +243,13 @@ class Context:
 class GreatApp(App):
     """Textual TUI Application Class."""
 
-    def __init__(self, *, repo: FileRepo, ctx: Context, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        *,
+        repo: TaggedRepo[str, GreatTodo, GreatTag],
+        ctx: Context,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(**kwargs)
 
         self.repo = repo
@@ -333,7 +344,9 @@ class GreatApp(App):
         await self.action_change_mode("normal")
 
 
-def _todo_lines_from_query(repo: FileRepo, query: str) -> str:
+def _todo_lines_from_query(
+    repo: TaggedRepo[str, GreatTodo, GreatTag], query: str
+) -> str:
     tag = GreatTag.from_query(query)
     todos = repo.get_by_tag(tag).unwrap()
 
@@ -346,7 +359,7 @@ def _todo_lines_from_query(repo: FileRepo, query: str) -> str:
 
 def start_textual_app(db_url: str, data_dir: PathLike) -> None:
     """Starts the TUI using the GreatApp class."""
-    repo = FileRepo(data_dir)
+    repo = SQLRepo(db_url)
     ctx = Context(TODAY_QUERY)
     run_app = partial(
         GreatApp.run,

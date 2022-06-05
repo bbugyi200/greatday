@@ -3,17 +3,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-import datetime as dt
 import enum
-import operator
 import string
-from typing import Any, Callable, Iterable, cast
+from typing import Callable, Iterable, cast
 
 from eris import ErisResult, Err, Ok
 from logrus import Logger
 import magodo
-from magodo import DateRange, DescFilter, MetadataFilter
-from magodo.types import Priority, SinglePredicate
+from magodo import DateRange, DescFilter
+from magodo.types import Priority
 
 from ._dates import (
     RELATIVE_DATE_METATAGS,
@@ -90,7 +88,6 @@ class Tag:
     done_date_ranges: list[DateRange] = field(default_factory=list)
     done: bool | None = None
     epics: list[str] = field(default_factory=list)
-    metadata_filters: list[MetadataFilter] = field(default_factory=list)
     metatag_filters: list[MetatagFilter] = field(default_factory=list)
     priorities: list[Priority] = field(default_factory=list)
     projects: list[str] = field(default_factory=list)
@@ -193,25 +190,21 @@ class Tag:
         """Parser for metadata checks."""
         word, *rest = query.split(" ")
         if word.isalpha():
-            self.metadata_filters.append(MetadataFilter(word))
             self.metatag_filters.append(
                 MetatagFilter(word, op=MetatagOperator.EXISTS)
             )
         elif word.startswith("!") and word[1:].isalpha():
-            self.metadata_filters.append(
-                MetadataFilter(word[1:], check=lambda _: False, required=False)
-            )
             self.metatag_filters.append(
                 MetatagFilter(word[1:], op=MetatagOperator.NOT_EXISTS)
             )
         else:
-            for op_string, op, metatag_op in [
-                ("<=", operator.le, MetatagOperator.LE),
-                (">=", operator.ge, MetatagOperator.GE),
-                ("<", operator.lt, MetatagOperator.LT),
-                (">", operator.gt, MetatagOperator.GT),
-                ("!=", operator.ne, MetatagOperator.NE),
-                ("=", operator.eq, MetatagOperator.EQ),
+            for op_string, metatag_op in [
+                ("<=", MetatagOperator.LE),
+                (">=", MetatagOperator.GE),
+                ("<", MetatagOperator.LT),
+                (">", MetatagOperator.GT),
+                ("!=", MetatagOperator.NE),
+                ("=", MetatagOperator.EQ),
             ]:
                 key_and_value_string = word.split(op_string)
                 if len(key_and_value_string) != 2:
@@ -219,36 +212,25 @@ class Tag:
 
                 key, value_string = key_and_value_string
 
-                required = not key.endswith("?")
-                key = key.rstrip("?")
-
-                value: dt.date | str | int
+                value = value_string
                 value_type = MetatagValueType.STRING
                 if (
                     op_string in ["=", "!="]
                     and key not in RELATIVE_DATE_METATAGS
                 ):
-                    value = value_string
+                    pass
                 elif matches_date_fmt(value_string):
-                    value = magodo.to_date(value_string)
                     value_type = MetatagValueType.DATE
                 elif matches_relative_date_fmt(value_string):
-                    value = get_relative_date(value_string)
+                    value = magodo.from_date(get_relative_date(value_string))
                     value_type = MetatagValueType.DATE
                 elif value_string.isdigit():
-                    value = int(value_string)
                     value_type = MetatagValueType.INTEGER
-                else:
-                    value = value_string
 
-                check = _make_metadata_func(op, value)
-                self.metadata_filters.append(
-                    MetadataFilter(key, check=check, required=required)
-                )
                 self.metatag_filters.append(
                     MetatagFilter(
                         key,
-                        value=value_string,
+                        value=value,
                         op=metatag_op,
                         value_type=value_type,
                     )
@@ -336,26 +318,3 @@ def _contains(small: str, big: str) -> bool:
 
 def _does_not_contain(small: str, big: str) -> bool:
     return small not in big
-
-
-def _make_metadata_func(
-    op: Callable[[Any, Any], bool], expected: Any
-) -> SinglePredicate:
-    def check(x: str) -> bool:
-        actual: dt.date | str | int
-        if isinstance(expected, dt.date):
-            if matches_date_fmt(x):
-                actual = magodo.to_date(x)
-            else:
-                return False
-        elif isinstance(expected, int):
-            if x.isdigit():
-                actual = int(x)
-            else:
-                return False
-        else:
-            actual = x
-
-        return op(actual, expected)
-
-    return check
