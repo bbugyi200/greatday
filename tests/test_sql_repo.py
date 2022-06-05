@@ -38,6 +38,7 @@ GET_BY_TAG_PARAMS: list[tuple[str, list[int]]] = [
     ("x", [3]),
     ("@home", [1]),
     ("!@home", [2, 3, 4]),
+    ("!@home @boring", [2]),
     ("@boring", [1, 2]),
     ("+greatday", [3, 4]),
     ("+buy @boring", [2]),
