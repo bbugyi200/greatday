@@ -358,52 +358,6 @@ class FileRepo(Repo[str, GreatTodo]):
 
         return Ok(todo)
 
-    def update(self, key: str, todo: GreatTodo, /) -> ErisResult[GreatTodo]:
-        """Overwrite an existing Todo on disk."""
-        todo_txt = self.todo_group.path_map.get(key)
-        if todo_txt is None:
-            logger.info(
-                "No todo appears to exist with the given key. Adding new todo"
-                " instead...",
-                key=key,
-                todo=todo,
-            )
-            self.add(todo, key=key)
-            return Ok(todo)
-
-        all_lines = []
-
-        old_todo: GreatTodo | None = None
-        for line in todo_txt.read_text().split("\n"):
-            line = line.strip()
-            if not line:
-                continue
-
-            if any(w == f"id:{key}" for w in line.split(" ")):
-                if todo.to_line() == line:
-                    return Ok(todo)
-
-                old_todo = GreatTodo.from_line(line).unwrap()
-            else:
-                all_lines.append(line)
-
-        if old_todo is None:
-            logger.warning(
-                "No todo found with this key despite matching todo.txt file?"
-                " Adding new todo instead...",
-                key=key,
-                todo=todo,
-            )
-            self.add(todo, key=key)
-            return Ok(todo)
-
-        all_todos = [GreatTodo.from_line(line).unwrap() for line in all_lines]
-        all_todos.append(todo)
-        with todo_txt.open("w") as f:
-            f.write("\n".join(t.to_line() for t in sorted(all_todos)))
-
-        return Ok(old_todo)
-
     def all(self) -> ErisResult[list[GreatTodo]]:
         """Retreive all Todos stored on disk."""
         return Ok(list(self.todo_group))
