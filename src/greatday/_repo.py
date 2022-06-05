@@ -176,23 +176,19 @@ class SQLTag:
         ]:
             for prefix_tag in prefix_tag_list:
                 if prefix_tag.startswith("-"):
-                    subquery = (
-                        select(models.Todo.id)
-                        .join(link_model)
-                        .join(model)
-                        .where(model.name == prefix_tag[1:])
-                    )
-                    cond = models.Todo.id.not_in(subquery)  # type: ignore[union-attr]
-                    stmt = stmt.where(cond)
+                    name = prefix_tag[1:]
+                    op = models.Todo.id.not_in  # type: ignore[union-attr]
                 else:
-                    subquery = (
-                        select(models.Todo.id)
-                        .join(link_model)
-                        .join(model)
-                        .where(model.name == prefix_tag)
-                    )
-                    cond = models.Todo.id.in_(subquery)  # type: ignore[union-attr]
-                    stmt = stmt.where(cond)
+                    name = prefix_tag
+                    op = models.Todo.id.in_  # type: ignore[union-attr]
+
+                subquery = (
+                    select(models.Todo.id)
+                    .join(link_model)
+                    .join(model)
+                    .where(model.name == name)
+                )
+                stmt = stmt.where(op(subquery))
         return stmt
 
     @sql_stmt_parser
