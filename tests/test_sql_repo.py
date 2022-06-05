@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import warnings
-
 from pytest import fixture, mark
 
 from greatday import db
@@ -66,12 +64,6 @@ GET_BY_TAG_PARAMS: list[tuple[str, list[int]]] = [
 @fixture(name="sql_repo")
 def sql_repo_fixture() -> SQLRepo:
     """Returns a SQLRepo populated with dummy data."""
-    # HACK: see https://github.com/tiangolo/sqlmodel/issues/189
-    warnings.filterwarnings(
-        "ignore",
-        ".*Class SelectOfScalar will not make use of SQL compilation"
-        " caching.*",
-    )
     sql_repo = SQLRepo("sqlite://", engine_factory=db.create_engine)
     for line in TODO_LINES:
         todo = GreatTodo.from_line(line).unwrap()
