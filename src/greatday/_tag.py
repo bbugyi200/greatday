@@ -10,11 +10,11 @@ from typing import Callable, Iterable, cast
 from eris import ErisResult, Err, Ok
 from logrus import Logger
 import magodo
-from magodo import DateRange
 from magodo.types import Priority
 
 from ._dates import (
     RELATIVE_DATE_METATAGS,
+    DateRange,
     get_date_range,
     get_relative_date,
     matches_date_fmt,

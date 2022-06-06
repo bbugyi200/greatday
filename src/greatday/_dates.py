@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import datetime as dt
 from typing import Final
 
 from dateutil.relativedelta import relativedelta
 import magodo
-from magodo import DateRange
 
 
 MONDAY: Final = 0
@@ -20,6 +20,21 @@ SUNDAY: Final = 6
 
 # metatags (i.e. key-value tags) that accept relative date strings (e.g. '1d')
 RELATIVE_DATE_METATAGS: Final = ["snooze", "until", "due"]
+
+
+@dataclass(frozen=True)
+class DateRange:
+    """Represents a range of dates."""
+
+    start: dt.date
+    end: dt.date | None = None
+
+    @classmethod
+    def from_strings(cls, start_str: str, end_str: str = None) -> DateRange:
+        """Constructs a DateRange from two strings."""
+        start = magodo.to_date(start_str)
+        end = magodo.to_date(end_str) if end_str else None
+        return cls(start, end)
 
 
 def get_relative_date(
