@@ -2,16 +2,14 @@
 
 from __future__ import annotations
 
-from functools import wraps
 from typing import Final, List
-import warnings
 
 import clack
 from clack.types import ClackRunner
 from logrus import Logger
 
 from ._common import CTX_INBOX, drop_words
-from ._config import AddConfig, Config, ListConfig, TUIConfig
+from ._config import AddConfig, ListConfig, TUIConfig
 from ._repo import SQLRepo
 from ._tag import GreatTag
 from ._todo import GreatTodo
@@ -19,32 +17,11 @@ from ._tui import start_textual_app
 
 
 ALL_RUNNERS: List[ClackRunner] = []
-clack_runner = clack.register_runner_factory(ALL_RUNNERS)
+runner = clack.register_runner_factory(ALL_RUNNERS)
 
 logger = Logger(__name__)
 
 CTX_X: Final = "x"
-
-
-def runner(run_func: clack.types.ClackRunner) -> clack.types.ClackRunner:
-    """Wrapper around the `clack_runner()` decorator created by clack above."""
-
-    @wraps(run_func)
-    def wrapped_run_func(cfg: Config) -> int:
-        # HACK: see https://github.com/tiangolo/sqlmodel/issues/189
-        warnings.filterwarnings(
-            "ignore",
-            ".*Class SelectOfScalar will not make use of SQL compilation"
-            " caching.*",
-        )
-        warnings.filterwarnings(
-            "ignore",
-            ".*Class Select will not make use of SQL compilation caching.*",
-        )
-
-        return run_func(cfg)
-
-    return clack_runner(wrapped_run_func)
 
 
 @runner
