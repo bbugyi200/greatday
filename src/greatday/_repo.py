@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import operator
 from pathlib import Path
-from typing import Any, Callable, Final, TypeVar
+from typing import Any, Callable, TypeVar
 
 from eris import ErisResult, Ok
 from logrus import Logger
@@ -20,7 +20,6 @@ from typist import PathLike
 
 from . import db, models
 from ._common import NULL_ID
-from ._dates import init_yyyymm_path
 from ._tag import (
     DescOperator,
     GreatTag,
@@ -36,8 +35,6 @@ logger = Logger(__name__)
 SelectOfTodo = SelectOfScalar[models.Todo]
 SQLStatementParser = Callable[["SQLTag", SelectOfTodo], SelectOfTodo]
 T = TypeVar("T")
-
-DEFAULT_TODO_DIR: Final = "todos"
 
 # will be populated by the @sql_stmt_parser decorator
 SQL_STMT_PARSERS: list[SQLStatementParser] = []
@@ -336,12 +333,8 @@ def _col_to_int(value: Any) -> Any:
 class FileRepo(Repo[str, GreatTodo]):
     """Repo that stores Todos on disk."""
 
-    def __init__(self, data_dir: PathLike, path: PathLike = None) -> None:
-        self.data_dir = Path(data_dir)
-        if path is None:
-            self.path = self.data_dir / DEFAULT_TODO_DIR
-        else:
-            self.path = Path(path)
+    def __init__(self, path: PathLike) -> None:
+        self.path = Path(path)
 
     @property
     def todo_group(self) -> TodoGroup[GreatTodo]:
@@ -362,19 +355,13 @@ class FileRepo(Repo[str, GreatTodo]):
 
         all_todos: list[GreatTodo] = [todo]
 
-        if self.path.is_dir() or (
-            not self.path.exists() and self.path.suffix != ".txt"
-        ):
-            todo_txt = init_yyyymm_path(self.path, date=todo.create_date)
-        else:
-            self.path.parent.mkdir(parents=True, exist_ok=True)
-            todo_txt = self.path
+        self.path.parent.mkdir(parents=True, exist_ok=True)
 
-        if todo_txt.exists():
-            todo_group = TodoGroup.from_path(GreatTodo, todo_txt)
+        if self.path.exists():
+            todo_group = TodoGroup.from_path(GreatTodo, self.path)
             all_todos.extend(todo_group)
 
-        with todo_txt.open("w") as f:
+        with self.path.open("w") as f:
             f.write("\n".join(t.to_line() for t in sorted(all_todos)))
 
         return Ok(key)

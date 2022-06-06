@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 import datetime as dt
-from pathlib import Path
 from typing import Final
 
 from dateutil.relativedelta import relativedelta
 import magodo
 from magodo import DateRange
-from typist import PathLike
 
 
 MONDAY: Final = 0
@@ -146,23 +144,6 @@ def to_great_date(spec: str, past: bool = False) -> dt.date:
     else:
         assert matches_relative_date_fmt(spec)
         return get_relative_date(spec, past=past)
-
-
-def init_yyyymm_path(root: PathLike, *, date: dt.date = None) -> Path:
-    """Returns a Path of the form /path/to/root/YYYY/MM.txt.
-
-    NOTE: Creates the /path/to/root/YYYY directory if necessary.
-    """
-    root = Path(root)
-    if date is None:
-        date = dt.date.today()
-
-    year = date.year
-    month = date.month
-
-    result = root / str(year) / f"{month:0>2}.txt"
-    result.parent.mkdir(parents=True, exist_ok=True)
-    return result
 
 
 def get_date_range(spec: str) -> DateRange:

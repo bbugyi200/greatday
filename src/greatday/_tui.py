@@ -14,7 +14,6 @@ from rich.text import Text
 from textual.app import App
 from textual.widgets import Footer, Header, Static
 from textual_inputs import TextInput
-from typist import PathLike
 from vimala import vim
 
 from ._common import CTX_FIRST, CTX_INBOX, CTX_LAST
@@ -357,7 +356,7 @@ def _todo_lines_from_query(
     return result
 
 
-def start_textual_app(db_url: str, data_dir: PathLike) -> None:
+def start_textual_app(db_url: str) -> None:
     """Starts the TUI using the GreatApp class."""
     repo = SQLRepo(db_url)
     ctx = Context(TODAY_QUERY)
@@ -372,7 +371,7 @@ def start_textual_app(db_url: str, data_dir: PathLike) -> None:
 
     while ctx.edit_todos:
         tag = GreatTag.from_query(ctx.query)
-        with GreatSession(db_url, data_dir, tag) as session:
+        with GreatSession(db_url, tag) as session:
             vim(session.path).unwrap()
             session.commit()
 

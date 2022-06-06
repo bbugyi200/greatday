@@ -14,10 +14,9 @@ from logrus import Logger
 import magodo
 from magodo.types import Priority
 from potoroo import Repo, UnitOfWork
-from typist import PathLike
 
-from ._dates import get_relative_date
 from ._common import NULL_ID
+from ._dates import get_relative_date
 from ._repo import FileRepo, SQLRepo
 from ._tag import GreatTag
 from ._todo import GreatTodo
@@ -32,20 +31,18 @@ class GreatSession(UnitOfWork[FileRepo]):
     def __init__(
         self,
         db_url: str,
-        data_dir: PathLike,
         tag: GreatTag = None,
         *,
         name: str = None,
     ) -> None:
         self.db_url = db_url
-        self.data_dir = Path(data_dir)
 
         prefix = None if name is None else f"{name}."
         _, temp_path = tempfile.mkstemp(prefix=prefix, suffix=".txt")
         self.path = Path(temp_path)
 
         # will be accessed via `self.repo` from this point forward
-        self._repo = FileRepo(self.data_dir, self.path)
+        self._repo = FileRepo(self.path)
 
         self._master_repo = SQLRepo(self.db_url)
         self._old_todo_map = {}

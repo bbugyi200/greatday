@@ -21,7 +21,7 @@ TODO_LINES: list[str] = [
 def file_repo_fixture(tmp_path: Path) -> FileRepo:
     """Returns a FileRepo populated with dummy data."""
     todo_file = tmp_path / "todos.txt"
-    repo = FileRepo(tmp_path, todo_file)
+    repo = FileRepo(todo_file)
     for line in TODO_LINES:
         todo = GreatTodo.from_line(line).unwrap()
         repo.add(todo).unwrap()
