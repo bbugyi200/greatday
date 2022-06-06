@@ -7,10 +7,9 @@ import operator
 from pathlib import Path
 from typing import Any, Callable, TypeVar
 
-from eris import ErisResult, Ok
+from eris import ErisResult, Err, Ok
 from logrus import Logger
 import magodo
-from magodo import TodoGroup
 from potoroo import Repo, TaggedRepo
 from sqlalchemy import func
 from sqlalchemy.future import Engine
@@ -336,11 +335,6 @@ class FileRepo(Repo[str, GreatTodo]):
     def __init__(self, path: PathLike) -> None:
         self.path = Path(path)
 
-    @property
-    def todo_group(self) -> TodoGroup[GreatTodo]:
-        """Returns the TodoGroup associated with this GreatRepo."""
-        return TodoGroup.from_path(GreatTodo, self.path)
-
     def add(self, todo: GreatTodo, /, *, key: str = None) -> ErisResult[str]:
         """Write a new Todo to disk.
 
@@ -358,8 +352,8 @@ class FileRepo(Repo[str, GreatTodo]):
         self.path.parent.mkdir(parents=True, exist_ok=True)
 
         if self.path.exists():
-            todo_group = TodoGroup.from_path(GreatTodo, self.path)
-            all_todos.extend(todo_group)
+            todos = _todos_from_path(self.path)
+            all_todos.extend(todos)
 
         with self.path.open("w") as f:
             f.write("\n".join(t.to_line() for t in sorted(all_todos)))
@@ -368,16 +362,18 @@ class FileRepo(Repo[str, GreatTodo]):
 
     def get(self, key: str) -> ErisResult[GreatTodo | None]:
         """Retrieve a Todo from disk."""
-        return Ok(self.todo_group.todo_map.get(key, None))
+        for line in self.path.read_text().split("\n"):
+            if f"id:{key}" in line.strip().split(" "):
+                todo = GreatTodo.from_line(line).unwrap()
+                return Ok(todo)
+        return Ok(None)
 
     def remove(self, key: str) -> ErisResult[GreatTodo | None]:
         """Remove a Todo from disk."""
-        todo_txt = self.todo_group.path_map[key]
-
         new_lines: list[str] = []
 
         todo: GreatTodo | None = None
-        for line in todo_txt.read_text().split("\n"):
+        for line in self.path.read_text().split("\n"):
             for word in line.strip().split(" "):
                 if word == f"id:{key}":
                     todo = GreatTodo.from_line(line).unwrap()
@@ -385,10 +381,21 @@ class FileRepo(Repo[str, GreatTodo]):
             else:
                 new_lines.append(line)
 
-        todo_txt.write_text("\n".join(new_lines))
+        self.path.write_text("\n".join(new_lines))
 
         return Ok(todo)
 
     def all(self) -> ErisResult[list[GreatTodo]]:
         """Retreive all Todos stored on disk."""
-        return Ok(list(self.todo_group))
+        todos = _todos_from_path(self.path)
+        return Ok(todos)
+
+
+def _todos_from_path(path: PathLike) -> list[GreatTodo]:
+    path = Path(path)
+    todos: list[GreatTodo] = []
+    for line in path.read_text().split("\n"):
+        todo_result = GreatTodo.from_line(line)
+        if not isinstance(todo_result, Err):
+            todos.append(todo_result.ok())
+    return todos
