@@ -84,11 +84,14 @@ def x_points(todo: T) -> T:
 
     desc = todo.desc
     desc = drop_word_if_startswith(desc, "p:")
-    desc = " ".join(desc.split(" ")[1:]) + f" p:{points}"
+    desc_words = desc.split(" ")
+    desc_words.pop(0)  # x:HHMM
+    create_date = magodo.dates.to_date(desc_words.pop(0))
+    desc = " ".join(desc_words) + f" p:{points}"
 
-    new_todo = todo.new(desc=desc, done=True, metadata=metadata)
-    line = new_todo.to_line()
-    return type(todo).from_line(line).unwrap()
+    return todo.new(
+        create_date=create_date, desc=desc, done=True, metadata=metadata
+    )
 
 
 ###############################################################################
