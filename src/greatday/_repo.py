@@ -98,7 +98,10 @@ class SQLRepo(TaggedRepo[str, GreatTodo, GreatTag]):
                 todo = GreatTodo.from_model(mtodo)
 
                 for mlink in mtodo.metatag_links:
+                    delete_metatag = len(mlink.metatag.links) == 1
                     session.delete(mlink)
+                    if delete_metatag:
+                        session.delete(mlink.metatag)
                     session.commit()
 
                 for mtodo_tags in [
