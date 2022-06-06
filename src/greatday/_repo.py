@@ -282,7 +282,9 @@ class SQLTag:
                 MetatagOperator.NOT_EXISTS,
             ]:
                 comp_op = comp_op_map[mfilter.op]
-                stmt = stmt.where(comp_op(models.Todo.id, mfilter.value))  # type: ignore[arg-type]
+                stmt = stmt.where(
+                    comp_op(_col_to_int(models.Todo.id), int(mfilter.value))
+                )
                 continue
 
             subquery = (
