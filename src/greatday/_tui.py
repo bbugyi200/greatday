@@ -114,6 +114,18 @@ class StatsWidget(Static):
         self.repo = repo
         self.ctx = ctx
 
+        self._text_cache: dict[str, Text] = {}
+        self._do_full_refresh = False
+
+    def on_mount(self) -> None:
+        """Called when this widget is mounted."""
+        # do a full refresh of this widget every 5 seconds
+        def refresh() -> None:
+            self._do_full_refresh = True
+            self.refresh()
+
+        self.set_interval(5, refresh)
+
     def render(self) -> Panel:
         """Render the statistics widget."""
         assert self.repo is not None
@@ -130,32 +142,40 @@ class StatsWidget(Static):
             stats_query_map.update({"\n<custom>": self.ctx.query})
 
         for name, query in stats_query_map.items():
-            tag = GreatTag.from_query(query)
-            todos = self.repo.get_by_tag(tag).unwrap()
-            group = StatsGroup.from_todos(todos)
-
-            pretty_name = name.upper()
-            spaces = ""
-            if (size := len(pretty_name.strip())) < max_name_size + 1:
-                spaces += (max_name_size - size) * " "
-            pretty_name += ":"
-            pretty_name += spaces
-
-            if self.ctx.query == query:
+            saved_q_matches_current_q = bool(self.ctx.query == query)
+            if saved_q_matches_current_q:
                 style = "bold italic blue"
             else:
                 style = ""
 
-            text.append_text(
-                Text(
+            extra_text = self._text_cache.get(name)
+            if (
+                saved_q_matches_current_q
+                or extra_text is None
+                or self._do_full_refresh
+            ):
+                pretty_name = name.upper()
+                spaces = ""
+                if (size := len(pretty_name.strip())) < max_name_size + 1:
+                    spaces += (max_name_size - size) * " "
+                pretty_name += ":"
+                pretty_name += spaces
+
+                tag = GreatTag.from_query(query)
+                todos = self.repo.get_by_tag(tag).unwrap()
+                group = StatsGroup.from_todos(todos)
+
+                extra_text = Text(
                     f"{pretty_name}   "
                     f"X({group.done_stats.count}.{group.done_stats.points}) + "
                     f"O({group.open_stats.count}.{group.open_stats.points}) = "
-                    f"XO({group.all_stats.count}.{group.all_stats.points})\n",
-                    style=style,
+                    f"XO({group.all_stats.count}.{group.all_stats.points})\n"
                 )
-            )
+                self._text_cache[name] = extra_text
+            extra_text.style = style
+            text.append_text(extra_text)
 
+        self._do_full_refresh = False
         return Panel(text, title="Statistics")
 
 
