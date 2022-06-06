@@ -25,7 +25,7 @@ RELATIVE_DATE_METATAGS: Final = ["snooze", "until", "due"]
 
 
 def get_relative_date(
-    spec: str, *, start_date: dt.date = None, reverse: bool = False
+    spec: str, *, start_date: dt.date = None, past: bool = False
 ) -> dt.date:
     """Converts `spec` to a timedelta and adds it to `date`.
 
@@ -34,7 +34,7 @@ def get_relative_date(
           'weekdays').
         start_date: The return value is a function of this argument and the
           timedelta constructed from `spec`. Defaults to today's date.
-        reverse: If set, we use a relative date from the past instead of the
+        past: If set, we use a relative date from the past instead of the
           future (e.g. '1d' will yield yesterday's date instead of today's).
 
     Examples:
@@ -47,8 +47,8 @@ def get_relative_date(
         >>> grd = lambda x, y: from_date(
         ...   get_relative_date(x, start_date=to_date(y))
         ... )
-        >>> reverse_grd = lambda x, y: from_date(
-        ...   get_relative_date(x, start_date=to_date(y), reverse=True)
+        >>> past_grd = lambda x, y: from_date(
+        ...   get_relative_date(x, start_date=to_date(y), past=True)
         ... )
 
         # Default start date.
@@ -79,7 +79,7 @@ def get_relative_date(
         >>> grd("weekdays", "2022-02-11")
         '2022-02-14'
 
-        >>> reverse_grd("1d", D)
+        >>> past_grd("1d", D)
         '2000-01-30'
     """
     spec = spec.lower()
@@ -103,7 +103,7 @@ def get_relative_date(
             assert ch == "y"
             delta = relativedelta(years=N)
 
-    if reverse:
+    if past:
         return start_date - delta
     else:
         return start_date + delta
@@ -130,12 +130,12 @@ def matches_relative_date_fmt(spec: str) -> bool:
     )
 
 
-def to_great_date(spec: str, reverse: bool = False) -> dt.date:
+def to_great_date(spec: str, past: bool = False) -> dt.date:
     """Converts a date string into a date.
 
     Args:
         spec: The date string specification (use a supported date format).
-        reverse: Treat relative dates (e.g. when `spec == "1d"`) as dates in
+        past: Treat relative dates (e.g. when `spec == "1d"`) as dates in
           the past instead of the future.
 
     NOTE: `spec` must match a date string specification supported by
@@ -145,7 +145,7 @@ def to_great_date(spec: str, reverse: bool = False) -> dt.date:
         return magodo.to_date(spec)
     else:
         assert matches_relative_date_fmt(spec)
-        return get_relative_date(spec, reverse=reverse)
+        return get_relative_date(spec, past=past)
 
 
 def init_yyyymm_path(root: PathLike, *, date: dt.date = None) -> Path:
@@ -190,7 +190,7 @@ def get_date_range(spec: str) -> DateRange:
         >>> ab_range.end
         datetime.date(2000, 1, 31)
     """
-    start_and_end = [to_great_date(x, reverse=True) for x in spec.split(":")]
+    start_and_end = [to_great_date(x, past=True) for x in spec.split(":")]
     if len(start_and_end) > 1:
         assert len(start_and_end) == 2
         start, end = start_and_end

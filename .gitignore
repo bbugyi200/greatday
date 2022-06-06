@@ -117,3 +117,6 @@ venv.bak/
 
 # git conflict files
 *.rej
+
+# local sqlite databases
+*.db

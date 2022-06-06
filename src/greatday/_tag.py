@@ -3,16 +3,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-import datetime as dt
-import operator
+import enum
 import string
-from typing import Any, Callable, Iterable, cast
+from typing import Callable, Iterable, cast
 
 from eris import ErisResult, Err, Ok
 from logrus import Logger
 import magodo
-from magodo import DateRange, DescFilter, MetadataFilter
-from magodo.types import Priority, SinglePredicate
+from magodo import DateRange
+from magodo.types import Priority
 
 from ._dates import (
     RELATIVE_DATE_METATAGS,
@@ -25,7 +24,57 @@ from ._dates import (
 
 logger = Logger(__name__)
 
-GreatLangParser = Callable[[str], ErisResult[str]]
+QueryParser = Callable[[str], ErisResult[str]]
+
+
+class MetatagOperator(enum.Enum):
+    """Used to determine what kind of metatag constraint has been specified."""
+
+    # exists / not exists
+    EXISTS = enum.auto()
+    NOT_EXISTS = enum.auto()
+
+    # comparison operators
+    EQ = enum.auto()
+    NE = enum.auto()
+    LT = enum.auto()
+    LE = enum.auto()
+    GT = enum.auto()
+    GE = enum.auto()
+
+
+class MetatagValueType(enum.Enum):
+    """Specifies the data type of a MetatagFilter's value."""
+
+    DATE = enum.auto()
+    INTEGER = enum.auto()
+    STRING = enum.auto()
+
+
+@dataclass(frozen=True)
+class MetatagFilter:
+    """Represents a single metatag filter (e.g. 'due<=0d' or '!recur')."""
+
+    key: str
+    value: str = ""
+    op: MetatagOperator = MetatagOperator.EXISTS
+    value_type: MetatagValueType = MetatagValueType.STRING
+
+
+class DescOperator(enum.Enum):
+    """Used to determine the type of description constraint specified."""
+
+    CONTAINS = enum.auto()
+    NOT_CONTAINS = enum.auto()
+
+
+@dataclass(frozen=True)
+class DescFilter:
+    """Represents a description query filter (e.g. '"foo"' or '!"bar"')."""
+
+    value: str
+    case_sensitive: bool | None = None
+    op: DescOperator = DescOperator.CONTAINS
 
 
 @dataclass(frozen=True)
@@ -55,7 +104,7 @@ class Tag:
     done_date_ranges: list[DateRange] = field(default_factory=list)
     done: bool | None = None
     epics: list[str] = field(default_factory=list)
-    metadata_filters: list[MetadataFilter] = field(default_factory=list)
+    metatag_filters: list[MetatagFilter] = field(default_factory=list)
     priorities: list[Priority] = field(default_factory=list)
     projects: list[str] = field(default_factory=list)
 
@@ -67,13 +116,13 @@ class Tag:
         q = query
         while q:
             for parser in [
-                tag.normal_tag_parser_factory("#", "epics"),
-                tag.normal_tag_parser_factory("@", "contexts"),
-                tag.normal_tag_parser_factory("+", "projects"),
+                tag.prefix_tag_parser_factory("#", "epics"),
+                tag.prefix_tag_parser_factory("@", "contexts"),
+                tag.prefix_tag_parser_factory("+", "projects"),
                 tag.done_parser,
                 tag.date_range_parser_factory("^", "create_date_ranges"),
                 tag.date_range_parser_factory("$", "done_date_ranges"),
-                tag.metadata_parser,
+                tag.metatag_parser,
                 tag.desc_parser_factory("'"),
                 tag.desc_parser_factory('"'),
                 tag.priority_parser,
@@ -97,7 +146,7 @@ class Tag:
 
         return tag
 
-    def normal_tag_parser_factory(self, ch: str, attr: str) -> GreatLangParser:
+    def prefix_tag_parser_factory(self, ch: str, attr: str) -> QueryParser:
         """Factory for parsers that handle normal tags (e.g. project tags)."""
 
         def parser(query: str) -> ErisResult[str]:
@@ -132,7 +181,7 @@ class Tag:
 
         return Ok(" ".join(rest))
 
-    def date_range_parser_factory(self, ch: str, attr: str) -> GreatLangParser:
+    def date_range_parser_factory(self, ch: str, attr: str) -> QueryParser:
         """Factory for create/done date range tokens."""
 
         def parser(query: str) -> ErisResult[str]:
@@ -153,23 +202,25 @@ class Tag:
 
         return parser
 
-    def metadata_parser(self, query: str) -> ErisResult[str]:
+    def metatag_parser(self, query: str) -> ErisResult[str]:
         """Parser for metadata checks."""
         word, *rest = query.split(" ")
         if word.isalpha():
-            self.metadata_filters.append(MetadataFilter(word))
+            self.metatag_filters.append(
+                MetatagFilter(word, op=MetatagOperator.EXISTS)
+            )
         elif word.startswith("!") and word[1:].isalpha():
-            self.metadata_filters.append(
-                MetadataFilter(word[1:], check=lambda _: False, required=False)
+            self.metatag_filters.append(
+                MetatagFilter(word[1:], op=MetatagOperator.NOT_EXISTS)
             )
         else:
-            for op_string, op in [
-                ("<=", operator.le),
-                (">=", operator.ge),
-                ("<", operator.lt),
-                (">", operator.gt),
-                ("!=", operator.ne),
-                ("=", operator.eq),
+            for op_string, metatag_op in [
+                ("<=", MetatagOperator.LE),
+                (">=", MetatagOperator.GE),
+                ("<", MetatagOperator.LT),
+                (">", MetatagOperator.GT),
+                ("!=", MetatagOperator.NE),
+                ("=", MetatagOperator.EQ),
             ]:
                 key_and_value_string = word.split(op_string)
                 if len(key_and_value_string) != 2:
@@ -177,27 +228,28 @@ class Tag:
 
                 key, value_string = key_and_value_string
 
-                required = not key.endswith("?")
-                key = key.rstrip("?")
-
-                value: dt.date | str | int
+                value = value_string
+                value_type = MetatagValueType.STRING
                 if (
                     op_string in ["=", "!="]
                     and key not in RELATIVE_DATE_METATAGS
                 ):
-                    value = value_string
+                    pass
                 elif matches_date_fmt(value_string):
-                    value = magodo.to_date(value_string)
+                    value_type = MetatagValueType.DATE
                 elif matches_relative_date_fmt(value_string):
-                    value = get_relative_date(value_string)
+                    value = magodo.from_date(get_relative_date(value_string))
+                    value_type = MetatagValueType.DATE
                 elif value_string.isdigit():
-                    value = int(value_string)
-                else:
-                    value = value_string
+                    value_type = MetatagValueType.INTEGER
 
-                check = _make_metadata_func(op, value)
-                self.metadata_filters.append(
-                    MetadataFilter(key, check=check, required=required)
+                self.metatag_filters.append(
+                    MetatagFilter(
+                        key,
+                        value=value,
+                        op=metatag_op,
+                        value_type=value_type,
+                    )
                 )
                 break
             else:
@@ -205,15 +257,15 @@ class Tag:
 
         return Ok(" ".join(rest))
 
-    def desc_parser_factory(self, quote: str) -> GreatLangParser:
+    def desc_parser_factory(self, quote: str) -> QueryParser:
         """Factory for parser that handles description tokens."""
 
         def parser(query: str) -> ErisResult[str]:
-            filter_check = _contains
+            desc_op = DescOperator.CONTAINS
             q = query
             if q.startswith(f"!{quote}") or q.startswith(f"!c{quote}"):
                 q = q[1:]
-                filter_check = _does_not_contain
+                desc_op = DescOperator.NOT_CONTAINS
 
             case_sensitive = None
             if q.startswith(f"c{quote}"):
@@ -238,7 +290,7 @@ class Tag:
             filter_value = q[1:end_idx]
             desc_filter = DescFilter(
                 value=filter_value,
-                check=filter_check,
+                op=desc_op,
                 case_sensitive=case_sensitive,
             )
             self.desc_filters.append(desc_filter)
@@ -282,26 +334,3 @@ def _contains(small: str, big: str) -> bool:
 
 def _does_not_contain(small: str, big: str) -> bool:
     return small not in big
-
-
-def _make_metadata_func(
-    op: Callable[[Any, Any], bool], expected: Any
-) -> SinglePredicate:
-    def check(x: str) -> bool:
-        actual: dt.date | str | int
-        if isinstance(expected, dt.date):
-            if matches_date_fmt(x):
-                actual = magodo.to_date(x)
-            else:
-                return False
-        elif isinstance(expected, int):
-            if x.isdigit():
-                actual = int(x)
-            else:
-                return False
-        else:
-            actual = x
-
-        return op(actual, expected)
-
-    return check

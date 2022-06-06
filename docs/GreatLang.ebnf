@@ -1,29 +1,30 @@
 {* This file contains the EBNF specification of greatday's todo query language (e.g. used by 'greatday list'). *}
 
-query = [spec_or];
-spec_or = spec_and {space "|" space spec_and};
-spec_or_group = "(" [space] spec_or [space] ")";
-spec_and = spec {space spec};
-spec = create_date
+query = [or_query];
+or_query = and_query {space "|" space and_query};
+and_query = atom {space atom};
+atom = create_date
      | desc
+     | done
      | done_date
      | metatag
+     | prefix_tag
      | priority
-     | spec_or_group
-     | tag
-     | x_or_o;
+     | subquery;
 
-{* variables required by spec... *}
-create_date = "^" DATE [":" DATE];
+{* variables required by atom... *}
+create_date = "^" date_range;
 desc = ["!"] ["c"] ('"' NOT_DOUBLE_QUOTE+ '"' | "'" NOT_SINGLE_QUOTE+ "'");
-done_date = "$" DATE [":" DATE];
-metatag = ["!"] word | word ["?"] op any;
+done = "x" | "X" | "o" | "O";
+done_date = "$" date_range;
+metatag = ["!"] word | word op any;
 priority = "(" letter_range {"," letter_range} ")";
-tag = ["!"] ("@" | "#" | "+") word;
-x_or_o = "x" | "X" | "o" | "O";
+prefix_tag = ["!"] ("@" | "#" | "+") word;
+subquery = "(" [space] or_query [space] ")";
 
 {* all other non-special variables... *}
 any = (letter | DIGIT | "-" | ".")+;
+date_range = DATE [":" DATE];
 letter = UPPER_LETTER | LOWER_LETTER;
 op = "=" | "!=" | "<=" | ">=" | "<" | ">";
 letter_range = letter ["-" letter];
@@ -31,7 +32,7 @@ space = " ";
 word = letter+;
 
 {* all special variables... *}
-DATE = ? a valid date spec (e.g. YYYY-MM-DD) ?;
+DATE = ? a valid date spec (e.g. '2000-01-01' or '1d') ?;
 DIGIT = ? an integer between 0-9 ?;
 LOWER_LETTER = ? a lowercase letter (i.e. a-z) ?;
 NOT_DOUBLE_QUOTE = ? any character NOT including a double quote ?;

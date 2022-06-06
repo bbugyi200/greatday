@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Final, Iterable, List
+from typing import Final, List
 
 import clack
 from clack.types import ClackRunner
 from logrus import Logger
 
-from ._common import CTX_INBOX, drop_word_from_desc
+from ._common import CTX_INBOX, drop_words
 from ._config import AddConfig, ListConfig, TUIConfig
-from ._repo import GreatRepo
+from ._repo import SQLRepo
 from ._tag import GreatTag
 from ._todo import GreatTodo
 from ._tui import start_textual_app
@@ -29,13 +29,13 @@ def run_add(cfg: AddConfig) -> int:
     """Runner for the 'add' subcommand."""
     log = logger.bind_fargs(locals())
 
-    repo = GreatRepo(cfg.data_dir)
+    repo = SQLRepo(cfg.database_url)
     todo = GreatTodo.from_line(cfg.todo_line).unwrap()
 
     x_found = False
     if CTX_X in todo.contexts:
         x_found = True
-        desc = drop_word_from_desc(todo.desc, f"@{CTX_X}")
+        desc = drop_words(todo.desc, f"@{CTX_X}")
         contexts = [ctx for ctx in todo.contexts if ctx != CTX_X]
         todo = todo.new(desc=desc, contexts=contexts)
 
@@ -57,16 +57,18 @@ def run_add(cfg: AddConfig) -> int:
 @runner
 def run_list(cfg: ListConfig) -> int:
     """Runner for the 'list' subcommand."""
-    repo = GreatRepo(cfg.data_dir)
+    repo = SQLRepo(cfg.database_url)
 
-    todo_iter: Iterable[GreatTodo]
+    query: str
     if cfg.query is None:
-        todo_iter = repo.todo_group
+        query = ""
     else:
-        tag = GreatTag.from_query(cfg.query)
-        todo_iter = repo.get_by_tag(tag).unwrap()
+        query = cfg.query
 
-    for todo in sorted(todo_iter):
+    tag = GreatTag.from_query(query)
+    todos = repo.get_by_tag(tag).unwrap()
+
+    for todo in sorted(todos):
         print(todo.to_line())
 
     return 0
@@ -75,5 +77,5 @@ def run_list(cfg: ListConfig) -> int:
 @runner
 def run_tui(cfg: TUIConfig) -> int:
     """Runer for the 'tui' subcommand."""
-    start_textual_app(cfg.data_dir)
+    start_textual_app(cfg.database_url, cfg.data_dir)
     return 0

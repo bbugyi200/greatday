@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Any, Final, Sequence
 
+from potoroo import TaggedRepo
 from rich.panel import Panel
 from rich.style import Style
 from rich.table import Table
@@ -17,28 +18,26 @@ from typist import PathLike
 from vimala import vim
 
 from ._common import CTX_FIRST, CTX_INBOX, CTX_LAST
-from ._repo import GreatRepo
+from ._repo import SQLRepo
 from ._session import GreatSession
 from ._tag import GreatTag
 from ._todo import GreatTodo
 
 
-# Characters that should be removed from query names in most cases.
+# HACK: Used to fix action parameter parenthesis bug (see PR:textual#562).
+FAKE_RIGHT_PAREN: Final = "]]]"
+
+# characters that should be removed from query names in most cases
 BAD_QUERY_NAME_CHARS: Final = "() 0123456789\n"
 
-
-def _due_query(op: str = "<=") -> str:
-    return f"o due{op}0d"
-
-
+# important/saved GreatLang queries
 INBOX_QUERY: Final = f"o @{CTX_INBOX}"
-FIRST_QUERY: Final = f"{_due_query()} @{CTX_FIRST} | $0d @{CTX_FIRST}"
-LAST_QUERY: Final = f"{_due_query()} @{CTX_LAST} | $0d @{CTX_LAST}"
-LATE_QUERY: Final = f"{_due_query('<')} @{CTX_LAST} | $0d @{CTX_LAST} due<0d"
-TODAY_QUERY: Final = f"{_due_query()} !@{CTX_FIRST} !@{CTX_LAST} | $0d p>0"
+FIRST_QUERY: Final = f"o due<=0d @{CTX_FIRST} | $0d @{CTX_FIRST}"
+LAST_QUERY: Final = f"o due<=0d @{CTX_LAST} | $0d @{CTX_LAST}"
+LATE_QUERY: Final = f"o due<0d @{CTX_LAST} | $0d @{CTX_LAST} due<0d"
+TODAY_QUERY: Final = f"o due<=0d !@{CTX_FIRST} !@{CTX_LAST} | $0d p>0 | (d)"
 
-# A mapping of names to queries that will be displayed in the "Stats" textual
-# panel.
+# a mapping of name->query that will be displayed in the "Stats" textual panel
 STATS_QUERY_MAP: dict[str, str] = {
     "(0) inbox": INBOX_QUERY,
     "(1) first": FIRST_QUERY,
@@ -106,7 +105,11 @@ class StatsWidget(Static):
     """Widget that shows Todo statistics."""
 
     def __init__(
-        self, repo: GreatRepo, ctx: Context, *args: Any, **kwargs: Any
+        self,
+        repo: TaggedRepo[str, GreatTodo, GreatTag],
+        ctx: Context,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
         super().__init__("", *args, **kwargs)
         self.repo = repo
@@ -241,7 +244,11 @@ class GreatApp(App):
     """Textual TUI Application Class."""
 
     def __init__(
-        self, *, repo: GreatRepo, ctx: Context, **kwargs: Any
+        self,
+        *,
+        repo: TaggedRepo[str, GreatTodo, GreatTag],
+        ctx: Context,
+        **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
 
@@ -272,8 +279,11 @@ class GreatApp(App):
         """Configure key bindings."""
         n = 0
         for name, query in STATS_QUERY_MAP.items():
+            query = query.replace(")", FAKE_RIGHT_PAREN)
             description = f"{name.lstrip(BAD_QUERY_NAME_CHARS).upper()} Query"
-            await self.bind(str(n), f"new_query('{query}')", description)
+            await self.bind(
+                str(n), f"new_query('{query}')", description, show=False
+            )
             n += 1
 
         await self.bind("escape", "change_mode('normal')", "Normal Mode")
@@ -320,6 +330,7 @@ class GreatApp(App):
 
     async def action_new_query(self, query: str) -> None:
         """Execute a new todo query."""
+        query = query.replace(FAKE_RIGHT_PAREN, ")")
         self.input_widget.value = query
         self.input_widget._cursor_position = len(query)
         await self.action_submit()
@@ -333,7 +344,9 @@ class GreatApp(App):
         await self.action_change_mode("normal")
 
 
-def _todo_lines_from_query(repo: GreatRepo, query: str) -> str:
+def _todo_lines_from_query(
+    repo: TaggedRepo[str, GreatTodo, GreatTag], query: str
+) -> str:
     tag = GreatTag.from_query(query)
     todos = repo.get_by_tag(tag).unwrap()
 
@@ -344,9 +357,9 @@ def _todo_lines_from_query(repo: GreatRepo, query: str) -> str:
     return result
 
 
-def start_textual_app(data_dir: PathLike) -> None:
+def start_textual_app(db_url: str, data_dir: PathLike) -> None:
     """Starts the TUI using the GreatApp class."""
-    repo = GreatRepo(data_dir)
+    repo = SQLRepo(db_url)
     ctx = Context(TODAY_QUERY)
     run_app = partial(
         GreatApp.run,
@@ -359,7 +372,7 @@ def start_textual_app(data_dir: PathLike) -> None:
 
     while ctx.edit_todos:
         tag = GreatTag.from_query(ctx.query)
-        with GreatSession(data_dir, tag) as session:
+        with GreatSession(db_url, data_dir, tag) as session:
             vim(session.path).unwrap()
             session.commit()
 

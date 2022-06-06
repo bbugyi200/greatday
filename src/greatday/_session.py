@@ -5,18 +5,20 @@ from __future__ import annotations
 import datetime as dt
 import os
 from pathlib import Path
+import string
 import tempfile
 from types import TracebackType
-from typing import Type
+from typing import Type, cast
 
 from logrus import Logger
 import magodo
-from potoroo import UnitOfWork
+from magodo.types import Priority
+from potoroo import Repo, UnitOfWork
 from typist import PathLike
 
 from ._dates import get_relative_date
 from ._ids import NULL_ID
-from ._repo import GreatRepo
+from ._repo import FileRepo, SQLRepo
 from ._tag import GreatTag
 from ._todo import GreatTodo
 
@@ -24,31 +26,34 @@ from ._todo import GreatTodo
 logger = Logger(__name__)
 
 
-class GreatSession(UnitOfWork[GreatRepo]):
+class GreatSession(UnitOfWork[FileRepo]):
     """Each time todos are opened in an editor, a new session is created."""
 
     def __init__(
         self,
+        db_url: str,
         data_dir: PathLike,
         tag: GreatTag = None,
         *,
         name: str = None,
     ) -> None:
+        self.db_url = db_url
         self.data_dir = Path(data_dir)
 
         prefix = None if name is None else f"{name}."
         _, temp_path = tempfile.mkstemp(prefix=prefix, suffix=".txt")
         self.path = Path(temp_path)
 
-        self._repo = GreatRepo(self.data_dir, self.path)
+        # will be accessed via `self.repo` from this point forward
+        self._repo = FileRepo(self.data_dir, self.path)
 
-        self._master_repo = GreatRepo(self.data_dir)
+        self._master_repo = SQLRepo(self.db_url)
         if tag is not None:
             for todo in self._master_repo.get_by_tag(tag).unwrap():
-                self._repo.add(todo, key=todo.ident)
+                self.repo.add(todo, key=todo.ident)
 
         self._old_todo_map = {
-            todo.ident: todo for todo in self._repo.todo_group
+            todo.ident: todo for todo in self.repo.all().unwrap()
         }
 
     def __enter__(self) -> GreatSession:
@@ -76,7 +81,7 @@ class GreatSession(UnitOfWork[GreatRepo]):
         """
         removed_todo_keys = list(self._old_todo_map.keys())
         new_todos = {}
-        for todo in self.repo.todo_group:
+        for todo in self.repo.all().unwrap():
             key = todo.ident
             if key in removed_todo_keys:
                 removed_todo_keys.remove(key)
@@ -107,13 +112,13 @@ class GreatSession(UnitOfWork[GreatRepo]):
         """Revert any changes made while in this GreatSession's with-block."""
 
     @property
-    def repo(self) -> GreatRepo:
+    def repo(self) -> FileRepo:
         """Returns the GreatRepo object associated with this GreatSession."""
         return self._repo
 
 
 def _commit_todo_changes(
-    repo: GreatRepo, todo: GreatTodo, old_todo: GreatTodo | None
+    repo: Repo[str, GreatTodo], todo: GreatTodo, old_todo: GreatTodo | None
 ) -> None:
     """Updates todo in repo.
 
@@ -157,13 +162,25 @@ def _commit_todo_changes(
             if key in next_metadata:
                 del next_metadata[key]
 
+        # set priority for next todo...
+        priority = todo.metadata.get("priority")
+        next_priority = magodo.DEFAULT_PRIORITY
+        if (
+            priority
+            and len(priority) == 1
+            and priority.upper() in string.ascii_uppercase
+        ):
+            next_priority = cast(Priority, priority.upper())
+        elif priority:
+            logger.warning("Bad 'priority' metatag value?", priority=priority)
+
         # add next todo to repo...
         next_todo = todo.new(
             create_date=next_create_date,
             done=False,
             done_date=None,
             metadata=next_metadata,
-            priority=old_todo.priority,
+            priority=next_priority,
         )
         next_key = repo.add(next_todo).unwrap()
 

@@ -32,10 +32,14 @@ def main(make_config_file: MakeConfigFile, tmp_path: Path) -> MainType:
     """Returns a wrapper around greatday's main() function."""
 
     data_dir = tmp_path / "data"
+    database_url = "sqlite://"
 
     def inner_main(*args: str, **kwargs: Any) -> int:
         if "data_dir" not in kwargs:
             kwargs["data_dir"] = data_dir
+
+        if "database_url" not in kwargs:
+            kwargs["database_url"] = database_url
 
         cfg_kwargs = {k: str(v) for (k, v) in kwargs.items()}
 

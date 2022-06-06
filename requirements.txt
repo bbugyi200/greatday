@@ -35,12 +35,16 @@ bolton-typist==0.2.0
     #   vimala
 commonmark==0.9.1
     # via rich
-magodo==0.10.0
+greenlet==1.1.2
+    # via sqlalchemy
+magodo==0.10.1
     # via -r requirements.in
-potoroo==0.3.2
+potoroo==0.4.1
     # via -r requirements.in
 pydantic==1.9.1
-    # via bolton-clack
+    # via
+    #   bolton-clack
+    #   sqlmodel
 pygments==2.12.0
     # via rich
 python-dateutil==2.8.2
@@ -53,6 +57,14 @@ rich==12.4.4
     #   textual
 six==1.16.0
     # via python-dateutil
+sqlalchemy==1.4.35
+    # via
+    #   -r requirements.in
+    #   sqlmodel
+sqlalchemy2-stubs==0.0.2a23
+    # via sqlmodel
+sqlmodel==0.0.6
+    # via -r requirements.in
 structlog==21.5.0
     # via bolton-logrus
 textual==0.1.18
@@ -65,6 +77,7 @@ typing-extensions==4.2.0
     # via
     #   pydantic
     #   rich
+    #   sqlalchemy2-stubs
     #   textual
 vimala==0.1.2
     # via -r requirements.in
