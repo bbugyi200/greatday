@@ -1,4 +1,4 @@
-"""Tests for greatday's SQLRepo classes."""
+"""Tests for greatday's SQLRepo class."""
 
 from __future__ import annotations
 
@@ -19,7 +19,8 @@ _TODO_LINES = (
     # ID #2
     "(B) 2000-02-03 Buy groceries | @out @boring +buy foo:bar due:2000-02-03",
     # ID #3
-    "x 2010-01-02 2010-01-01 Finish greatday tests | @dev +greatday p:0",
+    "x 2010-01-02 2010-01-01 Finish greatday tests | @dev +greatday"
+    " mile:2 p:0",
     # ID #4
     "o 1900-01-01 Finish greatday tests | @dev +greatday due:2000-01-01",
     # ID #5
@@ -36,7 +37,7 @@ TODO_LINE_IDS = tuple(str(n) for n in range(1, len(TODO_LINES) + 1))
 #
 # query: used to construct GreatTag objects
 # ids: iist of todo line IDs that this query should match
-GET_BY_TAG_PARAMS: list[tuple[str, list[int]]] = [
+QUERY_TO_TODO_IDS: list[tuple[str, list[int]]] = [
     ("o", [1, 2, 4]),
     ("x", [3, 5]),
     ("@home", [1]),
@@ -72,35 +73,35 @@ GET_BY_TAG_PARAMS: list[tuple[str, list[int]]] = [
 ]
 
 
-@fixture(name="sql_repo")
+@fixture(name="repo")
 def sql_repo_fixture() -> SQLRepo:
     """Returns a SQLRepo populated with dummy data."""
-    sql_repo = SQLRepo("sqlite://", engine_factory=db.create_engine)
+    repo = SQLRepo("sqlite://", engine_factory=db.create_engine)
     for line in TODO_LINES:
         todo = GreatTodo.from_line(line).unwrap()
-        sql_repo.add(todo).unwrap()
-    return sql_repo
+        repo.add(todo).unwrap()
+    return repo
 
 
-def test_add(sql_repo: SQLRepo) -> None:
+def test_add(repo: SQLRepo) -> None:
     """Tests the SQLRepo.add() method.
 
-    NOTE: Nothing needs to be done here since the sql_repo fixture invokes the
+    NOTE: Nothing needs to be done here since the repo fixture invokes the
     SQLRepo.add() method for us.
     """
-    assert len(TODO_LINES) == len(sql_repo.all().unwrap())
+    assert len(TODO_LINES) == len(repo.all().unwrap())
 
 
 @params("key", TODO_LINE_IDS)
-def test_get_and_remove(sql_repo: SQLRepo, key: str) -> None:
+def test_get_and_remove(repo: SQLRepo, key: str) -> None:
     """Tests the SQLRepo.get() and SQLRepo.remove() methods."""
-    todo = sql_repo.get(key).unwrap()
-    assert todo == sql_repo.remove(key).unwrap()
-    assert len(TODO_LINES) == len(sql_repo.all().unwrap()) + 1
+    todo = repo.get(key).unwrap()
+    assert todo == repo.remove(key).unwrap()
+    assert len(TODO_LINES) == len(repo.all().unwrap()) + 1
 
 
 @params("key", TODO_LINE_IDS)
-def test_update(sql_repo: SQLRepo, key: str) -> None:
+def test_update(repo: SQLRepo, key: str) -> None:
     """Tests the SQLRepo.update() method."""
     old_todo = GreatTodo.from_line(
         TODO_LINES[int(key) - 1] + f" id:{key}"
@@ -109,16 +110,28 @@ def test_update(sql_repo: SQLRepo, key: str) -> None:
         f"o foobar @foo @bar ctime:HHMM id:{key}"
     ).unwrap()
 
-    actual_old_todo = sql_repo.update(key, todo).unwrap()
+    actual_old_todo = repo.update(key, todo).unwrap()
     assert old_todo == actual_old_todo
 
-    actual_todo = sql_repo.get(key).unwrap()
+    actual_todo = repo.get(key).unwrap()
     assert todo == actual_todo
 
 
-@params("query,keys", GET_BY_TAG_PARAMS)
-def test_get_by_tag(sql_repo: SQLRepo, query: str, keys: list[str]) -> None:
+@params("query,keys", QUERY_TO_TODO_IDS)
+def test_get_by_tag(repo: SQLRepo, query: str, keys: list[str]) -> None:
     """Tests the SQLRepo.get_by_tag() method."""
     tag = GreatTag.from_query(query)
-    todos = sql_repo.get_by_tag(tag).unwrap()
+    todos = repo.get_by_tag(tag).unwrap()
     assert sorted(todo.ident for todo in todos) == sorted(str(k) for k in keys)
+
+
+def test_remove_by_tag(repo: SQLRepo) -> None:
+    """Tests the SQLRepo.remove_by_tag() method."""
+    CTX = "@dev"
+    matched_line_count = len(
+        [line for line in TODO_LINES if CTX in line.split(" ")]
+    )
+    tag = GreatTag.from_query(CTX)
+    removed_todos = repo.remove_by_tag(tag).unwrap()
+    assert len(removed_todos) == matched_line_count
+    assert len(repo.all().unwrap()) == len(TODO_LINES) - matched_line_count
