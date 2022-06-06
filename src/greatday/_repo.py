@@ -298,7 +298,7 @@ class SQLTag:
             elif mfilter.op == MetatagOperator.NOT_EXISTS:
                 op = models.Todo.id.not_in  # type: ignore[union-attr]
             else:
-                sub_op = comp_op_map[mfilter.op]
+                comp_op = comp_op_map[mfilter.op]
 
                 value_type_map: dict[
                     MetatagValueType,
@@ -310,7 +310,7 @@ class SQLTag:
                 }
                 cast_model, cast_value = value_type_map[mfilter.value_type]
                 subquery = subquery.where(
-                    sub_op(
+                    comp_op(
                         cast_model(models.MetatagLink.value),
                         cast_value(mfilter.value),
                     )
