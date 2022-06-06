@@ -326,11 +326,3 @@ class Tag:
                     n += 1
 
         return Ok(" ".join(rest))
-
-
-def _contains(small: str, big: str) -> bool:
-    return small in big
-
-
-def _does_not_contain(small: str, big: str) -> bool:
-    return small not in big
