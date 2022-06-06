@@ -3,22 +3,15 @@
 from __future__ import annotations
 
 import datetime as dt
-from typing import Final, List
+from typing import Final, Iterable, List
 
+from eris import ErisResult, Err, Ok
 from logrus import Logger
 import magodo
-from magodo.spells import (
-    DEFAULT_FROM_LINE_SPELLS,
-    DEFAULT_POST_TODO_SPELLS,
-    DEFAULT_PRE_TODO_SPELLS,
-    DEFAULT_TO_LINE_SPELLS,
-    DEFAULT_TODO_SPELLS,
-    register_line_spell_factory,
-    register_todo_spell_factory,
-)
-from magodo.types import LineSpell, T, TodoSpell
+from magodo.types import LineSpell, T, TodoSpell, ValidateSpell
+from metaman import register_function_factory
 
-from ._common import drop_word_if_startswith, drop_words
+from ._common import drop_word_if_startswith, drop_words, todo_prefixes
 from ._dates import (
     RELATIVE_DATE_METATAGS,
     dt_from_date_and_hhmm,
@@ -33,25 +26,46 @@ logger = Logger(__name__)
 # priority that indicates that a todo is "in progress"
 IN_PROGRESS_PRIORITY: Final = "D"
 
-# initialize magodo decorators
-GREAT_PRE_TODO_SPELLS: List[TodoSpell] = list(DEFAULT_PRE_TODO_SPELLS)
-pre_todo_spell = register_todo_spell_factory(GREAT_PRE_TODO_SPELLS)
 
-GREAT_TODO_SPELLS: List[TodoSpell] = list(DEFAULT_TODO_SPELLS)
-todo_spell = register_todo_spell_factory(GREAT_TODO_SPELLS)
+# initialize decorators to register spell functions
+VALIDATE_SPELLS: List[ValidateSpell] = []
+validate_spell = register_function_factory(VALIDATE_SPELLS)
 
-GREAT_POST_TODO_SPELLS: List[TodoSpell] = list(DEFAULT_POST_TODO_SPELLS)
-post_todo_spell = register_todo_spell_factory(GREAT_POST_TODO_SPELLS)
+GREAT_PRE_TODO_SPELLS: List[TodoSpell] = []
+pre_todo_spell = register_function_factory(GREAT_PRE_TODO_SPELLS)
 
-GREAT_TO_LINE_SPELLS: List[LineSpell] = list(DEFAULT_TO_LINE_SPELLS)
-to_line_spell = register_line_spell_factory(GREAT_TO_LINE_SPELLS)
+GREAT_TODO_SPELLS: List[TodoSpell] = []
+todo_spell = register_function_factory(GREAT_TODO_SPELLS)
 
-GREAT_FROM_LINE_SPELLS: List[LineSpell] = list(DEFAULT_FROM_LINE_SPELLS)
-from_line_spell = register_line_spell_factory(GREAT_FROM_LINE_SPELLS)
+GREAT_POST_TODO_SPELLS: List[TodoSpell] = []
+post_todo_spell = register_function_factory(GREAT_POST_TODO_SPELLS)
+
+GREAT_TO_LINE_SPELLS: List[LineSpell] = []
+to_line_spell = register_function_factory(GREAT_TO_LINE_SPELLS)
+
+GREAT_FROM_LINE_SPELLS: List[LineSpell] = []
+from_line_spell = register_function_factory(GREAT_FROM_LINE_SPELLS)
 
 
 ###############################################################################
-# First, all PRE todo spells are cast...
+# Validate spells are used to check if a string has a valid todo format.
+###############################################################################
+@validate_spell
+def validate_prefix(line: str) -> ErisResult[None]:
+    """Handles / validatees a magic todo's prefix.."""
+    if not line.startswith(tuple(todo_prefixes())):
+        return Err(
+            "Magic todos must satisfy one of; (1) Have a non-default"
+            " (i.e. not 'O') priority set (2) Have been marked complete"
+            " with an 'x' prefix (3) Have been marked open with an 'o'"
+            f" prefix. line={line!r}"
+        )
+
+    return Ok(None)
+
+
+###############################################################################
+# pre-todo spells | First, all PRE todo spells are cast...
 ###############################################################################
 @pre_todo_spell
 def x_points(todo: T) -> T:
@@ -78,7 +92,7 @@ def x_points(todo: T) -> T:
 
 
 ###############################################################################
-# Then all NORMAL todo spells are cast...
+# normal todo spells | Then all NORMAL todo spells are cast...
 ###############################################################################
 @todo_spell
 def snooze_spell(todo: T) -> T:
@@ -120,7 +134,7 @@ def render_relative_dates(todo: T) -> T:
         found_tag = True
 
         value_date = get_relative_date(value)
-        new_value = magodo.from_date(value_date)
+        new_value = magodo.dates.from_date(value_date)
         metadata[key] = new_value
 
         desc = drop_word_if_startswith(desc, key + ":")
@@ -142,7 +156,7 @@ def due_context_spell(todo: T) -> T:
     contexts = [ctx for ctx in todo.contexts if ctx != "due"]
     desc = drop_words(todo.desc, "@due")
     metadata = dict(todo.metadata.items())
-    metadata["due"] = magodo.from_date(today)
+    metadata["due"] = magodo.dates.from_date(today)
     return todo.new(desc=desc, contexts=contexts, metadata=metadata)
 
 
@@ -164,7 +178,7 @@ def appt_todos(todo: T) -> T:
         return todo
 
     today = dt.date.today()
-    if magodo.to_date(due) > today:
+    if magodo.dates.to_date(due) > today:
         return todo
 
     now = dt.datetime.now()
@@ -204,7 +218,7 @@ def in_progress_priority_spell(todo: T) -> T:
 
 
 ###############################################################################
-# Lastly, all POST todo spells are cast...
+# post-todo spells | Lastly, all POST todo spells are cast...
 ###############################################################################
 @post_todo_spell
 def remove_priorities(todo: T) -> T:
@@ -218,3 +232,138 @@ def remove_priorities(todo: T) -> T:
     priority = magodo.DEFAULT_PRIORITY
     desc = drop_words(todo.desc, f"({todo.priority})")
     return todo.new(desc=desc, priority=priority)
+
+
+@post_todo_spell
+def group_tags(todo: T) -> T:
+    """Spell that organizes Todo tags by grouping them at the end.
+
+    Groups all #epics, @ctxs, +projs, and meta:data at the end of the line.
+    """
+    if not (todo.epics or todo.contexts or todo.projects or todo.metadata):
+        return todo
+
+    def all_words_are_tags(words: Iterable[str]) -> bool:
+        """Returns True if all `words` are special words."""
+        return all(magodo.tags.is_any_tag(w) for w in words)
+
+    all_words = [w for w in todo.desc.split(" ") if w != "|"]
+    regular_words: list[str] = []
+    for i, word in enumerate(all_words[:]):
+        if not word:
+            continue
+
+        all_prev_words_are_tags = all_words_are_tags(all_words[:i])
+        all_next_words_are_tags = all_words_are_tags(all_words[i + 1 :])
+        is_edge_tag = all_next_words_are_tags or all_prev_words_are_tags
+
+        if (
+            magodo.tags.is_metadata_tag(word)
+            and word[-1] in magodo.PUNCTUATION
+        ):
+            return todo
+
+        if magodo.tags.is_any_prefix_tag(word) and (
+            word[-1] in magodo.PUNCTUATION or not all_next_words_are_tags
+        ):
+            if regular_words:
+                regular_words.append(word[1:])
+            continue
+
+        if magodo.tags.is_any_prefix_tag(word) and is_edge_tag:
+            continue
+
+        if magodo.tags.is_metadata_tag(word):
+            continue
+
+        regular_words.append(word)
+
+    desc = " ".join(regular_words).strip()
+    space = ""
+    if regular_words:
+        desc += " |"
+        space = " "
+
+    if todo.epics:
+        desc += space + " ".join(
+            magodo.tags.EPIC_PREFIX + epic for epic in sorted(todo.epics)
+        )
+        space = " "
+
+    if todo.contexts:
+        desc += space + " ".join(
+            magodo.tags.CONTEXT_PREFIX + ctx for ctx in sorted(todo.contexts)
+        )
+        space = " "
+
+    if todo.projects:
+        desc += space + " ".join(
+            magodo.tags.PROJECT_PREFIX + ctx for ctx in sorted(todo.projects)
+        )
+        space = " "
+
+    if todo.metadata:
+        desc += space + " ".join(
+            f"{k}:{v}" for (k, v) in sorted(todo.metadata.items())
+        )
+        space = " "
+
+    return todo.new(desc=desc)
+
+
+###############################################################################
+# to-line spells | Called on lines produced by `Todo.to_line()`
+###############################################################################
+@to_line_spell
+def add_o_prefix(line: str) -> str:
+    """Adds the 'o ' prefix to the Todo line."""
+    if line.startswith(todo_prefixes()):
+        return line
+
+    return "o " + line
+
+
+@to_line_spell
+def add_x_prefix(line: str) -> str:
+    """Adds the 'x:HHMM ' prefix to the Todo line (when done)."""
+    if not line.startswith("x "):
+        return line
+
+    words = line.split(" ")[1:]
+    for i, word in enumerate(words[:]):
+        if word.startswith("dtime:"):
+            del words[i]
+            dtime = word.split(":")[1]
+            break
+    else:
+        return line
+
+    rest = " ".join(words)
+    return f"x:{dtime} {rest}"
+
+
+###############################################################################
+# from-line spells | Called on lines consumed by `Todo.from_line()`
+###############################################################################
+@from_line_spell
+def remove_o_prefix(line: str) -> str:
+    """Removes the 'o ' prefix from the Todo line."""
+    if not line.startswith("o "):
+        return line
+
+    return line[len("o ") :]
+
+
+@from_line_spell
+def remove_x_prefix(line: str) -> str:
+    """Removes the 'x:HHMM ' prefix from the Todo line."""
+    if not line.startswith("x:"):
+        return line
+
+    xhhmm, *words = line.split(" ")
+    dtime = xhhmm.split(":")[1]
+    if len(dtime) != 4:
+        return line
+
+    rest = " ".join(words)
+    return f"x {rest} dtime:{dtime}"

@@ -238,7 +238,9 @@ class Tag:
                 elif matches_date_fmt(value_string):
                     value_type = MetatagValueType.DATE
                 elif matches_relative_date_fmt(value_string):
-                    value = magodo.from_date(get_relative_date(value_string))
+                    value = magodo.dates.from_date(
+                        get_relative_date(value_string)
+                    )
                     value_type = MetatagValueType.DATE
                 elif value_string.isdigit():
                     value_type = MetatagValueType.INTEGER

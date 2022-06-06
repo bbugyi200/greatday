@@ -123,7 +123,9 @@ def _commit_todo_changes(
     recur = todo.metadata.get("recur")
     until = todo.metadata.get("until")
     expired = bool(
-        todo.done_date and until and magodo.to_date(until) <= todo.done_date
+        todo.done_date
+        and until
+        and magodo.dates.to_date(until) <= todo.done_date
     )
     if (
         old_todo
@@ -146,10 +148,10 @@ def _commit_todo_changes(
         if recur.islower() or due is None:
             start_date = todo.done_date
         else:
-            start_date = magodo.to_date(due)
+            start_date = magodo.dates.to_date(due)
 
         next_date = get_relative_date(recur, start_date=start_date)
-        next_metadata["due"] = magodo.from_date(next_date)
+        next_metadata["due"] = magodo.dates.from_date(next_date)
 
         # set creation date + clear creation/done time for next todo...
         next_create_date = dt.date.today()

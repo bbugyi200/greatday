@@ -302,7 +302,7 @@ class SQLTag:
                     MetatagValueType,
                     tuple[Callable[[Any], Any], Callable[[Any], Any]],
                 ] = {
-                    MetatagValueType.DATE: (func.date, magodo.to_date),
+                    MetatagValueType.DATE: (func.date, magodo.dates.to_date),
                     MetatagValueType.INTEGER: (_col_to_int, int),
                     MetatagValueType.STRING: (_noop, _noop),
                 }

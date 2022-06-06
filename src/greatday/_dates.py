@@ -32,8 +32,8 @@ class DateRange:
     @classmethod
     def from_strings(cls, start_str: str, end_str: str = None) -> DateRange:
         """Constructs a DateRange from two strings."""
-        start = magodo.to_date(start_str)
-        end = magodo.to_date(end_str) if end_str else None
+        start = magodo.dates.to_date(start_str)
+        end = magodo.dates.to_date(end_str) if end_str else None
         return cls(start, end)
 
 
@@ -155,7 +155,7 @@ def to_great_date(spec: str, past: bool = False) -> dt.date:
     greatday (e.g. 'YYYY-MM-DD').
     """
     if matches_date_fmt(spec):
-        return magodo.to_date(spec)
+        return magodo.dates.to_date(spec)
     else:
         assert matches_relative_date_fmt(spec)
         return get_relative_date(spec, past=past)
