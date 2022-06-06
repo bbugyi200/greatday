@@ -12,4 +12,6 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
+   greatday.db
+   greatday.models
    greatday.types
