@@ -268,7 +268,23 @@ class SQLTag:
     @sql_stmt_parser
     def metatag_parser(self, stmt: SelectOfTodo) -> SelectOfTodo:
         """Parser for metatags (e.g. 'due<=0d')."""
+        comp_op_map = {
+            MetatagOperator.EQ: operator.eq,
+            MetatagOperator.NE: operator.ne,
+            MetatagOperator.LT: operator.lt,
+            MetatagOperator.GT: operator.gt,
+            MetatagOperator.LE: operator.le,
+            MetatagOperator.GE: operator.ge,
+        }
         for mfilter in self.tag.metatag_filters:
+            if mfilter.key == "id" and mfilter.op not in [
+                MetatagOperator.EXISTS,
+                MetatagOperator.NOT_EXISTS,
+            ]:
+                comp_op = comp_op_map[mfilter.op]
+                stmt = stmt.where(comp_op(models.Todo.id, mfilter.value))  # type: ignore[arg-type]
+                continue
+
             subquery = (
                 select(models.Todo.id)
                 .join(models.MetatagLink)
@@ -282,14 +298,7 @@ class SQLTag:
             elif mfilter.op == MetatagOperator.NOT_EXISTS:
                 op = models.Todo.id.not_in  # type: ignore[union-attr]
             else:
-                sub_op = {
-                    MetatagOperator.EQ: operator.eq,
-                    MetatagOperator.NE: operator.ne,
-                    MetatagOperator.LT: operator.lt,
-                    MetatagOperator.GT: operator.gt,
-                    MetatagOperator.LE: operator.le,
-                    MetatagOperator.GE: operator.ge,
-                }[mfilter.op]
+                sub_op = comp_op_map[mfilter.op]
 
                 value_type_map: dict[
                     MetatagValueType,

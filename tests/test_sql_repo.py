@@ -67,6 +67,8 @@ GET_BY_TAG_PARAMS: list[tuple[str, list[int]]] = [
     ('!"Some"', [1, 2, 3, 4]),
     ('c"some"', [1]),
     ('!c"some"', [2, 3, 4, 5]),
+    ("id=2", [2]),
+    ("id>2", [3, 4, 5]),
 ]
 
 
