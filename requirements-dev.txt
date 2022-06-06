@@ -39,10 +39,12 @@ bolton-logrus==0.1.0
     #   -r requirements.in
     #   bolton-clack
     #   greatday
-bolton-metaman==0.1.1
+bolton-metaman==0.1.2
     # via
+    #   -r requirements.in
     #   bolton-eris
     #   bolton-logrus
+    #   greatday
     #   magodo
 bolton-proctor==0.2.2
     # via vimala
@@ -135,7 +137,7 @@ mccabe==0.6.1
     #   pylint
 mistune==0.8.4
     # via m2r2
-mypy==0.960
+mypy==0.961
     # via -r requirements-dev.in
 mypy-extensions==0.4.3
     # via
@@ -186,7 +188,7 @@ pygments==2.12.0
     # via
     #   rich
     #   sphinx
-pylint==2.14.0
+pylint==2.14.1
     # via -r requirements-dev.in
 pyparsing==3.0.9
     # via packaging
