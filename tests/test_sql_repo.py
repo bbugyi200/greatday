@@ -13,7 +13,7 @@ from greatday._todo import GreatTodo
 params = mark.parametrize
 
 # dummy todo lines.. used as test data
-TODO_LINES = (
+_TODO_LINES = (
     # ID #1
     "o 2000-01-01 Do some Laundry | @home @boring foo:bar",
     # ID #2
@@ -25,6 +25,7 @@ TODO_LINES = (
     # ID #5
     "x 2022-06-05 Some other todo | @misc p:1",
 )
+TODO_LINES = tuple(line + " ctime:HHMM" for line in _TODO_LINES)
 
 # the database IDs that should be associated with each of the todo lines above
 TODO_LINE_IDS = tuple(str(n) for n in range(1, len(TODO_LINES) + 1))
@@ -100,7 +101,9 @@ def test_update(sql_repo: SQLRepo, key: str) -> None:
     old_todo = GreatTodo.from_line(
         TODO_LINES[int(key) - 1] + f" id:{key}"
     ).unwrap()
-    todo = GreatTodo.from_line(f"o foobar @foo @bar id:{key}").unwrap()
+    todo = GreatTodo.from_line(
+        f"o foobar @foo @bar ctime:HHMM id:{key}"
+    ).unwrap()
 
     actual_old_todo = sql_repo.update(key, todo).unwrap()
     assert old_todo == actual_old_todo
