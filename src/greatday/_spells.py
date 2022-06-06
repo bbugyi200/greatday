@@ -5,10 +5,9 @@ from __future__ import annotations
 import datetime as dt
 from typing import Final, Iterable, List
 
-from eris import ErisResult, Err, Ok
 from logrus import Logger
 import magodo
-from magodo.types import LineSpell, T, TodoSpell, ValidateSpell
+from magodo.types import LineSpell, T, TodoSpell
 from metaman import register_function_factory
 
 from ._common import drop_word_if_startswith, drop_words, todo_prefixes
@@ -28,9 +27,6 @@ IN_PROGRESS_PRIORITY: Final = "D"
 
 
 # initialize decorators to register spell functions
-VALIDATE_SPELLS: List[ValidateSpell] = []
-validate_spell = register_function_factory(VALIDATE_SPELLS)
-
 GREAT_PRE_TODO_SPELLS: List[TodoSpell] = []
 pre_todo_spell = register_function_factory(GREAT_PRE_TODO_SPELLS)
 
@@ -45,23 +41,6 @@ to_line_spell = register_function_factory(GREAT_TO_LINE_SPELLS)
 
 GREAT_FROM_LINE_SPELLS: List[LineSpell] = []
 from_line_spell = register_function_factory(GREAT_FROM_LINE_SPELLS)
-
-
-###############################################################################
-# Validate spells are used to check if a string has a valid todo format.
-###############################################################################
-@validate_spell
-def validate_prefix(line: str) -> ErisResult[None]:
-    """Handles / validatees a magic todo's prefix.."""
-    if not line.startswith(tuple(todo_prefixes())):
-        return Err(
-            "Magic todos must satisfy one of; (1) Have a non-default"
-            " (i.e. not 'O') priority set (2) Have been marked complete"
-            " with an 'x' prefix (3) Have been marked open with an 'o'"
-            f" prefix. line={line!r}"
-        )
-
-    return Ok(None)
 
 
 ###############################################################################
