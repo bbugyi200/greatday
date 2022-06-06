@@ -34,6 +34,7 @@ class GreatSession(UnitOfWork[FileRepo]):
         tag: GreatTag = None,
         *,
         name: str = None,
+        verbose: int = 0,
     ) -> None:
         self.db_url = db_url
 
@@ -44,7 +45,7 @@ class GreatSession(UnitOfWork[FileRepo]):
         # will be accessed via `self.repo` from this point forward
         self._repo = FileRepo(self.path)
 
-        self._master_repo = SQLRepo(self.db_url)
+        self._master_repo = SQLRepo(self.db_url, verbose=verbose)
         self._old_todo_map = {}
         if tag is not None:
             for todo in self._master_repo.get_by_tag(tag).unwrap():

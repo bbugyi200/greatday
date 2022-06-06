@@ -12,7 +12,6 @@ from logrus import Logger
 import magodo
 from potoroo import Repo, TaggedRepo
 from sqlalchemy import func
-from sqlalchemy.future import Engine
 from sqlmodel import Integer, Session, or_, select
 from sqlmodel.sql.expression import SelectOfScalar
 from typist import PathLike
@@ -27,6 +26,7 @@ from ._tag import (
     Tag,
 )
 from ._todo import GreatTodo
+from .types import CreateEngineType
 
 
 logger = Logger(__name__)
@@ -52,10 +52,16 @@ class SQLRepo(TaggedRepo[str, GreatTodo, GreatTag]):
         self,
         url: str,
         *,
-        engine_factory: Callable[[str], Engine] = db.create_cached_engine,
+        engine_factory: CreateEngineType = db.create_cached_engine,
+        verbose: int = 0,
     ) -> None:
         self.url = url
-        self.engine = engine_factory(url)
+
+        # create the Engine object
+        kwargs = {}
+        if verbose > 2:
+            kwargs["echo"] = True
+        self.engine = engine_factory(url, **kwargs)
 
     def add(self, todo: GreatTodo, /, *, key: str = None) -> ErisResult[str]:
         """Adds a new Todo to the DB.

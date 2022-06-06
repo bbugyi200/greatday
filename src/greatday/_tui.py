@@ -375,7 +375,7 @@ def _todo_lines_from_query(
     return result
 
 
-def start_textual_app(db_url: str) -> None:
+def start_textual_app(db_url: str, *, verbose: int = 0) -> None:
     """Starts the TUI using the GreatApp class."""
     repo = SQLRepo(db_url)
     ctx = Context(TODAY_QUERY)
@@ -390,7 +390,7 @@ def start_textual_app(db_url: str) -> None:
 
     while ctx.edit_todos:
         tag = GreatTag.from_query(ctx.query)
-        with GreatSession(db_url, tag) as session:
+        with GreatSession(db_url, tag, verbose=verbose) as session:
             vim(session.path).unwrap()
             session.commit()
 

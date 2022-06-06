@@ -29,7 +29,7 @@ def run_add(cfg: AddConfig) -> int:
     """Runner for the 'add' subcommand."""
     log = logger.bind_fargs(locals())
 
-    repo = SQLRepo(cfg.database_url)
+    repo = SQLRepo(cfg.database_url, verbose=cfg.verbose)
     todo = GreatTodo.from_line(cfg.todo_line).unwrap()
 
     x_found = False
@@ -57,7 +57,7 @@ def run_add(cfg: AddConfig) -> int:
 @runner
 def run_list(cfg: ListConfig) -> int:
     """Runner for the 'list' subcommand."""
-    repo = SQLRepo(cfg.database_url)
+    repo = SQLRepo(cfg.database_url, verbose=cfg.verbose)
 
     query: str
     if cfg.query is None:
@@ -77,5 +77,5 @@ def run_list(cfg: ListConfig) -> int:
 @runner
 def run_tui(cfg: TUIConfig) -> int:
     """Runer for the 'tui' subcommand."""
-    start_textual_app(cfg.database_url)
+    start_textual_app(cfg.database_url, verbose=cfg.verbose)
     return 0
