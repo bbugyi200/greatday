@@ -30,10 +30,12 @@ TODO_LINES = tuple(line + " ctime:HHMM" for line in _TODO_LINES)
 # the database IDs that should be associated with each of the todo lines above
 TODO_LINE_IDS = tuple(str(n) for n in range(1, len(TODO_LINES) + 1))
 
-# tag->keys
+# Parameters used by test_get_by_tag() test function.
 #
-# tag: used to construct GreatTag objects
-# keys: iist of todo line keys that this tag should match
+# query -> ids
+#
+# query: used to construct GreatTag objects
+# ids: iist of todo line IDs that this query should match
 GET_BY_TAG_PARAMS: list[tuple[str, list[int]]] = [
     ("o", [1, 2, 4]),
     ("x", [3, 5]),
