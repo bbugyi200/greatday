@@ -10,8 +10,7 @@ from magodo.types import Priority
 from sqlmodel import Session, select
 
 from . import _spells as spells, models
-from ._common import drop_word_if_startswith
-from ._ids import NULL_ID
+from ._common import NULL_ID, drop_word_if_startswith
 
 
 class GreatTodo(MagicTodoMixin):

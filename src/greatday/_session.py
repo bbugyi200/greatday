@@ -17,7 +17,7 @@ from potoroo import Repo, UnitOfWork
 from typist import PathLike
 
 from ._dates import get_relative_date
-from ._ids import NULL_ID
+from ._common import NULL_ID
 from ._repo import FileRepo, SQLRepo
 from ._tag import GreatTag
 from ._todo import GreatTodo

@@ -19,8 +19,8 @@ from sqlmodel.sql.expression import SelectOfScalar
 from typist import PathLike
 
 from . import db, models
+from ._common import NULL_ID
 from ._dates import init_yyyymm_path
-from ._ids import NULL_ID, init_next_todo_id
 from ._tag import (
     DescOperator,
     GreatTag,
@@ -353,19 +353,12 @@ class FileRepo(Repo[str, GreatTodo]):
 
         Returns a unique identifier that has been associated with this Todo.
         """
-        drop_old_key = bool(todo.ident == NULL_ID)
-        if key is None or key == NULL_ID:
-            key = init_next_todo_id(self.data_dir)
-        else:
-            drop_old_key = True
-
-        mdata = dict(todo.metadata.items())
-
-        old_key = mdata.get("id")
-        if (drop_old_key and old_key != key) or not old_key:
-            metadata = dict(mdata.items())
-            metadata.update({"id": key})
-            todo = todo.new(metadata=metadata)
+        if key is None:
+            assert todo.ident != NULL_ID, (
+                "Every todo added to a file should already have an ID assigned"
+                " to it."
+            )
+            key = todo.ident
 
         all_todos: list[GreatTodo] = [todo]
 
