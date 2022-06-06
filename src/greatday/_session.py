@@ -48,13 +48,11 @@ class GreatSession(UnitOfWork[FileRepo]):
         self._repo = FileRepo(self.data_dir, self.path)
 
         self._master_repo = SQLRepo(self.db_url)
+        self._old_todo_map = {}
         if tag is not None:
             for todo in self._master_repo.get_by_tag(tag).unwrap():
                 self.repo.add(todo, key=todo.ident)
-
-        self._old_todo_map = {
-            todo.ident: todo for todo in self.repo.all().unwrap()
-        }
+                self._old_todo_map[todo.ident] = todo
 
     def __enter__(self) -> GreatSession:
         """Called before entering a GreatSession with-block."""
