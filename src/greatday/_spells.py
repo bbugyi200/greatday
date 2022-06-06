@@ -25,7 +25,6 @@ logger = Logger(__name__)
 # priority that indicates that a todo is "in progress"
 IN_PROGRESS_PRIORITY: Final = "D"
 
-
 # initialize decorators to register spell functions
 GREAT_PRE_TODO_SPELLS: List[TodoSpell] = []
 pre_todo_spell = register_function_factory(GREAT_PRE_TODO_SPELLS)
