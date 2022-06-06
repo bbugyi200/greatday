@@ -9,7 +9,7 @@ from magodo import MagicTodoMixin
 from magodo.types import Priority
 from sqlmodel import Session, select
 
-from . import _spells as spells, db, models
+from . import _spells as spells, models
 from ._common import drop_word_if_startswith
 from ._ids import NULL_ID
 
@@ -135,22 +135,3 @@ class GreatTodo(MagicTodoMixin):
 
         mtodo.metatag_links = metatag_links
         return mtodo
-
-
-def main() -> None:
-    """Test driver for this module."""
-    import sys
-
-    engine = db.create_cached_engine("sqlite:///greatday.db")
-    with Session(engine) as sess:
-        todo = GreatTodo.from_line(
-            f"o {sys.argv[1]} | @home +dog +bad due:2022-06-02"
-        ).unwrap()
-        mtodo = todo.to_model(sess)
-        sess.add(mtodo)
-        sess.commit()
-        print("\n" + GreatTodo.from_model(mtodo).to_line())
-
-
-if __name__ == "__main__":
-    main()
