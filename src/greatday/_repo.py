@@ -174,10 +174,9 @@ class SQLTag:
     @sql_stmt_parser
     def done_parser(self, stmt: SelectOfTodo) -> SelectOfTodo:
         """Parser for done status (i.e. 'x' or 'o')."""
-        new_stmt = stmt
         if self.tag.done is not None:
-            new_stmt = new_stmt.where(models.Todo.done == self.tag.done)
-        return new_stmt
+            stmt = stmt.where(models.Todo.done == self.tag.done)
+        return stmt
 
     @sql_stmt_parser
     def prefix_tag_parser(self, stmt: SelectOfTodo) -> SelectOfTodo:
