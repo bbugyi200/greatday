@@ -43,6 +43,12 @@ DEFAULT_TODO_DIR: Final = "todos"
 SQL_STMT_PARSERS: list[SQLStatementParser] = []
 
 
+def sql_stmt_parser(parser: SQLStatementParser) -> SQLStatementParser:
+    """Decorator that registers statement parsers for SQLTag class."""
+    SQL_STMT_PARSERS.append(parser)
+    return parser
+
+
 class SQLRepo(TaggedRepo[str, GreatTodo, GreatTag]):
     """Repo that stores Todos in sqlite database."""
 
@@ -146,12 +152,6 @@ class SQLRepo(TaggedRepo[str, GreatTodo, GreatTag]):
                 todo = GreatTodo.from_model(mtodo)
                 todos.append(todo)
         return Ok(todos)
-
-
-def sql_stmt_parser(parser: SQLStatementParser) -> SQLStatementParser:
-    """Decorator that registers statement parsers for SQLTag class."""
-    SQL_STMT_PARSERS.append(parser)
-    return parser
 
 
 @dataclass(frozen=True)
