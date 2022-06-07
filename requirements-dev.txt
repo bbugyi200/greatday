@@ -98,6 +98,8 @@ filelock==3.7.1
     #   virtualenv
 flake8==4.0.1
     # via -r requirements-dev.in
+freezegun==1.2.1
+    # via -r requirements-dev.in
 gitdb==4.0.9
     # via gitpython
 gitpython==3.1.27
@@ -205,7 +207,7 @@ pytest-mock==3.7.0
 python-dateutil==2.8.2
     # via
     #   -r requirements.in
-    #   arrow
+    #   freezegun
     #   greatday
 python-slugify==6.1.2
     # via cookiecutter
@@ -335,7 +337,7 @@ wrapt==1.14.1
 # The following packages are considered to be unsafe in a requirements file:
 pip==22.1.2
     # via pip-tools
-setuptools==62.3.2
+setuptools==62.3.3
     # via
     #   astroid
     #   pip-tools
