@@ -242,8 +242,8 @@ class SQLTag:
                 op_arg = id_list
             else:
                 op_map = {
-                    DescOperator.CONTAINS: models.Todo.desc.like,  # type: ignore[attr-defined]
-                    DescOperator.NOT_CONTAINS: models.Todo.desc.not_like,  # type: ignore[attr-defined]
+                    DescOperator.CONTAINS: models.Todo.desc.ilike,  # type: ignore[attr-defined]
+                    DescOperator.NOT_CONTAINS: models.Todo.desc.not_ilike,  # type: ignore[attr-defined]
                 }
                 op = op_map[desc_filter.op]
                 op_arg = like_arg
