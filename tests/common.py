@@ -75,6 +75,7 @@ QUERY_TO_TODO_IDS: list[tuple[str, list[int]]] = [
     ('!c"some"', [2, 3, 4, 5]),
     ("id=2", [2]),
     ("id>2", [3, 4, 5]),
+    ("@home | @out", [1, 2]),
 ]
 
 
