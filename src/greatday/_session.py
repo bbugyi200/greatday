@@ -93,12 +93,15 @@ class GreatSession(UnitOfWork[FileRepo]):
                 _commit_todo_changes(self._master_repo, todo, old_todo)
 
         if new_todos:
+            # HACK: Removes all new todos by assuming that new todos will not
+            # have been assigned an ID yet.
             old_lines = self.path.read_text().split("\n")
             self.path.write_text(
                 "\n".join(line for line in old_lines if " id:" in line)
             )
 
         for key, todo in new_todos.items():
+            self._key_to_old_todo[key] = todo
             self.repo.add(todo, key=key)
 
         for key in removed_todo_keys:
