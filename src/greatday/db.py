@@ -11,13 +11,13 @@ from sqlmodel import SQLModel, create_engine as sqlmodel_create_engine
 
 
 @cache
-def create_cached_engine(url: str, **kwargs: Any) -> Engine:
+def create_cached_engine(url: str, /, **kwargs: Any) -> Engine:
     """Helper function for creating a new (if necessary) sqlalchemy engine."""
     engine = create_engine(url, **kwargs)
     return engine
 
 
-def create_engine(url: str, **kwargs: Any) -> Engine:
+def create_engine(url: str, /, **kwargs: Any) -> Engine:
     """Wrapper around sqlmodel.create_engine() that makes sure tables exist."""
     if "echo" not in kwargs and "ECHO_SQL_QUERIES" in os.environ:
         kwargs["echo"] = True
