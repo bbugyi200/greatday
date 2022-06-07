@@ -64,7 +64,10 @@ def x_points(todo: T) -> T:
     desc = drop_word_if_startswith(desc, "p:")
     desc_words = desc.split(" ")
     desc_words.pop(0)  # x:HHMM
-    create_date = magodo.dates.to_date(desc_words.pop(0))
+    if matches_date_fmt(desc_words[0]):
+        create_date = magodo.dates.to_date(desc_words.pop(0))
+    else:
+        create_date = None
     desc = " ".join(desc_words) + f" p:{points}"
 
     return todo.new(
