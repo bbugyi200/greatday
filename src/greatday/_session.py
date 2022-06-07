@@ -137,7 +137,6 @@ def _commit_todo_changes(
         and not old_todo.done_date
         and recur
         and not expired
-        and not todo.metadata.get("tickle")
     ):
         next_metadata = dict(todo.metadata.items())
 
