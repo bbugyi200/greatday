@@ -57,8 +57,8 @@ def frozen_time() -> Iterator[None]:
         yield
 
 
-@fixture(name="sql_repo")
-def sql_repo_fixture() -> Iterator[SQLRepo]:
+@fixture
+def sql_repo() -> Iterator[SQLRepo]:
     """SQLRepo pytext fixture
 
     Yields:
