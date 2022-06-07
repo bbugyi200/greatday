@@ -126,8 +126,6 @@ class StatsWidget(Static):
 
     def render(self) -> Panel:
         """Render the statistics widget."""
-        assert self.repo is not None
-
         stats_query_map = STATS_QUERY_MAP.copy()
 
         text = Text()
