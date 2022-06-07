@@ -17,7 +17,7 @@ from greatday.__main__ import main as gtd_main
 from greatday._repo import SQLRepo
 from greatday._todo import GreatTodo
 
-from . import common
+from . import common as c
 
 
 if TYPE_CHECKING:  # fixes pytest warning
@@ -28,7 +28,7 @@ pytest_plugins = ["clack.pytest_plugin"]
 
 
 @fixture
-def main(make_config_file: MakeConfigFile, tmp_path: Path) -> common.MainType:
+def main(make_config_file: MakeConfigFile, tmp_path: Path) -> c.MainType:
     """Returns a wrapper around greatday's main() function."""
 
     data_dir = tmp_path / "data"
@@ -53,7 +53,7 @@ def main(make_config_file: MakeConfigFile, tmp_path: Path) -> common.MainType:
 @fixture(autouse=True, scope="session")
 def frozen_time() -> Iterator[None]:
     """Freeze time until our tests are done running."""
-    with freeze_time("2000-01-01T00:00:00.123456Z"):
+    with freeze_time(f"{c.TODAY}T{c.hh}:{c.mm}:00.123456Z"):
         yield
 
 
@@ -71,7 +71,7 @@ def sql_repo() -> Iterator[SQLRepo]:
 
     default_url = os.environ.setdefault(key, url)
     repo = SQLRepo(url)
-    for line in common.TODO_LINES:
+    for line in c.TODO_LINES:
         todo = GreatTodo.from_line(line).unwrap()
         repo.add(todo).unwrap()
 

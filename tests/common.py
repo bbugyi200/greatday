@@ -2,8 +2,20 @@
 
 from __future__ import annotations
 
-from typing import Any, Protocol
+from typing import Any, Final, Protocol
 
+
+# datetime info used by freezegun (and tests)
+hh: Final = "00"
+mm: Final = "00"
+hhmm: Final = f"{hh}{mm}"
+
+YYYY: Final = "2000"
+MM: Final = "01"
+DD: Final = "01"
+TODAY: Final = f"{YYYY}-{MM}-{DD}"
+
+TOMORROW: Final = f"{YYYY}-{MM}-02"
 
 # dummy todo lines.. used as test data
 TODO_LINES = (
