@@ -135,7 +135,7 @@ class StatsWidget(Static):
         if not any(
             query == self.ctx.query for query in stats_query_map.values()
         ):
-            stats_query_map.update({"\n_": self.ctx.query})
+            stats_query_map.update({"\n::": self.ctx.query})
 
         for name, query in stats_query_map.items():
             saved_q_matches_current_q = bool(self.ctx.query == query)
