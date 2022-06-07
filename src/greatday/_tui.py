@@ -114,17 +114,15 @@ class StatsWidget(Static):
         self.repo = repo
         self.ctx = ctx
 
+        # If set, all saved query stats will reload on refresh. Otherwise, only
+        # stats on the current query will refresh.
+        self.do_full_refresh = False
+
+        # saved query name -> query stats Text object
+        #
+        # A cache used to implement partial refreshes (i.e. when
+        # `self.do_full_refresh` is False).
         self._text_cache: dict[str, Text] = {}
-        self._do_full_refresh = False
-
-    def on_mount(self) -> None:
-        """Called when this widget is mounted."""
-        # do a full refresh of this widget every 5 seconds
-        def refresh() -> None:
-            self._do_full_refresh = True
-            self.refresh()
-
-        self.set_interval(5, refresh)
 
     def render(self) -> Panel:
         """Render the statistics widget."""
@@ -152,7 +150,7 @@ class StatsWidget(Static):
             if (
                 saved_q_matches_current_q
                 or extra_text is None
-                or self._do_full_refresh
+                or self.do_full_refresh
             ):
                 pretty_name = name.upper()
                 spaces = ""
@@ -175,7 +173,7 @@ class StatsWidget(Static):
             extra_text.style = style
             text.append_text(extra_text)
 
-        self._do_full_refresh = False
+        self.do_full_refresh = False
         return Panel(text, title="Statistics")
 
 
@@ -309,6 +307,7 @@ class GreatApp(App):
         await self.bind("e", "edit", "Edit Todos")
         await self.bind("i", "change_mode('insert')", "Insert Mode")
         await self.bind("I", "clear_and_insert", "Clear and Insert")
+        await self.bind("r", "refresh", "Refresh")
         await self.bind("q", "quit", "Quit")
 
     async def on_mount(self) -> None:
@@ -351,6 +350,11 @@ class GreatApp(App):
         query = query.replace(FAKE_RIGHT_PAREN, ")")
         self.input_widget.value = query
         self.input_widget._cursor_position = len(query)
+        await self.action_submit()
+
+    async def action_refresh(self) -> None:
+        """Full refresh of TUI (e.g. stats + main panel will reload)."""
+        self.stats_widget.do_full_refresh = True
         await self.action_submit()
 
     async def action_submit(self) -> None:
