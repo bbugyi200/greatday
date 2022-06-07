@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any, Protocol
+
 
 # dummy todo lines.. used as test data
 TODO_LINES = (
@@ -28,6 +30,7 @@ TODO_LINE_IDS = tuple(str(n) for n in range(1, len(TODO_LINES) + 1))
 # query: used to construct GreatTag objects
 # ids: iist of todo line IDs that this query should match
 QUERY_TO_TODO_IDS: list[tuple[str, list[int]]] = [
+    ("", [1, 2, 3, 4, 5]),
     ("o", [1, 2, 4]),
     ("x", [3, 5]),
     ("@home", [1]),
@@ -61,3 +64,10 @@ QUERY_TO_TODO_IDS: list[tuple[str, list[int]]] = [
     ("id=2", [2]),
     ("id>2", [3, 4, 5]),
 ]
+
+
+class MainType(Protocol):
+    """Type returned by main() fixture."""
+
+    def __call__(self, *args: str, **kwargs: Any) -> int:
+        """The signature of the main() function."""
