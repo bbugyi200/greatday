@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import Final, List
 
-import clack
 from clack.types import ClackRunner
 from logrus import Logger
+import metaman
 
 from ._common import CTX_INBOX, drop_words
 from ._config import AddConfig, ListConfig, TUIConfig
@@ -17,7 +17,7 @@ from ._tui import start_textual_app
 
 
 ALL_RUNNERS: List[ClackRunner] = []
-runner = clack.register_runner_factory(ALL_RUNNERS)
+runner = metaman.register_function_factory(ALL_RUNNERS)
 
 logger = Logger(__name__)
 
