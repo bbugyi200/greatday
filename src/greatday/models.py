@@ -140,8 +140,3 @@ class Metatag(Tag, table=True):
     """Model class for metadata tags (e.g. due:2022-06-01)."""
 
     links: List[MetatagLink] = Relationship(back_populates="metatag")
-
-
-if __name__ == "__main__":
-    engine = create_engine("sqlite:///greatday.db")
-    SQLModel.metadata.create_all(engine)
