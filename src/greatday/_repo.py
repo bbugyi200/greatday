@@ -355,11 +355,11 @@ class FileRepo(Repo[str, GreatTodo]):
 
         all_todos: list[GreatTodo] = [todo]
 
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-
         if self.path.exists():
             todos = _todos_from_path(self.path)
             all_todos.extend(todos)
+        else:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
 
         with self.path.open("w") as f:
             f.write("\n".join(t.to_line() for t in sorted(all_todos)))
