@@ -6,8 +6,9 @@ https://docs.pytest.org/en/6.2.x/fixture.html#conftest-py-sharing-fixtures-acros
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any, Iterator, Protocol
 
+from freezegun import freeze_time
 from pytest import fixture
 
 from greatday.__main__ import main as gtd_main
@@ -48,3 +49,10 @@ def main(make_config_file: MakeConfigFile, tmp_path: Path) -> MainType:
         return gtd_main(argv)
 
     return inner_main
+
+
+@fixture(autouse=True, scope="session")
+def frozen_time() -> Iterator[None]:
+    """Freeze time until our tests are done running."""
+    with freeze_time("2000-01-01T00:00:00.123456Z"):
+        yield
