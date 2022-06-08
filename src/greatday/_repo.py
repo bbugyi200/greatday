@@ -55,15 +55,17 @@ class SQLRepo(TaggedRepo[str, GreatTodo, GreatTag]):
         engine_factory: CreateEngineType = db.create_cached_engine,
         verbose: int = 0,
     ) -> None:
-        self.url = url
-
-        # create the Engine object
-        kwargs = {}
+        # echo SQL statements to console if -vvv or greater is specified on the
+        # command-line
+        engine_kwargs = {}
         if verbose > 2:
-            kwargs["echo"] = True
-        self.engine = engine_factory(url, **kwargs)
+            engine_kwargs["echo"] = True
 
-        # private attributes
+        # public SQLRepo attributes
+        self.url = url
+        self.engine = engine_factory(url, **engine_kwargs)
+
+        # private SQLRepo attributes
         self._verbose = verbose
         self._engine_factory = engine_factory
 
