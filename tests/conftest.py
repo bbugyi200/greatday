@@ -14,8 +14,8 @@ from pytest import fixture
 
 from greatday import db
 from greatday.__main__ import main as gtd_main
-from greatday._repo import SQLRepo
-from greatday._todo import GreatTodo
+from greatday.repo import SQLRepo
+from greatday.todo import GreatTodo
 
 from . import common as c
 

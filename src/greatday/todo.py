@@ -10,8 +10,8 @@ from magodo import MagicTodoMixin
 from magodo.types import Priority
 from sqlmodel import Session, select
 
-from . import _spells as spells, models
-from ._common import NULL_ID, drop_word_if_startswith
+from . import spells, models
+from .common import NULL_ID, drop_word_if_startswith
 
 
 _LINE_TO_TODO_CACHE: dict[str, "GreatTodo"] = {}

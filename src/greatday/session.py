@@ -15,11 +15,11 @@ import magodo
 from magodo.types import Priority
 from potoroo import Repo, UnitOfWork
 
-from ._common import NULL_ID
+from .common import NULL_ID
 from ._dates import get_relative_date
-from ._repo import FileRepo, SQLRepo
-from ._tag import GreatTag
-from ._todo import GreatTodo
+from .repo import FileRepo, SQLRepo
+from .tag import GreatTag
+from .todo import GreatTodo
 
 
 logger = Logger(__name__)

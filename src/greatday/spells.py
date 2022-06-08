@@ -10,7 +10,7 @@ import magodo
 from magodo.types import LineSpell, T, TodoSpell
 from metaman import register_function_factory
 
-from ._common import drop_word_if_startswith, drop_words, todo_prefixes
+from .common import drop_word_if_startswith, drop_words, todo_prefixes
 from ._dates import (
     RELATIVE_DATE_METATAGS,
     dt_from_date_and_hhmm,

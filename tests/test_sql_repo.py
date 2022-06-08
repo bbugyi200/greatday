@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from pytest import mark
 
-from greatday._repo import SQLRepo
-from greatday._tag import GreatTag
-from greatday._todo import GreatTodo
+from greatday.repo import SQLRepo
+from greatday.tag import GreatTag
+from greatday.todo import GreatTodo
 
 from . import common
 

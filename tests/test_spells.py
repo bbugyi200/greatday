@@ -5,7 +5,7 @@ from __future__ import annotations
 from eris import Err
 from pytest import mark
 
-from greatday._todo import GreatTodo
+from greatday.todo import GreatTodo
 
 from . import common as c
 

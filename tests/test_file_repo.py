@@ -6,8 +6,8 @@ from pathlib import Path
 
 from pytest import fixture
 
-from greatday._repo import FileRepo
-from greatday._todo import GreatTodo
+from greatday.repo import FileRepo
+from greatday.todo import GreatTodo
 
 
 TODO_LINES: list[str] = [

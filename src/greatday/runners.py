@@ -8,12 +8,12 @@ from clack.types import ClackRunner
 from logrus import Logger
 import metaman
 
-from ._common import CTX_INBOX, drop_words
-from ._config import AddConfig, ListConfig, TUIConfig
-from ._repo import SQLRepo
-from ._tag import GreatTag
-from ._todo import GreatTodo
-from ._tui import start_textual_app
+from .common import CTX_INBOX, drop_words
+from .config import AddConfig, ListConfig, TUIConfig
+from .repo import SQLRepo
+from .tag import GreatTag
+from .todo import GreatTodo
+from .tui import start_textual_app
 
 
 ALL_RUNNERS: List[ClackRunner] = []

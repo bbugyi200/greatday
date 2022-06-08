@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import sys
 
-from greatday._common import drop_word_if_startswith
-from greatday._repo import FileRepo, SQLRepo
+from greatday.common import drop_word_if_startswith
+from greatday.repo import FileRepo, SQLRepo
 
 
 def main() -> int:

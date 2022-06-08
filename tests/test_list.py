@@ -5,7 +5,7 @@ from __future__ import annotations
 from _pytest.capture import CaptureFixture
 from pytest import mark
 
-from greatday._repo import SQLRepo
+from greatday.repo import SQLRepo
 
 from . import common as c
 

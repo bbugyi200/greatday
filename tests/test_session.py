@@ -8,9 +8,9 @@ from typing import Callable, Final
 import metaman
 from pytest import mark
 
-from greatday._repo import SQLRepo
-from greatday._session import GreatSession
-from greatday._tag import GreatTag
+from greatday.repo import SQLRepo
+from greatday.session import GreatSession
+from greatday.tag import GreatTag
 
 from . import common as c
 

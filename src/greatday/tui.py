@@ -16,11 +16,11 @@ from textual.widgets import Footer, Header, Static
 from textual_inputs import TextInput
 from vimala import vim
 
-from ._common import CTX_FIRST, CTX_INBOX, CTX_LAST
-from ._repo import SQLRepo
-from ._session import GreatSession
-from ._tag import GreatTag
-from ._todo import GreatTodo
+from .common import CTX_FIRST, CTX_INBOX, CTX_LAST
+from .repo import SQLRepo
+from .session import GreatSession
+from .tag import GreatTag
+from .todo import GreatTodo
 
 
 # HACK: Used to fix action parameter parenthesis bug (see PR:textual#562).
