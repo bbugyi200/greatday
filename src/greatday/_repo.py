@@ -63,6 +63,10 @@ class SQLRepo(TaggedRepo[str, GreatTodo, GreatTag]):
             kwargs["echo"] = True
         self.engine = engine_factory(url, **kwargs)
 
+        # private attributes
+        self._verbose = verbose
+        self._engine_factory = engine_factory
+
     def add(self, todo: GreatTodo, /, *, key: str = None) -> ErisResult[str]:
         """Adds a new Todo to the DB.
 
