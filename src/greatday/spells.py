@@ -10,7 +10,7 @@ import magodo
 from magodo.types import LineSpell, T, TodoSpell
 from metaman import register_function_factory
 
-from ._dates import (
+from .dates import (
     RELATIVE_DATE_METATAGS,
     dt_from_date_and_hhmm,
     get_relative_date,

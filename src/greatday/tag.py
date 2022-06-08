@@ -12,7 +12,7 @@ from logrus import Logger
 import magodo
 from magodo.types import Priority
 
-from ._dates import (
+from .dates import (
     RELATIVE_DATE_METATAGS,
     DateRange,
     get_date_range,
