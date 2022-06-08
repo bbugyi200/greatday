@@ -15,8 +15,8 @@ import magodo
 from magodo.types import Priority
 from potoroo import Repo, UnitOfWork
 
-from .dates import get_relative_date
 from .common import NULL_ID
+from .dates import get_relative_date
 from .repo import FileRepo, SQLRepo
 from .tag import GreatTag
 from .todo import GreatTodo
