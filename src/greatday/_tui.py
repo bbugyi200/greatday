@@ -14,7 +14,6 @@ from rich.text import Text
 from textual.app import App
 from textual.widgets import Footer, Header, Static
 from textual_inputs import TextInput
-from typist import PathLike
 from vimala import vim
 
 from ._common import CTX_FIRST, CTX_INBOX, CTX_LAST
@@ -115,10 +114,18 @@ class StatsWidget(Static):
         self.repo = repo
         self.ctx = ctx
 
+        # If set, all saved query stats will reload on refresh. Otherwise, only
+        # stats on the current query will refresh.
+        self.do_full_refresh = False
+
+        # saved query name -> query stats Text object
+        #
+        # A cache used to implement partial refreshes (i.e. when
+        # `self.do_full_refresh` is False).
+        self._text_cache: dict[str, Text] = {}
+
     def render(self) -> Panel:
         """Render the statistics widget."""
-        assert self.repo is not None
-
         stats_query_map = STATS_QUERY_MAP.copy()
 
         text = Text()
@@ -128,35 +135,43 @@ class StatsWidget(Static):
         if not any(
             query == self.ctx.query for query in stats_query_map.values()
         ):
-            stats_query_map.update({"\n<custom>": self.ctx.query})
+            stats_query_map.update({"\n::": self.ctx.query})
 
         for name, query in stats_query_map.items():
-            tag = GreatTag.from_query(query)
-            todos = self.repo.get_by_tag(tag).unwrap()
-            group = StatsGroup.from_todos(todos)
-
-            pretty_name = name.upper()
-            spaces = ""
-            if (size := len(pretty_name.strip())) < max_name_size + 1:
-                spaces += (max_name_size - size) * " "
-            pretty_name += ":"
-            pretty_name += spaces
-
-            if self.ctx.query == query:
+            saved_q_matches_current_q = bool(self.ctx.query == query)
+            if saved_q_matches_current_q:
                 style = "bold italic blue"
             else:
                 style = ""
 
-            text.append_text(
-                Text(
+            extra_text = self._text_cache.get(name)
+            if (
+                saved_q_matches_current_q
+                or extra_text is None
+                or self.do_full_refresh
+            ):
+                pretty_name = name.upper()
+                spaces = ""
+                if (size := len(pretty_name.strip())) < max_name_size + 1:
+                    spaces += (max_name_size - size) * " "
+                pretty_name += ":"
+                pretty_name += spaces
+
+                tag = GreatTag.from_query(query)
+                todos = self.repo.get_by_tag(tag).unwrap()
+                group = StatsGroup.from_todos(todos)
+
+                extra_text = Text(
                     f"{pretty_name}   "
                     f"X({group.done_stats.count}.{group.done_stats.points}) + "
                     f"O({group.open_stats.count}.{group.open_stats.points}) = "
-                    f"XO({group.all_stats.count}.{group.all_stats.points})\n",
-                    style=style,
+                    f"XO({group.all_stats.count}.{group.all_stats.points})\n"
                 )
-            )
+                self._text_cache[name] = extra_text
+            extra_text.style = style
+            text.append_text(extra_text)
 
+        self.do_full_refresh = False
         return Panel(text, title="Statistics")
 
 
@@ -255,7 +270,8 @@ class GreatApp(App):
         self.repo = repo
         self.ctx = ctx
 
-        text_input_cursor = (
+        self.input_widget = TextInput(name="input", value=self.ctx.query)
+        self.input_widget.cursor = (
             "|",
             Style(
                 color="black",
@@ -263,8 +279,6 @@ class GreatApp(App):
                 bold=True,
             ),
         )
-        self.input_widget = TextInput(name="input", value=self.ctx.query)
-        self.input_widget.cursor = text_input_cursor
 
         self.main_widget = Static(
             Panel(
@@ -291,6 +305,7 @@ class GreatApp(App):
         await self.bind("e", "edit", "Edit Todos")
         await self.bind("i", "change_mode('insert')", "Insert Mode")
         await self.bind("I", "clear_and_insert", "Clear and Insert")
+        await self.bind("r", "refresh", "Refresh")
         await self.bind("q", "quit", "Quit")
 
     async def on_mount(self) -> None:
@@ -335,6 +350,11 @@ class GreatApp(App):
         self.input_widget._cursor_position = len(query)
         await self.action_submit()
 
+    async def action_refresh(self) -> None:
+        """Full refresh of TUI (e.g. stats + main panel will reload)."""
+        self.stats_widget.do_full_refresh = True
+        await self.action_submit()
+
     async def action_submit(self) -> None:
         """Executes the current todo query shown in the input bar."""
         self.ctx.query = self.input_widget.value
@@ -357,7 +377,7 @@ def _todo_lines_from_query(
     return result
 
 
-def start_textual_app(db_url: str, data_dir: PathLike) -> None:
+def start_textual_app(db_url: str, *, verbose: int = 0) -> None:
     """Starts the TUI using the GreatApp class."""
     repo = SQLRepo(db_url)
     ctx = Context(TODAY_QUERY)
@@ -372,7 +392,7 @@ def start_textual_app(db_url: str, data_dir: PathLike) -> None:
 
     while ctx.edit_todos:
         tag = GreatTag.from_query(ctx.query)
-        with GreatSession(db_url, data_dir, tag) as session:
+        with GreatSession(db_url, tag, verbose=verbose) as session:
             vim(session.path).unwrap()
             session.commit()
 

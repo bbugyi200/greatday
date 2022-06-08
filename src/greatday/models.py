@@ -4,14 +4,7 @@
 import datetime as dt
 from typing import List, Optional
 
-from sqlmodel import (
-    Column,
-    Field,
-    Relationship,
-    SQLModel,
-    String,
-    create_engine,
-)
+from sqlmodel import Column, Field, Relationship, SQLModel, String
 from sqlmodel.sql.expression import Select, SelectOfScalar
 
 
@@ -140,8 +133,3 @@ class Metatag(Tag, table=True):
     """Model class for metadata tags (e.g. due:2022-06-01)."""
 
     links: List[MetatagLink] = Relationship(back_populates="metatag")
-
-
-if __name__ == "__main__":
-    engine = create_engine("sqlite:///greatday.db")
-    SQLModel.metadata.create_all(engine)

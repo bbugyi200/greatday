@@ -39,10 +39,12 @@ bolton-logrus==0.1.0
     #   -r requirements.in
     #   bolton-clack
     #   greatday
-bolton-metaman==0.1.1
+bolton-metaman==0.1.2
     # via
+    #   -r requirements.in
     #   bolton-eris
     #   bolton-logrus
+    #   greatday
     #   magodo
 bolton-proctor==0.2.2
     # via vimala
@@ -96,6 +98,8 @@ filelock==3.7.1
     #   virtualenv
 flake8==4.0.1
     # via -r requirements-dev.in
+freezegun==1.2.1
+    # via -r requirements-dev.in
 gitdb==4.0.9
     # via gitpython
 gitpython==3.1.27
@@ -123,7 +127,7 @@ lazy-object-proxy==1.7.1
     # via astroid
 m2r2==0.3.2
     # via -r requirements-dev.in
-magodo==0.10.1
+magodo==1.1.0
     # via
     #   -r requirements.in
     #   greatday
@@ -135,7 +139,7 @@ mccabe==0.6.1
     #   pylint
 mistune==0.8.4
     # via m2r2
-mypy==0.960
+mypy==0.961
     # via -r requirements-dev.in
 mypy-extensions==0.4.3
     # via
@@ -186,7 +190,7 @@ pygments==2.12.0
     # via
     #   rich
     #   sphinx
-pylint==2.14.0
+pylint==2.14.1
     # via -r requirements-dev.in
 pyparsing==3.0.9
     # via packaging
@@ -203,7 +207,7 @@ pytest-mock==3.7.0
 python-dateutil==2.8.2
     # via
     #   -r requirements.in
-    #   arrow
+    #   freezegun
     #   greatday
 python-slugify==6.1.2
     # via cookiecutter
@@ -333,7 +337,7 @@ wrapt==1.14.1
 # The following packages are considered to be unsafe in a requirements file:
 pip==22.1.2
     # via pip-tools
-setuptools==62.3.2
+setuptools==62.3.3
     # via
     #   astroid
     #   pip-tools

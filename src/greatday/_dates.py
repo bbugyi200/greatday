@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import datetime as dt
-from pathlib import Path
 from typing import Final
 
 from dateutil.relativedelta import relativedelta
 import magodo
-from magodo import DateRange
-from typist import PathLike
 
 
 MONDAY: Final = 0
@@ -22,6 +20,21 @@ SUNDAY: Final = 6
 
 # metatags (i.e. key-value tags) that accept relative date strings (e.g. '1d')
 RELATIVE_DATE_METATAGS: Final = ["snooze", "until", "due"]
+
+
+@dataclass(frozen=True)
+class DateRange:
+    """Represents a range of dates."""
+
+    start: dt.date
+    end: dt.date | None = None
+
+    @classmethod
+    def from_strings(cls, start_str: str, end_str: str = None) -> DateRange:
+        """Constructs a DateRange from two strings."""
+        start = magodo.dates.to_date(start_str)
+        end = magodo.dates.to_date(end_str) if end_str else None
+        return cls(start, end)
 
 
 def get_relative_date(
@@ -142,27 +155,10 @@ def to_great_date(spec: str, past: bool = False) -> dt.date:
     greatday (e.g. 'YYYY-MM-DD').
     """
     if matches_date_fmt(spec):
-        return magodo.to_date(spec)
+        return magodo.dates.to_date(spec)
     else:
         assert matches_relative_date_fmt(spec)
         return get_relative_date(spec, past=past)
-
-
-def init_yyyymm_path(root: PathLike, *, date: dt.date = None) -> Path:
-    """Returns a Path of the form /path/to/root/YYYY/MM.txt.
-
-    NOTE: Creates the /path/to/root/YYYY directory if necessary.
-    """
-    root = Path(root)
-    if date is None:
-        date = dt.date.today()
-
-    year = date.year
-    month = date.month
-
-    result = root / str(year) / f"{month:0>2}.txt"
-    result.parent.mkdir(parents=True, exist_ok=True)
-    return result
 
 
 def get_date_range(spec: str) -> DateRange:

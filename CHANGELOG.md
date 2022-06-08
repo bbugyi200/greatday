@@ -9,9 +9,22 @@ The format is based on [Keep a Changelog], and this project adheres to
 [Semantic Versioning]: https://semver.org/
 
 
-## [Unreleased](https://github.com/bbugyi200/greatday/compare/0.4.0...HEAD)
+## [Unreleased](https://github.com/bbugyi200/greatday/compare/1.0.0...HEAD)
 
 No notable changes have been made.
+
+
+## [1.0.0](https://github.com/bbugyi200/greatday/compare/0.4.0...1.0.0) - 2022-06-08
+
+### Changed
+
+* Multiple significant optimizations (e.g. caching `GreatTag.from_line()` calls).
+* Major refactoring to support v1.0.0 of magodo library.
+
+### Miscellaneous
+
+* Increase test coverage to >=80% (currently at 82%).
+* First stable release of greatday.
 
 
 ## [0.4.0](https://github.com/bbugyi200/greatday/compare/0.3.0...0.4.0) - 2022-05-01

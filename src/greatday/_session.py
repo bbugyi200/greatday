@@ -14,10 +14,9 @@ from logrus import Logger
 import magodo
 from magodo.types import Priority
 from potoroo import Repo, UnitOfWork
-from typist import PathLike
 
+from ._common import NULL_ID
 from ._dates import get_relative_date
-from ._ids import NULL_ID
 from ._repo import FileRepo, SQLRepo
 from ._tag import GreatTag
 from ._todo import GreatTodo
@@ -32,27 +31,28 @@ class GreatSession(UnitOfWork[FileRepo]):
     def __init__(
         self,
         db_url: str,
-        data_dir: PathLike,
         tag: GreatTag = None,
         *,
         name: str = None,
+        verbose: int = 0,
     ) -> None:
         self.db_url = db_url
-        self.data_dir = Path(data_dir)
 
         prefix = None if name is None else f"{name}."
         _, temp_path = tempfile.mkstemp(prefix=prefix, suffix=".txt")
         self.path = Path(temp_path)
 
-        # will be accessed via `self.repo` from this point forward
-        self._repo = FileRepo(self.data_dir, self.path)
-
-        self._master_repo = SQLRepo(self.db_url)
-        self._old_todo_map = {}
+        self._master_repo = SQLRepo(self.db_url, verbose=verbose)
+        self._key_to_old_todo = {}
         if tag is not None:
-            for todo in self._master_repo.get_by_tag(tag).unwrap():
-                self.repo.add(todo, key=todo.ident)
-                self._old_todo_map[todo.ident] = todo
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            with self.path.open("a+") as f:
+                for todo in sorted(self._master_repo.get_by_tag(tag).unwrap()):
+                    f.write(todo.to_line() + "\n")
+                    self._key_to_old_todo[todo.ident] = todo
+
+        # will be accessed via `self.repo` from this point forward
+        self._repo = FileRepo(self.path)
 
     def __enter__(self) -> GreatSession:
         """Called before entering a GreatSession with-block."""
@@ -77,14 +77,14 @@ class GreatSession(UnitOfWork[FileRepo]):
         We achieve this by copying the contents of the backup file created on
         instantiation back to the original.
         """
-        removed_todo_keys = list(self._old_todo_map.keys())
+        removed_todo_keys = list(self._key_to_old_todo.keys())
         new_todos = {}
         for todo in self.repo.all().unwrap():
             key = todo.ident
             if key in removed_todo_keys:
                 removed_todo_keys.remove(key)
 
-            old_todo = self._old_todo_map.get(key)
+            old_todo = self._key_to_old_todo.get(key)
             if key == NULL_ID:
                 logger.info("New todo was added while editing?", todo=todo)
                 key = self._master_repo.add(todo).unwrap()
@@ -93,18 +93,22 @@ class GreatSession(UnitOfWork[FileRepo]):
                 _commit_todo_changes(self._master_repo, todo, old_todo)
 
         if new_todos:
+            # HACK: Removes all new todos by assuming that new todos will not
+            # have been assigned an ID yet.
             old_lines = self.path.read_text().split("\n")
             self.path.write_text(
                 "\n".join(line for line in old_lines if " id:" in line)
             )
 
         for key, todo in new_todos.items():
+            self._key_to_old_todo[key] = todo
             self.repo.add(todo, key=key)
 
         for key in removed_todo_keys:
             removed_todo = self._master_repo.remove(key).unwrap()
             if removed_todo is not None:
-                del self._old_todo_map[removed_todo.ident]
+                logger.info("Todo has been deleted.", todo=removed_todo)
+                del self._key_to_old_todo[removed_todo.ident]
 
     def rollback(self) -> None:
         """Revert any changes made while in this GreatSession's with-block."""
@@ -126,7 +130,9 @@ def _commit_todo_changes(
     recur = todo.metadata.get("recur")
     until = todo.metadata.get("until")
     expired = bool(
-        todo.done_date and until and magodo.to_date(until) <= todo.done_date
+        todo.done_date
+        and until
+        and magodo.dates.to_date(until) <= todo.done_date
     )
     if (
         old_todo
@@ -134,7 +140,6 @@ def _commit_todo_changes(
         and not old_todo.done_date
         and recur
         and not expired
-        and not todo.metadata.get("tickle")
     ):
         next_metadata = dict(todo.metadata.items())
 
@@ -149,10 +154,10 @@ def _commit_todo_changes(
         if recur.islower() or due is None:
             start_date = todo.done_date
         else:
-            start_date = magodo.to_date(due)
+            start_date = magodo.dates.to_date(due)
 
         next_date = get_relative_date(recur, start_date=start_date)
-        next_metadata["due"] = magodo.from_date(next_date)
+        next_metadata["due"] = magodo.dates.from_date(next_date)
 
         # set creation date + clear creation/done time for next todo...
         next_create_date = dt.date.today()

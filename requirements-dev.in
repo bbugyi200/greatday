@@ -1,4 +1,5 @@
 ### Tests
+freezegun
 pytest
 pytest-cov
 pytest-mock

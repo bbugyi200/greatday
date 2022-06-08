@@ -10,11 +10,11 @@ from typing import Callable, Iterable, cast
 from eris import ErisResult, Err, Ok
 from logrus import Logger
 import magodo
-from magodo import DateRange
 from magodo.types import Priority
 
 from ._dates import (
     RELATIVE_DATE_METATAGS,
+    DateRange,
     get_date_range,
     get_relative_date,
     matches_date_fmt,
@@ -238,7 +238,9 @@ class Tag:
                 elif matches_date_fmt(value_string):
                     value_type = MetatagValueType.DATE
                 elif matches_relative_date_fmt(value_string):
-                    value = magodo.from_date(get_relative_date(value_string))
+                    value = magodo.dates.from_date(
+                        get_relative_date(value_string)
+                    )
                     value_type = MetatagValueType.DATE
                 elif value_string.isdigit():
                     value_type = MetatagValueType.INTEGER

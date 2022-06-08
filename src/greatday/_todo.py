@@ -4,14 +4,17 @@ from __future__ import annotations
 
 from typing import Any, cast
 
+from eris import ErisResult, Err, Ok
 import magodo
 from magodo import MagicTodoMixin
 from magodo.types import Priority
 from sqlmodel import Session, select
 
 from . import _spells as spells, models
-from ._common import drop_word_if_startswith
-from ._ids import NULL_ID
+from ._common import NULL_ID, drop_word_if_startswith
+
+
+_LINE_TO_TODO_CACHE: dict[str, "GreatTodo"] = {}
 
 
 class GreatTodo(MagicTodoMixin):
@@ -29,6 +32,20 @@ class GreatTodo(MagicTodoMixin):
         """Returns this Todo's unique identifier."""
         result = self.metadata.get("id", NULL_ID)
         return result
+
+    @classmethod
+    def from_line(cls, line: str) -> ErisResult[GreatTodo]:
+        """Override's default implementation in order to add caching."""
+        todo = _LINE_TO_TODO_CACHE.get(line)
+        if todo is None:
+            result = super().from_line(line)
+            if isinstance(result, Err):
+                return result
+
+            todo = result.ok()
+            _LINE_TO_TODO_CACHE[line] = todo
+
+        return Ok(todo)
 
     @classmethod
     def from_model(cls, mtodo: models.Todo) -> GreatTodo:

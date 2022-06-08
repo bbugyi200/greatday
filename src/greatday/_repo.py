@@ -5,22 +5,19 @@ from __future__ import annotations
 from dataclasses import dataclass
 import operator
 from pathlib import Path
-from typing import Any, Callable, Final, TypeVar
+from typing import Any, Callable, TypeVar
 
-from eris import ErisResult, Ok
+from eris import ErisResult, Err, Ok
 from logrus import Logger
 import magodo
-from magodo import TodoGroup
 from potoroo import Repo, TaggedRepo
 from sqlalchemy import func
-from sqlalchemy.future import Engine
 from sqlmodel import Integer, Session, or_, select
 from sqlmodel.sql.expression import SelectOfScalar
 from typist import PathLike
 
 from . import db, models
-from ._dates import init_yyyymm_path
-from ._ids import NULL_ID, init_next_todo_id
+from ._common import NULL_ID
 from ._tag import (
     DescOperator,
     GreatTag,
@@ -29,6 +26,7 @@ from ._tag import (
     Tag,
 )
 from ._todo import GreatTodo
+from .types import CreateEngineType
 
 
 logger = Logger(__name__)
@@ -36,8 +34,6 @@ logger = Logger(__name__)
 SelectOfTodo = SelectOfScalar[models.Todo]
 SQLStatementParser = Callable[["SQLTag", SelectOfTodo], SelectOfTodo]
 T = TypeVar("T")
-
-DEFAULT_TODO_DIR: Final = "todos"
 
 # will be populated by the @sql_stmt_parser decorator
 SQL_STMT_PARSERS: list[SQLStatementParser] = []
@@ -56,10 +52,16 @@ class SQLRepo(TaggedRepo[str, GreatTodo, GreatTag]):
         self,
         url: str,
         *,
-        engine_factory: Callable[[str], Engine] = db.create_cached_engine,
+        engine_factory: CreateEngineType = db.create_cached_engine,
+        verbose: int = 0,
     ) -> None:
         self.url = url
-        self.engine = engine_factory(url)
+
+        # create the Engine object
+        kwargs = {}
+        if verbose > 2:
+            kwargs["echo"] = True
+        self.engine = engine_factory(url, **kwargs)
 
     def add(self, todo: GreatTodo, /, *, key: str = None) -> ErisResult[str]:
         """Adds a new Todo to the DB.
@@ -240,8 +242,8 @@ class SQLTag:
                 op_arg = id_list
             else:
                 op_map = {
-                    DescOperator.CONTAINS: models.Todo.desc.like,  # type: ignore[attr-defined]
-                    DescOperator.NOT_CONTAINS: models.Todo.desc.not_like,  # type: ignore[attr-defined]
+                    DescOperator.CONTAINS: models.Todo.desc.ilike,  # type: ignore[attr-defined]
+                    DescOperator.NOT_CONTAINS: models.Todo.desc.not_ilike,  # type: ignore[attr-defined]
                 }
                 op = op_map[desc_filter.op]
                 op_arg = like_arg
@@ -282,7 +284,9 @@ class SQLTag:
                 MetatagOperator.NOT_EXISTS,
             ]:
                 comp_op = comp_op_map[mfilter.op]
-                stmt = stmt.where(comp_op(models.Todo.id, mfilter.value))  # type: ignore[arg-type]
+                stmt = stmt.where(
+                    comp_op(_col_to_int(models.Todo.id), int(mfilter.value))
+                )
                 continue
 
             subquery = (
@@ -304,7 +308,7 @@ class SQLTag:
                     MetatagValueType,
                     tuple[Callable[[Any], Any], Callable[[Any], Any]],
                 ] = {
-                    MetatagValueType.DATE: (func.date, magodo.to_date),
+                    MetatagValueType.DATE: (func.date, magodo.dates.to_date),
                     MetatagValueType.INTEGER: (_col_to_int, int),
                     MetatagValueType.STRING: (_noop, _noop),
                 }
@@ -334,68 +338,48 @@ def _col_to_int(value: Any) -> Any:
 class FileRepo(Repo[str, GreatTodo]):
     """Repo that stores Todos on disk."""
 
-    def __init__(self, data_dir: PathLike, path: PathLike = None) -> None:
-        self.data_dir = Path(data_dir)
-        if path is None:
-            self.path = self.data_dir / DEFAULT_TODO_DIR
-        else:
-            self.path = Path(path)
-
-    @property
-    def todo_group(self) -> TodoGroup[GreatTodo]:
-        """Returns the TodoGroup associated with this GreatRepo."""
-        return TodoGroup.from_path(GreatTodo, self.path)
+    def __init__(self, path: PathLike) -> None:
+        self.path = Path(path)
 
     def add(self, todo: GreatTodo, /, *, key: str = None) -> ErisResult[str]:
         """Write a new Todo to disk.
 
         Returns a unique identifier that has been associated with this Todo.
         """
-        drop_old_key = bool(todo.ident == NULL_ID)
-        if key is None or key == NULL_ID:
-            key = init_next_todo_id(self.data_dir)
-        else:
-            drop_old_key = True
-
-        mdata = dict(todo.metadata.items())
-
-        old_key = mdata.get("id")
-        if (drop_old_key and old_key != key) or not old_key:
-            metadata = dict(mdata.items())
-            metadata.update({"id": key})
-            todo = todo.new(metadata=metadata)
+        if key is None:
+            assert todo.ident != NULL_ID, (
+                "Every todo added to a file should already have an ID assigned"
+                " to it."
+            )
+            key = todo.ident
 
         all_todos: list[GreatTodo] = [todo]
 
-        if self.path.is_dir() or (
-            not self.path.exists() and self.path.suffix != ".txt"
-        ):
-            todo_txt = init_yyyymm_path(self.path, date=todo.create_date)
+        if self.path.exists():
+            todos = _todos_from_path(self.path)
+            all_todos.extend(todos)
         else:
             self.path.parent.mkdir(parents=True, exist_ok=True)
-            todo_txt = self.path
 
-        if todo_txt.exists():
-            todo_group = TodoGroup.from_path(GreatTodo, todo_txt)
-            all_todos.extend(todo_group)
-
-        with todo_txt.open("w") as f:
+        with self.path.open("w") as f:
             f.write("\n".join(t.to_line() for t in sorted(all_todos)))
 
         return Ok(key)
 
     def get(self, key: str) -> ErisResult[GreatTodo | None]:
         """Retrieve a Todo from disk."""
-        return Ok(self.todo_group.todo_map.get(key, None))
+        for line in self.path.read_text().split("\n"):
+            if f"id:{key}" in line.strip().split(" "):
+                todo = GreatTodo.from_line(line).unwrap()
+                return Ok(todo)
+        return Ok(None)
 
     def remove(self, key: str) -> ErisResult[GreatTodo | None]:
         """Remove a Todo from disk."""
-        todo_txt = self.todo_group.path_map[key]
-
         new_lines: list[str] = []
 
         todo: GreatTodo | None = None
-        for line in todo_txt.read_text().split("\n"):
+        for line in self.path.read_text().split("\n"):
             for word in line.strip().split(" "):
                 if word == f"id:{key}":
                     todo = GreatTodo.from_line(line).unwrap()
@@ -403,10 +387,21 @@ class FileRepo(Repo[str, GreatTodo]):
             else:
                 new_lines.append(line)
 
-        todo_txt.write_text("\n".join(new_lines))
+        self.path.write_text("\n".join(new_lines))
 
         return Ok(todo)
 
     def all(self) -> ErisResult[list[GreatTodo]]:
         """Retreive all Todos stored on disk."""
-        return Ok(list(self.todo_group))
+        todos = _todos_from_path(self.path)
+        return Ok(todos)
+
+
+def _todos_from_path(path: PathLike) -> list[GreatTodo]:
+    path = Path(path)
+    todos: list[GreatTodo] = []
+    for line in path.read_text().split("\n"):
+        todo_result = GreatTodo.from_line(line)
+        if not isinstance(todo_result, Err):
+            todos.append(todo_result.ok())
+    return todos

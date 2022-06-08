@@ -5,12 +5,19 @@ https://docs.pytest.org/en/6.2.x/fixture.html#conftest-py-sharing-fixtures-acros
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any, Final, Iterator
 
+from freezegun import freeze_time
 from pytest import fixture
 
+from greatday import db
 from greatday.__main__ import main as gtd_main
+from greatday._repo import SQLRepo
+from greatday._todo import GreatTodo
+
+from . import common as c
 
 
 if TYPE_CHECKING:  # fixes pytest warning
@@ -20,15 +27,8 @@ if TYPE_CHECKING:  # fixes pytest warning
 pytest_plugins = ["clack.pytest_plugin"]
 
 
-class MainType(Protocol):
-    """Type returned by main() fixture."""
-
-    def __call__(self, *args: str, **kwargs: Any) -> int:
-        """The signature of the main() function."""
-
-
 @fixture
-def main(make_config_file: MakeConfigFile, tmp_path: Path) -> MainType:
+def main(make_config_file: MakeConfigFile, tmp_path: Path) -> c.MainType:
     """Returns a wrapper around greatday's main() function."""
 
     data_dir = tmp_path / "data"
@@ -48,3 +48,34 @@ def main(make_config_file: MakeConfigFile, tmp_path: Path) -> MainType:
         return gtd_main(argv)
 
     return inner_main
+
+
+@fixture(autouse=True, scope="session")
+def frozen_time() -> Iterator[None]:
+    """Freeze time until our tests are done running."""
+    with freeze_time(f"{c.TODAY}T{c.hh}:{c.mm}:00.123456Z"):
+        yield
+
+
+@fixture
+def sql_repo() -> Iterator[SQLRepo]:
+    """SQLRepo pytext fixture
+
+    Yields:
+        A SQLRepo populated with dummy data.
+    """
+    url: Final = "sqlite://"
+    key: Final = "DATABASE_URL"
+
+    db.create_cached_engine.cache_clear()
+
+    default_url = os.environ.setdefault(key, url)
+    repo = SQLRepo(url)
+    for line in c.TODO_LINES:
+        todo = GreatTodo.from_line(line).unwrap()
+        repo.add(todo).unwrap()
+
+    yield repo
+
+    if url == default_url:
+        del os.environ[key]

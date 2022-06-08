@@ -2,13 +2,23 @@
 
 from __future__ import annotations
 
-from functools import partial
-from typing import Callable, Final
+from functools import lru_cache as cache, partial
+from typing import Callable, Final, List, cast
+
+from magodo.types import Priority
+from typist import literal_to_list
 
 
+# special contexts
 CTX_FIRST: Final = "FIRST"
 CTX_INBOX: Final = "INBOX"
 CTX_LAST: Final = "LAST"
+
+# special ID type (assigned when no real ID exists)
+NULL_ID: Final = "null"
+
+# all valid todo lines must start with one of...
+TODO_PREFIXES: Final = ("x ", "x:", "o ")
 
 
 def drop_words(
@@ -31,3 +41,12 @@ def _startswith_op(x: str, y: str) -> bool:
 
 
 drop_word_if_startswith = partial(drop_words, op=_startswith_op)
+
+
+@cache
+def todo_prefixes() -> tuple[str, ...]:
+    """Returns all valid todo prefixes."""
+    result = list(TODO_PREFIXES)
+    for P in cast(List[str], literal_to_list(Priority)):
+        result.append(f"({P}) ")
+    return tuple(result)
