@@ -18,13 +18,7 @@ from typist import PathLike
 
 from . import db, models
 from .common import NULL_ID
-from .tag import (
-    DescOperator,
-    GreatTag,
-    MetatagOperator,
-    MetatagValueType,
-    Tag,
-)
+from .tag import DescOperator, GreatTag, MetatagOperator, MetatagValueType, Tag
 from .todo import GreatTodo
 from .types import CreateEngineType
 

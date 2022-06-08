@@ -10,7 +10,7 @@ from magodo import MagicTodoMixin
 from magodo.types import Priority
 from sqlmodel import Session, select
 
-from . import spells, models
+from . import models, spells
 from .common import NULL_ID, drop_word_if_startswith
 
 
