@@ -7,16 +7,16 @@ from pytest import mark
 
 from greatday._repo import SQLRepo
 
-from . import common
+from . import common as c
 
 
 params = mark.parametrize
 
 
-@params("query,expected_ids", common.QUERY_TO_TODO_IDS)
+@params("query,expected_ids", c.QUERY_TO_TODO_IDS)
 def test_list(
     capsys: CaptureFixture,
-    main: common.MainType,
+    main: c.MainType,
     sql_repo: SQLRepo,
     query: str,
     expected_ids: list[int],

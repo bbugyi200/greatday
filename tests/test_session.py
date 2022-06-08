@@ -53,7 +53,9 @@ def add_one_todo(path: Path) -> FakeUserValidator:
         assert len(repo.all().unwrap()) == len(c.TODO_LINES) + 1
         todo = repo.get(ID).unwrap()
         assert todo is not None
-        assert DESC in todo.to_line()
+        todo_line = todo.to_line()
+        assert DESC in todo_line
+        assert " id:" in todo_line
         return True
 
     return validator
