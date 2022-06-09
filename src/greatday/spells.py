@@ -7,7 +7,7 @@ from typing import Final, Iterable, List
 
 from logrus import Logger
 import magodo
-from magodo.types import LineSpell, T, TodoSpell
+from magodo.types import LineSpell, Metadata, T, TodoSpell
 from metaman import register_function_factory
 
 from .common import drop_word_if_startswith, drop_words, todo_prefixes
@@ -117,7 +117,7 @@ def render_relative_dates(todo: T) -> T:
     """
     found_tag = False
     desc = todo.desc
-    metadata = dict(todo.metadata.items())
+    metadata: Metadata | None = {}
 
     for key in RELATIVE_DATE_METATAGS:
         value = todo.metadata.get(key)
@@ -127,10 +127,15 @@ def render_relative_dates(todo: T) -> T:
         if not matches_relative_date_fmt(value):
             continue
 
-        found_tag = True
+        # we only create a new dict of metadata if we have to
+        if not found_tag:
+            found_tag = True
+            metadata = dict(todo.metadata.items())
 
         value_date = get_relative_date(value)
         new_value = magodo.dates.from_date(value_date)
+
+        assert metadata is not None
         metadata[key] = new_value
 
         desc = drop_word_if_startswith(desc, key + ":")
