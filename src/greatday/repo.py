@@ -19,9 +19,14 @@ from typist import PathLike
 
 from . import db, models
 from .common import NULL_ID
-from .tag import DescOperator, GreatTag, MetatagOperator, MetatagValueType, Tag
+from .tag import GreatTag, Tag
 from .todo import GreatTodo
-from .types import CreateEngineType
+from .types import (
+    CreateEngineType,
+    DescOperator,
+    MetatagOperator,
+    MetatagValueType,
+)
 
 
 logger = Logger(__name__)

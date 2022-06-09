@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-import enum
 import string
 from typing import Callable, Iterable, cast
 
@@ -20,61 +19,18 @@ from .dates import (
     matches_date_fmt,
     matches_relative_date_fmt,
 )
+from .types import (
+    DescFilter,
+    DescOperator,
+    MetatagFilter,
+    MetatagOperator,
+    MetatagValueType,
+)
 
 
 logger = Logger(__name__)
 
-QueryParser = Callable[[str], ErisResult[str]]
-
-
-class MetatagOperator(enum.Enum):
-    """Used to determine what kind of metatag constraint has been specified."""
-
-    # exists / not exists
-    EXISTS = enum.auto()
-    NOT_EXISTS = enum.auto()
-
-    # comparison operators
-    EQ = enum.auto()
-    NE = enum.auto()
-    LT = enum.auto()
-    LE = enum.auto()
-    GT = enum.auto()
-    GE = enum.auto()
-
-
-class MetatagValueType(enum.Enum):
-    """Specifies the data type of a MetatagFilter's value."""
-
-    DATE = enum.auto()
-    INTEGER = enum.auto()
-    STRING = enum.auto()
-
-
-@dataclass(frozen=True)
-class MetatagFilter:
-    """Represents a single metatag filter (e.g. 'due<=0d' or '!recur')."""
-
-    key: str
-    value: str = ""
-    op: MetatagOperator = MetatagOperator.EXISTS
-    value_type: MetatagValueType = MetatagValueType.STRING
-
-
-class DescOperator(enum.Enum):
-    """Used to determine the type of description constraint specified."""
-
-    CONTAINS = enum.auto()
-    NOT_CONTAINS = enum.auto()
-
-
-@dataclass(frozen=True)
-class DescFilter:
-    """Represents a description query filter (e.g. '"foo"' or '!"bar"')."""
-
-    value: str
-    case_sensitive: bool | None = None
-    op: DescOperator = DescOperator.CONTAINS
+TagParser = Callable[[str], ErisResult[str]]
 
 
 @dataclass(frozen=True)
@@ -146,7 +102,7 @@ class Tag:
 
         return tag
 
-    def prefix_tag_parser_factory(self, ch: str, attr: str) -> QueryParser:
+    def prefix_tag_parser_factory(self, ch: str, attr: str) -> TagParser:
         """Factory for parsers that handle normal tags (e.g. project tags)."""
 
         def parser(query: str) -> ErisResult[str]:
@@ -181,7 +137,7 @@ class Tag:
 
         return Ok(" ".join(rest))
 
-    def date_range_parser_factory(self, ch: str, attr: str) -> QueryParser:
+    def date_range_parser_factory(self, ch: str, attr: str) -> TagParser:
         """Factory for create/done date range tokens."""
 
         def parser(query: str) -> ErisResult[str]:
@@ -259,7 +215,7 @@ class Tag:
 
         return Ok(" ".join(rest))
 
-    def desc_parser_factory(self, quote: str) -> QueryParser:
+    def desc_parser_factory(self, quote: str) -> TagParser:
         """Factory for parser that handles description tokens."""
 
         def parser(query: str) -> ErisResult[str]:
