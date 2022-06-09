@@ -45,6 +45,9 @@ STATS_QUERY_MAP: dict[str, str] = {
     "(4) last": LAST_QUERY,
 }
 
+# number of seconds in-between full TUI refreshes
+REFRESH_INTERVAL: Final = 60
+
 
 class GreatHeader(Header):
     """Override the default Header for Styling"""
@@ -310,6 +313,9 @@ class GreatApp(App):
 
     async def on_mount(self) -> None:
         """Configure layout."""
+        # do a full refresh of this widget every REFRESH_INTERVAL seconds
+        self.set_interval(REFRESH_INTERVAL, self.action_refresh)
+
         # configure header and footer...
         await self.view.dock(GreatHeader(), edge="top")
         await self.view.dock(GreatFooter(), edge="bottom")
@@ -352,8 +358,13 @@ class GreatApp(App):
 
     async def action_refresh(self) -> None:
         """Full refresh of TUI (e.g. stats + main panel will reload)."""
+        # refresh stats panel
         self.stats_widget.do_full_refresh = True
-        await self.action_submit()
+        self.stats_widget.refresh()
+
+        # refresh main panel
+        text = _todo_lines_from_query(self.repo, self.ctx.query)
+        await self.main_widget.update(Panel(text, title="Todo List"))
 
     async def action_submit(self) -> None:
         """Executes the current todo query shown in the input bar."""
