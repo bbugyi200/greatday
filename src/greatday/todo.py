@@ -14,6 +14,7 @@ from . import models, spells
 from .common import NULL_ID, drop_word_if_startswith
 
 
+# cache used to optimize the `GreatTodo.from_line()` constructor method
 _LINE_TO_TODO_CACHE: dict[str, "GreatTodo"] = {}
 
 
