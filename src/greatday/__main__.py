@@ -6,9 +6,9 @@ import clack
 
 from . import APP_NAME
 from .config import clack_parser
-from .runners import ALL_RUNNERS
+from .runners import RUNNERS
 
 
-main = clack.main_factory(APP_NAME, runners=ALL_RUNNERS, parser=clack_parser)
+main = clack.main_factory(APP_NAME, runners=RUNNERS, parser=clack_parser)
 if __name__ == "__main__":
     main()

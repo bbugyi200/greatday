@@ -10,6 +10,7 @@ from typing import Any, Callable, TypeVar
 from eris import ErisResult, Err, Ok
 from logrus import Logger
 import magodo
+import metaman
 from potoroo import Repo, TaggedRepo
 from sqlalchemy import func
 from sqlmodel import Integer, Session, or_, select
@@ -29,14 +30,9 @@ SelectOfTodo = SelectOfScalar[models.Todo]
 SQLStatementParser = Callable[["SQLTag", SelectOfTodo], SelectOfTodo]
 T = TypeVar("T")
 
-# will be populated by the @sql_stmt_parser decorator
-SQL_STMT_PARSERS: list[SQLStatementParser] = []
-
-
-def sql_stmt_parser(parser: SQLStatementParser) -> SQLStatementParser:
-    """Decorator that registers statement parsers for SQLTag class."""
-    SQL_STMT_PARSERS.append(parser)
-    return parser
+# the @sql_tag_parser decorator should be used to mark a SQLTag parser
+_SQL_TAG_PARSERS: list[SQLStatementParser] = []
+sql_tag_parser = metaman.register_function_factory(_SQL_TAG_PARSERS)
 
 
 class SQLRepo(TaggedRepo[str, GreatTodo, GreatTag]):
@@ -169,18 +165,18 @@ class SQLTag:
     def to_stmt(self) -> SelectOfTodo:
         """Constructs a SQL statement from the provided Tag object."""
         stmt = select(models.Todo)
-        for parse_stmt in SQL_STMT_PARSERS:
+        for parse_stmt in _SQL_TAG_PARSERS:
             stmt = parse_stmt(self, stmt)
         return stmt
 
-    @sql_stmt_parser
+    @sql_tag_parser
     def done_parser(self, stmt: SelectOfTodo) -> SelectOfTodo:
         """Parser for done status (i.e. 'x' or 'o')."""
         if self.tag.done is not None:
             stmt = stmt.where(models.Todo.done == self.tag.done)
         return stmt
 
-    @sql_stmt_parser
+    @sql_tag_parser
     def prefix_tag_parser(self, stmt: SelectOfTodo) -> SelectOfTodo:
         """Parser for prefix tags (e.g. '@home' or '+greatday')."""
         for prefix_tag_list, link_model, model in [
@@ -205,7 +201,7 @@ class SQLTag:
                 stmt = stmt.where(op(subquery))
         return stmt
 
-    @sql_stmt_parser
+    @sql_tag_parser
     def priority_range_parser(self, stmt: SelectOfTodo) -> SelectOfTodo:
         """Parser for priority range (e.g. '(a-c)')."""
         if self.tag.priorities:
@@ -214,7 +210,7 @@ class SQLTag:
             )
         return stmt
 
-    @sql_stmt_parser
+    @sql_tag_parser
     def desc_parser(self, stmt: SelectOfTodo) -> SelectOfTodo:
         """Parser for todo description (e.g. '"foo"' or '!"bar"')"""
         for desc_filter in self.tag.desc_filters:
@@ -251,7 +247,7 @@ class SQLTag:
             stmt = stmt.where(op(op_arg))
         return stmt
 
-    @sql_stmt_parser
+    @sql_tag_parser
     def date_range_parser(self, stmt: SelectOfTodo) -> SelectOfTodo:
         """Parser for create/done dates (e.g. '^2000-01-01' or '$5d:0d')."""
         for date_range_list, model_date in [
@@ -267,7 +263,7 @@ class SQLTag:
                 )
         return stmt
 
-    @sql_stmt_parser
+    @sql_tag_parser
     def metatag_parser(self, stmt: SelectOfTodo) -> SelectOfTodo:
         """Parser for metatags (e.g. 'due<=0d')."""
         comp_op_map = {

@@ -16,8 +16,8 @@ from .todo import GreatTodo
 from .tui import start_textual_app
 
 
-ALL_RUNNERS: List[ClackRunner] = []
-runner = metaman.register_function_factory(ALL_RUNNERS)
+RUNNERS: List[ClackRunner] = []
+runner = metaman.register_function_factory(RUNNERS)
 
 logger = Logger(__name__)
 

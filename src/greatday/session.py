@@ -31,28 +31,36 @@ class GreatSession(UnitOfWork[FileRepo]):
     def __init__(
         self,
         db_url: str,
-        tag: GreatTag = None,
+        tag: GreatTag,
         *,
         name: str = None,
         verbose: int = 0,
     ) -> None:
-        self.db_url = db_url
-
         prefix = None if name is None else f"{name}."
         _, temp_path = tempfile.mkstemp(prefix=prefix, suffix=".txt")
+
+        # --- public attributes
+        self.db_url = db_url
         self.path = Path(temp_path)
 
+        # --- private attributes
+        self._tag = tag
+        self._name = name
+        self._verbose = verbose
         self._master_repo = SQLRepo(self.db_url, verbose=verbose)
         self._key_to_old_todo = {}
-        if tag is not None:
-            self.path.parent.mkdir(parents=True, exist_ok=True)
-            with self.path.open("a+") as f:
-                for todo in sorted(self._master_repo.get_by_tag(tag).unwrap()):
-                    f.write(todo.to_line() + "\n")
-                    self._key_to_old_todo[todo.ident] = todo
-
         # will be accessed via `self.repo` from this point forward
         self._repo = FileRepo(self.path)
+
+        # init SQL repo and file repo + populate file repo's text file with
+        # todos which match `tag`
+        #
+        # we also populate the `self._key_to_old_todo` dict here
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        with self.path.open("a+") as f:
+            for todo in sorted(self._master_repo.get_by_tag(tag).unwrap()):
+                f.write(todo.to_line() + "\n")
+                self._key_to_old_todo[todo.ident] = todo
 
     def __enter__(self) -> GreatSession:
         """Called before entering a GreatSession with-block."""
