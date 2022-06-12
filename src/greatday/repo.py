@@ -280,6 +280,8 @@ class SQLTag:
             MetatagOperator.GE: operator.ge,
         }
         for mfilter in self.tag.metatag_filters:
+            # special logic is need to handle the 'id' metatag since we don't
+            # store the ID as a metatag in the SQL DB
             if mfilter.key == "id" and mfilter.op not in [
                 MetatagOperator.EXISTS,
                 MetatagOperator.NOT_EXISTS,
