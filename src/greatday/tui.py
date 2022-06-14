@@ -165,12 +165,23 @@ class StatsWidget(Static):
                 todos = self.repo.get_by_tag(tag).unwrap()
                 group = StatsGroup.from_todos(todos)
 
-                extra_text = Text(
-                    f"{pretty_name}   "
-                    f"X({group.done_stats.count}.{group.done_stats.points}) + "
-                    f"O({group.open_stats.count}.{group.open_stats.points}) = "
-                    f"XO({group.all_stats.count}.{group.all_stats.points})\n"
-                )
+                if group.done_stats.count > 0 and group.open_stats.count > 0:
+                    xo_string = (
+                        f"X({group.done_stats.count}.{group.done_stats.points})"
+                        " + "
+                        f"O({group.open_stats.count}.{group.open_stats.points})"
+                        " = "
+                        f"XO({group.all_stats.count}.{group.all_stats.points})"
+                    )
+                elif group.done_stats.count > 0:
+                    stats = group.done_stats
+                    xo_string = f"X({stats.count}.{stats.points})"
+                elif group.open_stats.count > 0:
+                    stats = group.open_stats
+                    xo_string = f"O({stats.count}.{stats.points})"
+                else:
+                    xo_string = "XO"
+                extra_text = Text(f"{pretty_name}  {xo_string}\n")
                 self._text_cache[name] = extra_text
             extra_text.style = style
             text.append_text(extra_text)
