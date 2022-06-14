@@ -31,18 +31,19 @@ BAD_QUERY_NAME_CHARS: Final = "() 0123456789\n"
 
 # important/saved GreatLang queries
 INBOX_QUERY: Final = f"o @{CTX_INBOX}"
-FIRST_QUERY: Final = f"o due<=0d @{CTX_FIRST} | $0d @{CTX_FIRST}"
-LAST_QUERY: Final = f"o due<=0d @{CTX_LAST} | $0d @{CTX_LAST}"
-LATE_QUERY: Final = f"o due<0d @{CTX_LAST} | $0d @{CTX_LAST} due<0d"
+FIRST_QUERY: Final = (
+    f"o due<=0d @{CTX_FIRST} | $0d @{CTX_FIRST} | o due<0d @{CTX_LAST}"
+    f" | $0d due<0d @{CTX_LAST}"
+)
+LAST_QUERY: Final = f"o due=0d @{CTX_LAST} | $0d due=0d @{CTX_LAST}"
 TODAY_QUERY: Final = f"o due<=0d !@{CTX_FIRST} !@{CTX_LAST} | $0d p>0 | (d)"
 
 # a mapping of name->query that will be displayed in the "Stats" textual panel
 STATS_QUERY_MAP: dict[str, str] = {
     "(0) inbox": INBOX_QUERY,
     "(1) first": FIRST_QUERY,
-    "(2) late": LATE_QUERY,
-    "(3) today": TODAY_QUERY,
-    "(4) last": LAST_QUERY,
+    "(2) today": TODAY_QUERY,
+    "(3) last": LAST_QUERY,
 }
 
 # number of seconds in-between full TUI refreshes
