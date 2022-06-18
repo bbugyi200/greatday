@@ -39,11 +39,12 @@ LAST_QUERY: Final = f"o due=0d @{CTX_LAST} | $0d due=0d @{CTX_LAST}"
 TODAY_QUERY: Final = f"o due<=0d !@{CTX_FIRST} !@{CTX_LAST} | $0d p>0 | (d)"
 
 # a mapping of name->query that will be displayed in the "Stats" textual panel
+_IDX = 0
 STATS_QUERY_MAP: dict[str, str] = {
-    "(0) inbox": INBOX_QUERY,
-    "(1) first": FIRST_QUERY,
-    "(2) today": TODAY_QUERY,
-    "(3) last": LAST_QUERY,
+    "today": TODAY_QUERY,
+    "inbox": INBOX_QUERY,
+    "first": FIRST_QUERY,
+    "last": LAST_QUERY,
 }
 
 # number of seconds in-between full TUI refreshes
@@ -141,7 +142,7 @@ class StatsWidget(Static):
         ):
             stats_query_map.update({"\n::": self.ctx.query})
 
-        for name, query in stats_query_map.items():
+        for i, (name, query) in enumerate(stats_query_map.items()):
             saved_q_matches_current_q = bool(self.ctx.query == query)
             if saved_q_matches_current_q:
                 style = "bold italic blue"
@@ -154,7 +155,7 @@ class StatsWidget(Static):
                 or extra_text is None
                 or self.do_full_refresh
             ):
-                pretty_name = name.upper()
+                pretty_name = f"({i}) {name.upper()}"
                 spaces = ""
                 if (size := len(pretty_name.strip())) < max_name_size + 1:
                     spaces += (max_name_size - size) * " "
@@ -306,14 +307,13 @@ class GreatApp(App):
 
     async def on_load(self) -> None:
         """Configure key bindings."""
-        n = 0
-        for name, query in STATS_QUERY_MAP.items():
+        for i, (name, query) in enumerate(STATS_QUERY_MAP.items()):
             query = query.replace(")", FAKE_RIGHT_PAREN)
             description = f"{name.lstrip(BAD_QUERY_NAME_CHARS).upper()} Query"
             await self.bind(
-                str(n), f"new_query('{query}')", description, show=False
+                str(i), f"new_query('{query}')", description, show=False
             )
-            n += 1
+            i += 1
 
         await self.bind("escape", "change_mode('normal')", "Normal Mode")
         await self.bind("enter", "submit", "Submit")
