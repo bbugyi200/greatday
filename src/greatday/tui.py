@@ -155,7 +155,9 @@ class StatsWidget(Static):
                 or extra_text is None
                 or self.do_full_refresh
             ):
-                pretty_name = f"({i}) {name.upper()}"
+                pretty_name = (
+                    f"({i}) {name.upper()}" if name.isalnum() else name
+                )
                 spaces = ""
                 if (size := len(pretty_name.strip())) < max_name_size + 1:
                     spaces += (max_name_size - size) * " "
