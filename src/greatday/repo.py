@@ -13,7 +13,7 @@ import magodo
 import metaman
 from potoroo import Repo, TaggedRepo
 from sqlalchemy import func
-from sqlmodel import Integer, Session, or_, select
+from sqlmodel import Integer, Session, and_, or_, select
 from sqlmodel.sql.expression import SelectOfScalar
 from typist import PathLike
 
@@ -189,21 +189,33 @@ class SQLTag:
             (self.tag.epics, models.EpicLink, models.Epic),
             (self.tag.projects, models.ProjectLink, models.Project),
         ]:
+            base_subquery = select(models.Todo.id).join(link_model).join(model)
             for prefix_tag in prefix_tag_list:
-                if prefix_tag.startswith("-"):
-                    name = prefix_tag[1:]
-                    op = models.Todo.id.not_in  # type: ignore[union-attr]
-                else:
-                    name = prefix_tag
-                    op = models.Todo.id.in_  # type: ignore[union-attr]
+                name = prefix_tag
 
-                subquery = (
-                    select(models.Todo.id)
-                    .join(link_model)
-                    .join(model)
-                    .where(model.name == name)
-                )
-                stmt = stmt.where(op(subquery))
+                if name.startswith("-"):
+                    # remove '-' from name
+                    name = name[1:]
+
+                    in_op = models.Todo.id.not_in  # type: ignore[union-attr]
+                    or_and = and_
+                else:
+                    in_op = models.Todo.id.in_  # type: ignore[union-attr]
+                    or_and = or_
+
+                subqueries = []
+                if name.endswith(".*"):
+                    name = name[:-2]
+
+                    like_op = model.name.ilike  # type: ignore[attr-defined]
+                    like_arg = f"{name}.%"
+
+                    subquery = base_subquery.where(like_op(like_arg))
+                    subqueries.append(subquery)
+
+                subquery = base_subquery.where(model.name == name)
+                subqueries.append(subquery)
+                stmt = stmt.where(or_and(in_op(subq) for subq in subqueries))
         return stmt
 
     @sql_tag_parser

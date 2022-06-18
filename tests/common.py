@@ -29,7 +29,9 @@ TODO_LINES = (
     # ID #4
     "o 1900-01-01 Finish greatday tests | @dev +greatday due:2000-01-01",
     # ID #5
-    "x 2022-06-05 Some other todo | @misc p:1",
+    "x 2022-06-05 Some misc greatday todo | @misc +greatday.misc p:1",
+    # ID #6
+    "x 2022-06-05 FOO greatday todo | +greatday.misc.foo",
 )
 
 # the database IDs that should be associated with each of the todo lines above
@@ -42,22 +44,21 @@ TODO_LINE_IDS = tuple(str(n) for n in range(1, len(TODO_LINES) + 1))
 # query: used to construct GreatTag objects
 # ids: iist of todo line IDs that this query should match
 QUERY_TO_TODO_IDS: list[tuple[str, list[int]]] = [
-    ("", [1, 2, 3, 4, 5]),
-    ("o", [1, 2, 4]),
-    ("x", [3, 5]),
+    ("", list(int(n) for n in TODO_LINE_IDS)),
+    ("o id<6", [1, 2, 4]),
+    ("x id<6", [3, 5]),
     ("@home", [1]),
-    ("!@home", [2, 3, 4, 5]),
+    ("!@home id<6", [2, 3, 4, 5]),
     ("!@home @boring", [2]),
     ("@home @boring", [1]),
     ("@boring", [1, 2]),
-    ("+greatday", [3, 4]),
     ("+buy @boring", [2]),
     ("(a)", []),
     ("(b)", [2]),
     ("(a-b)", [2]),
     ("(a,b)", [2]),
     ("due", [2, 4]),
-    ("!due", [1, 3, 5]),
+    ("!due id<6", [1, 3, 5]),
     ("due=2000-01-01", [4]),
     ("due>=2000-01-01", [2, 4]),
     ("due>2000-01-01", [2]),
@@ -68,14 +69,18 @@ QUERY_TO_TODO_IDS: list[tuple[str, list[int]]] = [
     ("^2000-01-01:2010-12-31 $2010-01-01", []),
     ("^2000-01-01:2010-12-31 $2010-01-02", [3]),
     ('"some"', [1, 5]),
-    ('!"some"', [2, 3, 4]),
+    ('!"some"', [2, 3, 4, 6]),
     ('"Some"', [5]),
-    ('!"Some"', [1, 2, 3, 4]),
+    ('!"Some"', [1, 2, 3, 4, 6]),
     ('c"some"', [1]),
-    ('!c"some"', [2, 3, 4, 5]),
+    ('!c"some"', [2, 3, 4, 5, 6]),
     ("id=2", [2]),
-    ("id>2", [3, 4, 5]),
+    ("id>2 id<6", [3, 4, 5]),
     ("@home | @out", [1, 2]),
+    ("+greatday", [3, 4]),
+    ("+greatday.*", [3, 4, 5, 6]),
+    ("+greatday.* !+greatday", [5, 6]),
+    ("+greatday.* !+greatday.misc.*", [3, 4]),
 ]
 
 
