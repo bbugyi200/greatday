@@ -10,11 +10,11 @@ alabaster==0.7.12
     # via sphinx
 arrow==1.2.2
     # via jinja2-time
-astroid==2.11.5
+astroid==2.11.6
     # via pylint
 attrs==21.4.0
     # via pytest
-babel==2.10.1
+babel==2.10.3
     # via sphinx
 binaryornot==0.4.4
     # via cookiecutter
@@ -58,7 +58,7 @@ bolton-typist==0.2.0
     #   vimala
 bump2version==1.0.1
     # via -r requirements-dev.in
-certifi==2022.5.18.1
+certifi==2022.6.15
     # via requests
 chardet==4.0.0
     # via binaryornot
@@ -190,7 +190,7 @@ pygments==2.12.0
     # via
     #   rich
     #   sphinx
-pylint==2.14.1
+pylint==2.14.3
     # via -r requirements-dev.in
 pyparsing==3.0.9
     # via packaging
@@ -264,7 +264,7 @@ sqlalchemy==1.4.35
     #   -r requirements.in
     #   greatday
     #   sqlmodel
-sqlalchemy2-stubs==0.0.2a23
+sqlalchemy2-stubs==0.0.2a24
     # via sqlmodel
 sqlmodel==0.0.6
     # via
@@ -281,7 +281,7 @@ textual==0.1.18
     #   -r requirements.in
     #   greatday
     #   textual-inputs
-textual-inputs==0.2.5
+textual-inputs==0.2.6
     # via
     #   -r requirements.in
     #   greatday
@@ -337,7 +337,7 @@ wrapt==1.14.1
 # The following packages are considered to be unsafe in a requirements file:
 pip==22.1.2
     # via pip-tools
-setuptools==62.3.3
+setuptools==62.5.0
     # via
     #   astroid
     #   pip-tools

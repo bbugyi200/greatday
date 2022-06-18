@@ -62,7 +62,7 @@ sqlalchemy==1.4.35
     # via
     #   -r requirements.in
     #   sqlmodel
-sqlalchemy2-stubs==0.0.2a23
+sqlalchemy2-stubs==0.0.2a24
     # via sqlmodel
 sqlmodel==0.0.6
     # via -r requirements.in
@@ -72,7 +72,7 @@ textual==0.1.18
     # via
     #   -r requirements.in
     #   textual-inputs
-textual-inputs==0.2.5
+textual-inputs==0.2.6
     # via -r requirements.in
 typing-extensions==4.2.0
     # via
