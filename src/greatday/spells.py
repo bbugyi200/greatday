@@ -184,7 +184,7 @@ def appt_todos(todo: T) -> T:
 
     now = dt.datetime.now()
     appt_dt = dt_from_date_and_hhmm(today, appt)
-    if appt_dt < now + dt.timedelta(minutes=30):
+    if appt_dt < now + dt.timedelta(hours=1):
         priority = "C"
     else:
         priority = "T"

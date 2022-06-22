@@ -62,12 +62,12 @@ params = mark.parametrize
             f"o {c.TODAY} foo | appt:0100 ctime:{c.hhmm}",
         ),
         (
-            f"o foo due:{c.TODAY} appt:0100",
-            f"(T) {c.TODAY} foo | appt:0100 ctime:{c.hhmm} due:{c.TODAY}",
+            f"o foo due:{c.TODAY} appt:0200",
+            f"(T) {c.TODAY} foo | appt:0200 ctime:{c.hhmm} due:{c.TODAY}",
         ),
         (
-            f"o foo due:{c.TODAY} appt:0030",
-            f"(C) {c.TODAY} foo | appt:0030 ctime:{c.hhmm} due:{c.TODAY}",
+            f"o foo due:{c.TODAY} appt:0100",
+            f"(C) {c.TODAY} foo | appt:0100 ctime:{c.hhmm} due:{c.TODAY}",
         ),
         # --- in-progress priority spell
         (
