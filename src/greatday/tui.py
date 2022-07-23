@@ -31,8 +31,8 @@ _BAD_QUERY_NAME_CHARS: Final = "() 0123456789\n"
 
 # important/saved GreatLang queries
 _INBOX_QUERY: Final = f"o @{CTX_INBOX}"
-_LATE_QUERY: Final = f"o due<0d"
-_TODAY_QUERY: Final = f"o due=0d | $0d p>0"
+_LATE_QUERY: Final = "o due<0d"
+_TODAY_QUERY: Final = "o due=0d | $0d p>0"
 
 # a mapping of name->query that will be displayed in the "Stats" textual panel
 _STATS_QUERY_MAP: dict[str, str] = {
