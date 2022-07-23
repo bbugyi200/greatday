@@ -24,10 +24,10 @@ from .todo import GreatTodo
 
 
 # HACK: Used to fix action parameter parenthesis bug (see PR:textual#562).
-FAKE_RIGHT_PAREN: Final = "]]]"
+_FAKE_RIGHT_PAREN: Final = "]]]"
 
 # characters that should be removed from query names in most cases
-BAD_QUERY_NAME_CHARS: Final = "() 0123456789\n"
+_BAD_QUERY_NAME_CHARS: Final = "() 0123456789\n"
 
 # important/saved GreatLang queries
 _INBOX_QUERY: Final = f"o @{CTX_INBOX}"
@@ -35,14 +35,14 @@ _LATE_QUERY: Final = f"o due<0d"
 _TODAY_QUERY: Final = f"o due=0d | $0d p>0"
 
 # a mapping of name->query that will be displayed in the "Stats" textual panel
-STATS_QUERY_MAP: dict[str, str] = {
+_STATS_QUERY_MAP: dict[str, str] = {
     "inbox": _INBOX_QUERY,
     "late": _LATE_QUERY,
     "today": _TODAY_QUERY,
 }
 
 # number of seconds in-between full TUI refreshes
-REFRESH_INTERVAL: Final = 60
+_REFRESH_INTERVAL: Final = 60
 
 
 class GreatHeader(Header):
@@ -83,7 +83,7 @@ class GreatFooter(Footer):
                 key if binding.key_display is None else binding.key_display
             )
             hovered = self.highlight_key == binding.key
-            description = binding.description.strip(BAD_QUERY_NAME_CHARS)
+            description = binding.description.strip(_BAD_QUERY_NAME_CHARS)
             key_text = Text.assemble(
                 (
                     f" {key_display} ",
@@ -125,7 +125,7 @@ class StatsWidget(Static):
 
     def render(self) -> Panel:
         """Render the statistics widget."""
-        stats_query_map = STATS_QUERY_MAP.copy()
+        stats_query_map = _STATS_QUERY_MAP.copy()
 
         text = Text()
         max_name_size = max(
@@ -303,9 +303,9 @@ class GreatApp(App):
 
     async def on_load(self) -> None:
         """Configure key bindings."""
-        for i, (name, query) in enumerate(STATS_QUERY_MAP.items()):
-            query = query.replace(")", FAKE_RIGHT_PAREN)
-            description = f"{name.lstrip(BAD_QUERY_NAME_CHARS).upper()} Query"
+        for i, (name, query) in enumerate(_STATS_QUERY_MAP.items()):
+            query = query.replace(")", _FAKE_RIGHT_PAREN)
+            description = f"{name.lstrip(_BAD_QUERY_NAME_CHARS).upper()} Query"
             await self.bind(
                 str(i), f"new_query('{query}')", description, show=False
             )
@@ -321,8 +321,8 @@ class GreatApp(App):
 
     async def on_mount(self) -> None:
         """Configure layout."""
-        # do a full refresh of this widget every REFRESH_INTERVAL seconds
-        self.set_interval(REFRESH_INTERVAL, self.action_refresh)
+        # do a full refresh of this widget every _REFRESH_INTERVAL seconds
+        self.set_interval(_REFRESH_INTERVAL, self.action_refresh)
 
         # configure header and footer...
         await self.view.dock(GreatHeader(), edge="top")
@@ -359,7 +359,7 @@ class GreatApp(App):
 
     async def action_new_query(self, query: str) -> None:
         """Execute a new todo query."""
-        query = query.replace(FAKE_RIGHT_PAREN, ")")
+        query = query.replace(_FAKE_RIGHT_PAREN, ")")
         self.input_widget.value = query
         self.input_widget._cursor_position = len(query)
         await self.action_submit()
