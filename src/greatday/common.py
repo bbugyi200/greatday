@@ -10,9 +10,7 @@ from typist import literal_to_list
 
 
 # special contexts
-CTX_FIRST: Final = "FIRST"
 CTX_INBOX: Final = "INBOX"
-CTX_LAST: Final = "LAST"
 
 # special ID type (assigned when no real ID exists)
 NULL_ID: Final = "null"
