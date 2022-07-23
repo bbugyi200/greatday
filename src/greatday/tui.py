@@ -33,12 +33,24 @@ _BAD_QUERY_NAME_CHARS: Final = "() 0123456789\n"
 _INBOX_QUERY: Final = f"o @{CTX_INBOX}"
 _LATE_QUERY: Final = "o due<0d"
 _TODAY_QUERY: Final = "o due=0d | $0d p>0"
+_TOMORROW_QUERY: Final = "o due=1d"
+_WEEK_QUERY: Final = "o due>0d due<=7d @W"
+_MONTH_QUERY: Final = "o due>0d due<=28d @M"
+_QUARTER_QUERY: Final = "o due>0d due<=91d @Q"
+_YEAR_QUERY: Final = "o due>0d due<=1y @Y"
+_FIVE_YEAR_QUERY: Final = "o due>0d due<=5y @5Y"
 
 # a mapping of name->query that will be displayed in the "Stats" textual panel
 _STATS_QUERY_MAP: dict[str, str] = {
     "inbox": _INBOX_QUERY,
     "late": _LATE_QUERY,
     "today": _TODAY_QUERY,
+    "tomorrow": _TOMORROW_QUERY,
+    "week": _WEEK_QUERY,
+    "month": _MONTH_QUERY,
+    "quarter": _QUARTER_QUERY,
+    "year": _YEAR_QUERY,
+    "xyears": _FIVE_YEAR_QUERY,
 }
 
 # number of seconds in-between full TUI refreshes
