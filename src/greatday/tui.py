@@ -30,20 +30,15 @@ FAKE_RIGHT_PAREN: Final = "]]]"
 BAD_QUERY_NAME_CHARS: Final = "() 0123456789\n"
 
 # important/saved GreatLang queries
-INBOX_QUERY: Final = f"o @{CTX_INBOX}"
-FIRST_QUERY: Final = (
-    f"o due<=0d @{CTX_FIRST} | $0d @{CTX_FIRST} | o due<0d @{CTX_LAST}"
-    f" | $0d due<0d @{CTX_LAST}"
-)
-LAST_QUERY: Final = f"o due=0d @{CTX_LAST} | $0d due=0d @{CTX_LAST}"
-TODAY_QUERY: Final = f"o due<=0d !@{CTX_FIRST} !@{CTX_LAST} | $0d p>0 | (d)"
+_INBOX_QUERY: Final = f"o @{CTX_INBOX}"
+_LATE_QUERY: Final = f"o due<0d"
+_TODAY_QUERY: Final = f"o due=0d | $0d p>0"
 
 # a mapping of name->query that will be displayed in the "Stats" textual panel
 STATS_QUERY_MAP: dict[str, str] = {
-    "inbox": INBOX_QUERY,
-    "first": FIRST_QUERY,
-    "today": TODAY_QUERY,
-    "last": LAST_QUERY,
+    "inbox": _INBOX_QUERY,
+    "late": _LATE_QUERY,
+    "today": _TODAY_QUERY,
 }
 
 # number of seconds in-between full TUI refreshes
@@ -404,7 +399,7 @@ def _todo_lines_from_query(
 def start_textual_app(db_url: str, *, verbose: int = 0) -> None:
     """Starts the TUI using the GreatApp class."""
     repo = SQLRepo(db_url)
-    ctx = Context(TODAY_QUERY)
+    ctx = Context(_TODAY_QUERY)
     run_app = partial(
         GreatApp.run,
         repo=repo,
