@@ -141,7 +141,7 @@ mccabe==0.6.1
     #   pylint
 mistune==0.8.4
     # via m2r2
-mypy==0.961
+mypy==0.971
     # via -r requirements-dev.in
 mypy-extensions==0.4.3
     # via
@@ -193,7 +193,7 @@ pygments==2.12.0
     # via
     #   rich
     #   sphinx
-pylint==2.14.4
+pylint==2.14.5
     # via -r requirements-dev.in
 pyparsing==3.0.9
     # via packaging
@@ -273,7 +273,7 @@ sqlmodel==0.0.6
     # via
     #   -r requirements.in
     #   greatday
-structlog==21.5.0
+structlog==22.1.0
     # via bolton-logrus
 syrupy==2.3.1
     # via -r requirements-dev.in
@@ -313,7 +313,7 @@ tox-pyenv==1.1.0
     # via -r requirements-dev.in
 typer==0.4.2
     # via cruft
-types-python-dateutil==2.8.18
+types-python-dateutil==2.8.19
     # via -r requirements-dev.in
 typing-extensions==4.3.0
     # via
@@ -340,7 +340,7 @@ wrapt==1.14.1
     # via astroid
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==22.1.2
+pip==22.2
     # via pip-tools
 setuptools==63.2.0
     # via

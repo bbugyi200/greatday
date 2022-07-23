@@ -66,7 +66,7 @@ sqlalchemy2-stubs==0.0.2a24
     # via sqlmodel
 sqlmodel==0.0.6
     # via -r requirements.in
-structlog==21.5.0
+structlog==22.1.0
     # via bolton-logrus
 textual==0.1.18
     # via
