@@ -16,7 +16,7 @@ from textual.widgets import Footer, Header, Static
 from textual_inputs import TextInput
 from vimala import vim
 
-from .common import CTX_FIRST, CTX_INBOX, CTX_LAST
+from .common import CTX_INBOX
 from .repo import SQLRepo
 from .session import GreatSession
 from .tag import GreatTag
