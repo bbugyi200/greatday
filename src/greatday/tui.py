@@ -38,7 +38,7 @@ _WEEK_QUERY: Final = "o due>0d due<=7d @W"
 _MONTH_QUERY: Final = "o due>0d due<=28d @M"
 _QUARTER_QUERY: Final = "o due>0d due<=91d @Q"
 _YEAR_QUERY: Final = "o due>0d due<=1y @Y"
-_FIVE_YEAR_QUERY: Final = "o due>0d due<=5y @5Y"
+_XYEARS_QUERY: Final = "o due>0d due<=5y @X"
 
 # a mapping of name->query that will be displayed in the "Stats" textual panel
 _STATS_QUERY_MAP: dict[str, str] = {
@@ -50,7 +50,7 @@ _STATS_QUERY_MAP: dict[str, str] = {
     "month": _MONTH_QUERY,
     "quarter": _QUARTER_QUERY,
     "year": _YEAR_QUERY,
-    "xyears": _FIVE_YEAR_QUERY,
+    "xyears": _XYEARS_QUERY,
 }
 
 # number of seconds in-between full TUI refreshes
