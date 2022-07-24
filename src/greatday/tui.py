@@ -29,16 +29,19 @@ _FAKE_RIGHT_PAREN: Final = "]]]"
 # characters that should be removed from query names in most cases
 _BAD_QUERY_NAME_CHARS: Final = "() 0123456789\n"
 
+# convenience format strings
+_scoped_query_fmt = "o due>0d due<={0} !@D @{1}".format
+
 # important/saved GreatLang queries
 _INBOX_QUERY: Final = f"o @{CTX_INBOX}"
 _LATE_QUERY: Final = "o due<0d"
-_TODAY_QUERY: Final = "o due=0d | $0d p>0"
+_TODAY_QUERY: Final = "o due=0d | o @D due>0d | $0d p>0"
 _TOMORROW_QUERY: Final = "o due=1d"
-_WEEK_QUERY: Final = "o due>0d due<=7d @W"
-_MONTH_QUERY: Final = "o due>0d due<=28d @M"
-_QUARTER_QUERY: Final = "o due>0d due<=91d @Q"
-_YEAR_QUERY: Final = "o due>0d due<=1y @Y"
-_XYEARS_QUERY: Final = "o due>0d due<=5y @X"
+_WEEK_QUERY: Final = _scoped_query_fmt("7d", "W")
+_MONTH_QUERY: Final = _scoped_query_fmt("28d", "M")
+_QUARTER_QUERY: Final = _scoped_query_fmt("91d", "Q")
+_YEAR_QUERY: Final = _scoped_query_fmt("1y", "Y")
+_XYEARS_QUERY: Final = _scoped_query_fmt("4y", "X")
 
 # a mapping of name->query that will be displayed in the "Stats" textual panel
 _STATS_QUERY_MAP: dict[str, str] = {
