@@ -173,6 +173,9 @@ def _commit_todo_changes(
             if key in next_metadata:
                 del next_metadata[key]
 
+        # clear out contexts we don't want to roll over to the next todo...
+        contexts = [ctx for ctx in todo.contexts if ctx not in ["D"]]
+
         # set priority for next todo...
         priority = todo.metadata.get("priority")
         next_priority = magodo.DEFAULT_PRIORITY
@@ -187,6 +190,7 @@ def _commit_todo_changes(
 
         # add next todo to repo...
         next_todo = todo.new(
+            contexts=contexts,
             create_date=next_create_date,
             done=False,
             done_date=None,
