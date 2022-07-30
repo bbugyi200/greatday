@@ -4,14 +4,24 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import enum
-from typing import Any, Literal, Protocol, TypeVar
+from typing import Any, Dict, Literal, Protocol, TypeVar
 
 from magodo.types import AbstractTodo
 from sqlalchemy.future import Engine
+from typing_extensions import TypedDict
 
 
 T = TypeVar("T", bound=AbstractTodo)
 
+
+class SavedQueryGroup(TypedDict):
+    """Represents a single saved query group."""
+
+    default: str
+    queries: Dict[str, str]
+
+
+SavedQueryGroupMap = Dict[str, SavedQueryGroup]
 YesNoDefault = Literal["n", "default", "y"]
 
 

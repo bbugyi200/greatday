@@ -21,39 +21,16 @@ from .repo import SQLRepo
 from .session import GreatSession
 from .tag import GreatTag
 from .todo import GreatTodo
+from .types import SavedQueryGroup, SavedQueryGroupMap
 
 
 # HACK: Used to fix action parameter parenthesis bug (see PR:textual#562).
 _FAKE_RIGHT_PAREN: Final = "]]]"
 
-# characters that should be removed from query names in most cases
-_BAD_QUERY_NAME_CHARS: Final = "() 0123456789\n"
-
-# convenience format strings
-_scoped_query_fmt = "o due>0d due<={0} !@D @{1}".format
-
-# important/saved GreatLang queries
-_INBOX_QUERY: Final = f"o @{CTX_INBOX}"
-_LATE_QUERY: Final = "o due<0d"
-_TODAY_QUERY: Final = "o due=0d | o @D due>0d | $0d p>0"
-_TOMORROW_QUERY: Final = "o due=1d"
-_WEEK_QUERY: Final = _scoped_query_fmt("7d", "W")
-_MONTH_QUERY: Final = _scoped_query_fmt("28d", "M")
-_QUARTER_QUERY: Final = _scoped_query_fmt("91d", "Q")
-_YEAR_QUERY: Final = _scoped_query_fmt("1y", "Y")
-_XYEARS_QUERY: Final = _scoped_query_fmt("4y", "X")
-
-# a mapping of name->query that will be displayed in the "Stats" textual panel
-_STATS_QUERY_MAP: dict[str, str] = {
-    "inbox": _INBOX_QUERY,
-    "late": _LATE_QUERY,
-    "today": _TODAY_QUERY,
-    "tomorrow": _TOMORROW_QUERY,
-    "week": _WEEK_QUERY,
-    "month": _MONTH_QUERY,
-    "quarter": _QUARTER_QUERY,
-    "year": _YEAR_QUERY,
-    "xyears": _XYEARS_QUERY,
+# default saved query group
+_DEFAULT_QUERY_GROUP: SavedQueryGroup = {
+    "queries": {"all": ""},
+    "default": "all",
 }
 
 # number of seconds in-between full TUI refreshes
@@ -98,7 +75,7 @@ class GreatFooter(Footer):
                 key if binding.key_display is None else binding.key_display
             )
             hovered = self.highlight_key == binding.key
-            description = binding.description.strip(_BAD_QUERY_NAME_CHARS)
+            description = binding.description
             key_text = Text.assemble(
                 (
                     f" {key_display} ",
@@ -121,12 +98,14 @@ class StatsWidget(Static):
         self,
         repo: TaggedRepo[str, GreatTodo, GreatTag],
         ctx: Context,
+        saved_query_group_map: SavedQueryGroupMap,
         *args: Any,
         **kwargs: Any,
     ) -> None:
         super().__init__("", *args, **kwargs)
         self.repo = repo
         self.ctx = ctx
+        self.saved_query_group_map = saved_query_group_map
 
         # If set, all saved query stats will reload on refresh. Otherwise, only
         # stats on the current query will refresh.
@@ -140,7 +119,10 @@ class StatsWidget(Static):
 
     def render(self) -> Panel:
         """Render the statistics widget."""
-        stats_query_map = _STATS_QUERY_MAP.copy()
+        query_group = self.saved_query_group_map.get(
+            self.ctx.group_name, _DEFAULT_QUERY_GROUP
+        )
+        stats_query_map = query_group["queries"]
 
         text = Text()
         max_name_size = max(
@@ -164,9 +146,7 @@ class StatsWidget(Static):
                 or extra_text is None
                 or self.do_full_refresh
             ):
-                pretty_name = (
-                    f"({i}) {name.upper()}" if name.isalnum() else name
-                )
+                pretty_name = f"({i}) {name.upper()}"
                 spaces = ""
                 if (size := len(pretty_name.strip())) < max_name_size + 1:
                     spaces += (max_name_size - size) * " "
@@ -274,11 +254,15 @@ class Context:
 
     Attributes:
         query: The active todo query string.
+        group_name: The name of the saved query group to use. This controls
+          which queries are bound to digits (i.e. 0-9) and shown in the stats
+          panel.
         edit_todos: After closing the TUI, should we open up vim to edit
           matching todos?
     """
 
     query: str
+    group_name: str = "default"
     edit_todos: bool = False
 
 
@@ -290,12 +274,14 @@ class GreatApp(App):
         *,
         repo: TaggedRepo[str, GreatTodo, GreatTag],
         ctx: Context,
+        saved_query_group_map: SavedQueryGroupMap,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
 
         self.repo = repo
         self.ctx = ctx
+        self.saved_query_group_map = saved_query_group_map
 
         self.input_widget = TextInput(name="input", value=self.ctx.query)
         self.input_widget.cursor = (
@@ -314,17 +300,19 @@ class GreatApp(App):
             ),
             name="main",
         )
-        self.stats_widget = StatsWidget(self.repo, self.ctx)
+        self.stats_widget = StatsWidget(
+            self.repo, self.ctx, self.saved_query_group_map
+        )
 
     async def on_load(self) -> None:
         """Configure key bindings."""
-        for i, (name, query) in enumerate(_STATS_QUERY_MAP.items()):
-            query = query.replace(")", _FAKE_RIGHT_PAREN)
-            description = f"{name.lstrip(_BAD_QUERY_NAME_CHARS).upper()} Query"
+        await self.bind_saved_queries(self.ctx.group_name)
+        for ch, group_name in zip(
+            "!@#$%^&*()", self.saved_query_group_map.keys()
+        ):
             await self.bind(
-                str(i), f"new_query('{query}')", description, show=False
+                ch, f"change_query_group('{group_name}')", show=False
             )
-            i += 1
 
         await self.bind("escape", "change_mode('normal')", "Normal Mode")
         await self.bind("enter", "submit", "Submit")
@@ -333,6 +321,23 @@ class GreatApp(App):
         await self.bind("I", "clear_and_insert", "Clear and Insert")
         await self.bind("r", "refresh", "Refresh")
         await self.bind("q", "quit", "Quit")
+
+    async def bind_saved_queries(self, group_name: str) -> None:
+        for i in range(10):
+            if str(i) in self.bindings.keys:
+                del self.bindings.keys[str(i)]
+
+        for i, (name, query) in enumerate(
+            self.saved_query_group_map.get(group_name, {})["queries"].items()
+        ):
+            if i > 9:
+                break
+
+            query = query.replace(")", _FAKE_RIGHT_PAREN)
+            description = f"{name.upper()} Query"
+            await self.bind(
+                str(i), f"new_query('{query}')", description, show=False
+            )
 
     async def on_mount(self) -> None:
         """Configure layout."""
@@ -360,6 +365,14 @@ class GreatApp(App):
             await self.main_widget.focus()
         else:
             raise AssertionError(f"Bad mode: {mode!r}")
+
+    async def action_change_query_group(self, group_name: str) -> None:
+        """Changes the saved query group that is being used."""
+        self.ctx.group_name = group_name
+        self.stats_widget.do_full_refresh = True
+        await self.bind_saved_queries(group_name)
+        query = _get_default_query(self.saved_query_group_map, group_name)
+        await self.action_new_query(query)
 
     async def action_clear_and_insert(self) -> None:
         """Clears input bar and enters Insert mode."""
@@ -411,14 +424,33 @@ def _todo_lines_from_query(
     return result
 
 
-def start_textual_app(db_url: str, *, verbose: int = 0) -> None:
+def _get_default_query(
+    saved_query_group_map: SavedQueryGroupMap, group_name: str
+) -> str:
+    query_group = saved_query_group_map.get(group_name, _DEFAULT_QUERY_GROUP)
+    default_key = query_group["default"]
+    queries = query_group["queries"] if query_group["queries"] else {"all": ""}
+    if default_key not in queries:
+        default_key = list(queries.keys())[0]
+    query = queries[default_key]
+    return query
+
+
+def start_textual_app(
+    db_url: str, *, saved_query_group_map: SavedQueryGroupMap, verbose: int = 0
+) -> None:
     """Starts the TUI using the GreatApp class."""
     repo = SQLRepo(db_url)
-    ctx = Context(_TODAY_QUERY)
+
+    # get default active query
+    query = _get_default_query(saved_query_group_map, "default")
+
+    ctx = Context(query)
     run_app = partial(
         GreatApp.run,
         repo=repo,
         ctx=ctx,
+        saved_query_group_map=saved_query_group_map,
         title="Greatday TUI",
         log="greatday_textual.log",
     )

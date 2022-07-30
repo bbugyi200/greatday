@@ -10,7 +10,7 @@ import clack
 from clack import xdg
 
 from . import APP_NAME
-from .types import YesNoDefault
+from .types import SavedQueryGroupMap, YesNoDefault
 
 
 Command = Literal["add", "list", "tui"]
@@ -53,6 +53,9 @@ class TUIConfig(Config):
     """Config for the 'tui' subcommand."""
 
     command: Literal["tui"]
+
+    # ----- CONFIG
+    saved_query_groups: SavedQueryGroupMap = {}
 
 
 def clack_parser(argv: Sequence[str]) -> dict[str, Any]:

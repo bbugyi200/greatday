@@ -77,5 +77,9 @@ def run_list(cfg: ListConfig) -> int:
 @runner
 def run_tui(cfg: TUIConfig) -> int:
     """Runer for the 'tui' subcommand."""
-    start_textual_app(cfg.database_url, verbose=cfg.verbose)
+    start_textual_app(
+        cfg.database_url,
+        saved_query_group_map=cfg.saved_query_groups,
+        verbose=cfg.verbose,
+    )
     return 0
