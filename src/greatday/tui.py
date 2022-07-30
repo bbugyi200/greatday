@@ -121,7 +121,7 @@ class StatsWidget(Static):
         query_group = self.saved_query_group_map.get(
             self.ctx.group_name, _DEFAULT_QUERY_GROUP
         )
-        stats_query_map = query_group["queries"]
+        stats_query_map = query_group["queries"].copy()
 
         text = Text()
         max_name_size = max(
@@ -145,7 +145,7 @@ class StatsWidget(Static):
                 or extra_text is None
                 or self.do_full_refresh
             ):
-                pretty_name = f"({i}) {name.upper()}"
+                pretty_name = name if "\n" in name else f"({i}) {name.upper()}"
                 spaces = ""
                 if (size := len(pretty_name.strip())) < max_name_size + 1:
                     spaces += (max_name_size - size) * " "
