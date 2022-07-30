@@ -16,7 +16,6 @@ from textual.widgets import Footer, Header, Static
 from textual_inputs import TextInput
 from vimala import vim
 
-from .common import CTX_INBOX
 from .repo import SQLRepo
 from .session import GreatSession
 from .tag import GreatTag
@@ -323,12 +322,15 @@ class GreatApp(App):
         await self.bind("q", "quit", "Quit")
 
     async def bind_saved_queries(self, group_name: str) -> None:
+        """Binds saved queries in `group_name` to digits (i.e. 0-9)."""
         for i in range(10):
             if str(i) in self.bindings.keys:
                 del self.bindings.keys[str(i)]
 
         for i, (name, query) in enumerate(
-            self.saved_query_group_map.get(group_name, {})["queries"].items()
+            self.saved_query_group_map.get(group_name, _DEFAULT_QUERY_GROUP)[
+                "queries"
+            ].items()
         ):
             if i > 9:
                 break
