@@ -370,6 +370,10 @@ class GreatApp(App):
 
     async def action_change_query_group(self, group_name: str) -> None:
         """Changes the saved query group that is being used."""
+        # abort early if no query group change is required
+        if self.ctx.group_name == group_name:
+            return
+
         self.ctx.group_name = group_name
         self.stats_widget.do_full_refresh = True
         await self.bind_saved_queries(group_name)
