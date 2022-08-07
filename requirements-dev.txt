@@ -81,7 +81,7 @@ commonmark==0.9.1
     # via rich
 cookiecutter==2.1.1
     # via cruft
-coverage[toml]==6.4.2
+coverage[toml]==6.4.3
     # via pytest-cov
 cruft[pyproject]==2.11.0
     # via -r requirements-dev.in
@@ -98,7 +98,7 @@ filelock==3.7.1
     # via
     #   tox
     #   virtualenv
-flake8==4.0.1
+flake8==5.0.4
     # via -r requirements-dev.in
 freezegun==1.2.1
     # via -r requirements-dev.in
@@ -135,7 +135,7 @@ magodo==1.1.1
     #   greatday
 markupsafe==2.1.1
     # via jinja2
-mccabe==0.6.1
+mccabe==0.7.0
     # via
     #   flake8
     #   pylint
@@ -177,7 +177,7 @@ py==1.11.0
     # via
     #   pytest
     #   tox
-pycodestyle==2.8.0
+pycodestyle==2.9.1
     # via flake8
 pydantic==1.9.1
     # via
@@ -185,7 +185,7 @@ pydantic==1.9.1
     #   sqlmodel
 pydocstyle[toml]==6.1.1
     # via -r requirements-dev.in
-pyflakes==2.4.0
+pyflakes==2.5.0
     # via flake8
 pygments==2.12.0
     # via
@@ -330,7 +330,7 @@ vimala==0.1.2
     # via
     #   -r requirements.in
     #   greatday
-virtualenv==20.16.2
+virtualenv==20.16.3
     # via tox
 wheel==0.37.1
     # via pip-tools
@@ -338,9 +338,9 @@ wrapt==1.14.1
     # via astroid
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==22.2.1
+pip==22.2.2
     # via pip-tools
-setuptools==63.2.0
+setuptools==63.4.2
     # via
     #   astroid
     #   pip-tools
