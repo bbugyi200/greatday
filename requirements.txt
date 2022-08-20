@@ -42,11 +42,11 @@ magodo==1.1.1
     # via -r requirements.in
 potoroo==0.4.1
     # via -r requirements.in
-pydantic==1.9.1
+pydantic==1.9.2
     # via
     #   bolton-clack
     #   sqlmodel
-pygments==2.12.0
+pygments==2.13.0
     # via rich
 python-dateutil==2.8.2
     # via -r requirements.in
@@ -62,7 +62,7 @@ sqlalchemy==1.4.35
     # via
     #   -r requirements.in
     #   sqlmodel
-sqlalchemy2-stubs==0.0.2a24
+sqlalchemy2-stubs==0.0.2a25
     # via sqlmodel
 sqlmodel==0.0.6
     # via -r requirements.in
