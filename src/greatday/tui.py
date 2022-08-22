@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from functools import partial
 from typing import Any, Final, Sequence
 
 from potoroo import TaggedRepo
@@ -14,10 +13,7 @@ from rich.text import Text
 from textual.app import App
 from textual.widgets import Footer, Header, Static
 from textual_inputs import TextInput
-from vimala import vim
 
-from .repo import SQLRepo
-from .session import GreatSession
 from .tag import GreatTag
 from .todo import GreatTodo
 from .types import SavedQueryGroup, SavedQueryGroupMap
@@ -261,7 +257,7 @@ class Context:
     """
 
     query: str
-    group_name: str = "default"
+    group_name: str
     edit_todos: bool = False
 
 
@@ -377,7 +373,7 @@ class GreatApp(App):
         self.ctx.group_name = group_name
         self.stats_widget.do_full_refresh = True
         await self.bind_saved_queries(group_name)
-        query = _get_default_query(self.saved_query_group_map, group_name)
+        query = get_default_query(self.saved_query_group_map, group_name)
         await self.action_new_query(query)
 
     async def action_clear_and_insert(self) -> None:
@@ -430,9 +426,19 @@ def _todo_lines_from_query(
     return result
 
 
-def _get_default_query(
+# TODO(bugyi): Convert to a method of a new SavedQueryGroupManager type.
+def get_default_query(
     saved_query_group_map: SavedQueryGroupMap, group_name: str
 ) -> str:
+    """Returns the name of the configured default query for a query group.
+
+    Helper function that hides the details of parsing the SavedQueryGroup data
+    structure.
+
+    Args:
+        saved_query_group_map: Contains the query group we are interested in.
+        group_name: Name of the query group we are interested in.
+    """
     query_group = saved_query_group_map.get(group_name, _DEFAULT_QUERY_GROUP)
     default_key = query_group["default"]
     queries = query_group["queries"] if query_group["queries"] else {"all": ""}
@@ -440,33 +446,3 @@ def _get_default_query(
         default_key = list(queries.keys())[0]
     query = queries[default_key]
     return query
-
-
-def start_textual_app(
-    db_url: str, *, saved_query_group_map: SavedQueryGroupMap, verbose: int = 0
-) -> None:
-    """Starts the TUI using the GreatApp class."""
-    repo = SQLRepo(db_url)
-
-    # get default active query
-    query = _get_default_query(saved_query_group_map, "default")
-
-    ctx = Context(query)
-    run_app = partial(
-        GreatApp.run,
-        repo=repo,
-        ctx=ctx,
-        saved_query_group_map=saved_query_group_map,
-        title="Greatday TUI",
-        log="greatday_textual.log",
-    )
-    run_app()
-
-    while ctx.edit_todos:
-        tag = GreatTag.from_query(ctx.query)
-        with GreatSession(db_url, tag, verbose=verbose) as session:
-            vim(session.path).unwrap()
-            session.commit()
-
-        ctx.edit_todos = False
-        run_app()

@@ -2,18 +2,21 @@
 
 from __future__ import annotations
 
+from functools import partial
 from typing import Final, List
 
 from clack.types import ClackRunner
 from logrus import Logger
 import metaman
+from vimala import vim
 
+from . import tui
 from .common import CTX_INBOX, drop_words
 from .config import AddConfig, ListConfig, TUIConfig
 from .repo import SQLRepo
+from .session import GreatSession
 from .tag import GreatTag
 from .todo import GreatTodo
-from .tui import start_textual_app
 
 
 RUNNERS: List[ClackRunner] = []
@@ -77,9 +80,33 @@ def run_list(cfg: ListConfig) -> int:
 @runner
 def run_tui(cfg: TUIConfig) -> int:
     """Runer for the 'tui' subcommand."""
-    start_textual_app(
-        cfg.database_url,
-        saved_query_group_map=cfg.saved_query_groups,
-        verbose=cfg.verbose,
+    repo = SQLRepo(cfg.database_url)
+
+    # get default active query
+    query = tui.get_default_query(
+        cfg.saved_query_groups, cfg.default_query_group
     )
+
+    ctx = tui.Context(query, cfg.default_query_group)
+    run_app = partial(
+        tui.GreatApp.run,
+        repo=repo,
+        ctx=ctx,
+        saved_query_group_map=cfg.saved_query_groups,
+        title="Greatday TUI",
+        log="greatday_textual.log",
+    )
+    run_app()
+
+    while ctx.edit_todos:
+        tag = GreatTag.from_query(ctx.query)
+        with GreatSession(
+            cfg.database_url, tag, verbose=cfg.verbose
+        ) as session:
+            vim(session.path).unwrap()
+            session.commit()
+
+        ctx.edit_todos = False
+        run_app()
+
     return 0

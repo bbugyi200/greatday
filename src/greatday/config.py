@@ -55,6 +55,7 @@ class TUIConfig(Config):
     command: Literal["tui"]
 
     # ----- CONFIG
+    default_query_group: str
     saved_query_groups: SavedQueryGroupMap = {}
 
 

@@ -11,7 +11,9 @@ The format is based on [Keep a Changelog], and this project adheres to
 
 ## [Unreleased](https://github.com/bbugyi200/greatday/compare/1.0.0...HEAD)
 
-No notable changes have been made.
+### Added
+
+* New `default_query_group` configuration option for 'tui` CLI command.
 
 
 ## [1.0.0](https://github.com/bbugyi200/greatday/compare/0.4.0...1.0.0) - 2022-06-08
