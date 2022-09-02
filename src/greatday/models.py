@@ -9,8 +9,8 @@ from sqlmodel.sql.expression import Select, SelectOfScalar
 
 
 # HACK: see https://github.com/tiangolo/sqlmodel/issues/189
-Select.inherit_cache = True  # type: ignore[attr-defined]
-SelectOfScalar.inherit_cache = True  # type: ignore[attr-defined]
+Select.inherit_cache = True
+SelectOfScalar.inherit_cache = True
 
 
 ###############################################################################
