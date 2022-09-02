@@ -42,7 +42,7 @@ magodo==1.1.1
     # via -r requirements.in
 potoroo==0.4.1
     # via -r requirements.in
-pydantic==1.9.2
+pydantic==1.10.1
     # via
     #   bolton-clack
     #   sqlmodel
@@ -62,9 +62,9 @@ sqlalchemy==1.4.35
     # via
     #   -r requirements.in
     #   sqlmodel
-sqlalchemy2-stubs==0.0.2a26
+sqlalchemy2-stubs==0.0.2a27
     # via sqlmodel
-sqlmodel==0.0.6
+sqlmodel==0.0.8
     # via -r requirements.in
 structlog==22.1.0
     # via bolton-logrus
