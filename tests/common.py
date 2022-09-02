@@ -24,8 +24,10 @@ TODO_LINES = (
     # ID #2
     "(B) 2000-02-03 Buy groceries | @out @boring +buy foo:bar due:2000-02-03",
     # ID #3
-    "x 2010-01-02 2010-01-01 Finish greatday tests | @dev +greatday"
-    " mile:2 p:0",
+    (
+        "x 2010-01-02 2010-01-01 Finish greatday tests | @dev +greatday"
+        " mile:2 p:0"
+    ),
     # ID #4
     "o 1900-01-01 Finish greatday tests | @dev +greatday due:2000-01-01",
     # ID #5
