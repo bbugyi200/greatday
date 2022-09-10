@@ -42,7 +42,7 @@ magodo==1.1.1
     # via -r requirements.in
 potoroo==0.4.1
     # via -r requirements.in
-pydantic==1.10.1
+pydantic==1.10.2
     # via
     #   bolton-clack
     #   sqlmodel
