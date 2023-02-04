@@ -75,11 +75,11 @@ params = mark.parametrize
             f"o {c.TODAY} foo | ctime:{c.hhmm} scope:1",
         ),
         (
-            f"o foo scope:1 @m",
+            "o foo scope:1 @m",
             f"o {c.TODAY} foo | ctime:{c.hhmm} scope:2",
         ),
         (
-            f"o foo scope:4 @q",
+            "o foo scope:4 @q",
             f"o {c.TODAY} foo | ctime:{c.hhmm} scope:3",
         ),
     ],
