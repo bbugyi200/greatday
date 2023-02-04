@@ -69,15 +69,6 @@ params = mark.parametrize
             f"o foo due:{c.TODAY} appt:0100",
             f"(C) {c.TODAY} foo | appt:0100 ctime:{c.hhmm} due:{c.TODAY}",
         ),
-        # --- in-progress priority spell
-        (
-            "(D) foo",
-            f"(D) {c.TODAY} foo | ctime:{c.hhmm} start:{c.hhmm}",
-        ),
-        (
-            "o foo start:1234",
-            f"o {c.TODAY} foo | ctime:{c.hhmm}",
-        ),
     ],
 )
 def test_spells(in_line: str, out_line: str) -> None:

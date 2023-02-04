@@ -192,32 +192,6 @@ def appt_todos(todo: T) -> T:
     return todo.new(priority=priority)
 
 
-@todo_spell
-def in_progress_priority_spell(todo: T) -> T:
-    """Handles todos with the in-prigress priority."""
-    start = todo.metadata.get("start")
-    if todo.priority != IN_PROGRESS_PRIORITY:
-        if start:
-            metadata = dict(todo.metadata.items())
-            del metadata["start"]
-            desc = drop_word_if_startswith(todo.desc, "start:")
-            return todo.new(desc=desc, metadata=metadata)
-        else:
-            return todo
-
-    if start:
-        return todo
-
-    now = dt.datetime.now()
-    start = f"{now.hour:0>2}{now.minute:0>2}"
-
-    metadata = dict(todo.metadata.items())
-    metadata["start"] = start
-    desc = todo.desc + f" start:{start}"
-
-    return todo.new(desc=desc, metadata=metadata)
-
-
 ###############################################################################
 # post-todo spells | Lastly, all POST todo spells are cast...
 ###############################################################################
