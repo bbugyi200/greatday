@@ -192,6 +192,26 @@ def appt_todos(todo: T) -> T:
     return todo.new(priority=priority)
 
 
+@todo_spell
+def scope_tags(todo: T) -> T:
+    """Converts @w/@m/@q/@y/@o into appropriate 'scope' metatag."""
+    scope_contexts = ["w", "m", "q", "y", "o"]
+
+    scope: int | None = None
+    for i, ctx in enumerate(scope_contexts):
+        if ctx in todo.contexts:
+            scope = i + 1
+            break
+    else:
+        return todo
+
+    assert scope is not None
+    contexts = [ctx for ctx in todo.contexts if ctx not in scope_contexts]
+    metadata = dict(todo.metadata.items())
+    metadata["scope"] = str(scope)
+    return todo.new(contexts=contexts, metadata=metadata)
+
+
 ###############################################################################
 # post-todo spells | Lastly, all POST todo spells are cast...
 ###############################################################################

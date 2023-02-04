@@ -69,6 +69,19 @@ params = mark.parametrize
             f"o foo due:{c.TODAY} appt:0100",
             f"(C) {c.TODAY} foo | appt:0100 ctime:{c.hhmm} due:{c.TODAY}",
         ),
+        # --- scope spell
+        (
+            "o foo @w",
+            f"o {c.TODAY} foo | ctime:{c.hhmm} scope:1",
+        ),
+        (
+            f"o foo scope:1 @m",
+            f"o {c.TODAY} foo | ctime:{c.hhmm} scope:2",
+        ),
+        (
+            f"o foo scope:4 @q",
+            f"o {c.TODAY} foo | ctime:{c.hhmm} scope:3",
+        ),
     ],
 )
 def test_spells(in_line: str, out_line: str) -> None:
