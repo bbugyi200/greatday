@@ -239,22 +239,34 @@ def get_next_monday(
         >>> get_next_monday(dt.date(2020, 1, 6))
         datetime.date(2020, 1, 13)
 
-        >>> get_next_monday(dt.date(2020, 1, 1), monday_maker=get_quarter_mondays)
+        >>> get_next_monday(
+        ...     dt.date(2020, 1, 1),
+        ...     monday_maker=get_quarter_mondays)
         datetime.date(2020, 1, 6)
 
-        >>> get_next_monday(dt.date(2020, 2, 1), monday_maker=get_quarter_mondays)
+        >>> get_next_monday(
+        ...     dt.date(2020, 2, 1),
+        ...     monday_maker=get_quarter_mondays)
         datetime.date(2020, 4, 6)
 
-        >>> get_next_monday(dt.date(2020, 3, 1), monday_maker=get_quarter_mondays)
+        >>> get_next_monday(
+        ...     dt.date(2020, 3, 1),
+        ...     monday_maker=get_quarter_mondays)
         datetime.date(2020, 4, 6)
 
-        >>> get_next_monday(dt.date(2020, 4, 1), monday_maker=get_quarter_mondays)
+        >>> get_next_monday(
+        ...     dt.date(2020, 4, 1),
+        ...     monday_maker=get_quarter_mondays)
         datetime.date(2020, 4, 6)
 
-        >>> get_next_monday(dt.date(2020, 5, 1), monday_maker=get_quarter_mondays)
+        >>> get_next_monday(
+        ...     dt.date(2020, 5, 1),
+        ...     monday_maker=get_quarter_mondays)
         datetime.date(2020, 7, 6)
 
-        >>> get_next_monday(dt.date(2020, 6, 1), monday_maker=get_quarter_mondays)
+        >>> get_next_monday(
+        ...     dt.date(2020, 6, 1),
+        ...     monday_maker=get_quarter_mondays)
         datetime.date(2020, 7, 6)
     """
     if date is None:
@@ -263,10 +275,8 @@ def get_next_monday(
     for d in monday_maker(year=date.year):
         if d > date:
             return d
-    else:
-        raise RuntimeError(
-            "No next Monday found! This should not be possible!"
-        )
+
+    raise RuntimeError("No next Monday found! This should not be possible!")
 
 
 def get_relative_date(
