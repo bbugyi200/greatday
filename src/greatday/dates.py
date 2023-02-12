@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import datetime as dt
-from typing import Final
+from typing import Final, Protocol
 
 from dateutil.relativedelta import relativedelta
 import magodo
@@ -35,6 +35,238 @@ class DateRange:
         start = magodo.dates.to_date(start_str)
         end = magodo.dates.to_date(end_str) if end_str else None
         return cls(start, end)
+
+
+class MondayMaker(Protocol):
+    """Signature for a function that returns Mondays."""
+
+    def __call__(self, *, year: int = -1) -> list[dt.date]:
+        """The function's call signature."""
+
+
+def get_mondays(*, year: int = -1) -> list[dt.date]:
+    """Returns all mondays of a given year.
+
+    The final date in the returned list will be the first Monday of the next
+    year relative to `year`.
+
+        Examples:
+                >>> mondays = get_mondays(year=2020)
+                >>> len(mondays)
+                53
+
+                >>> mondays[0]
+                datetime.date(2020, 1, 6)
+
+                >>> mondays[-1]
+                datetime.date(2021, 1, 4)
+
+                >>> mondays = get_mondays(year=2021)
+                >>> len(mondays)
+                53
+
+                >>> mondays[0]
+                datetime.date(2021, 1, 4)
+
+                >>> mondays[-1]
+                datetime.date(2022, 1, 3)
+    """
+    if year == -1:
+        year = dt.date.today().year
+
+    d = dt.date(year, 1, 1)
+    while d.weekday() != 0:
+        d += dt.timedelta(days=1)
+
+    mondays = [d]
+    while d.year == year:
+        d += dt.timedelta(weeks=1)
+        mondays.append(d)
+    return mondays
+
+
+def get_quarter_mondays(*, year: int = -1) -> list[dt.date]:
+    """Returns every first Monday of every quarter from `year`.
+
+    Examples:
+        >>> quarter_mondays = get_quarter_mondays(year=2020)
+        >>> len(quarter_mondays)
+        5
+        >>> quarter_mondays[0]
+        datetime.date(2020, 1, 6)
+        >>> quarter_mondays[1]
+        datetime.date(2020, 4, 6)
+        >>> quarter_mondays[2]
+        datetime.date(2020, 7, 6)
+        >>> quarter_mondays[3]
+        datetime.date(2020, 10, 5)
+
+        >>> quarter_mondays = get_quarter_mondays(year=2021)
+        >>> len(quarter_mondays)
+        5
+        >>> quarter_mondays[0]
+        datetime.date(2021, 1, 4)
+        >>> quarter_mondays[1]
+        datetime.date(2021, 4, 5)
+        >>> quarter_mondays[2]
+        datetime.date(2021, 7, 5)
+        >>> quarter_mondays[3]
+        datetime.date(2021, 10, 4)
+    """
+    mondays = []
+    for i, monday in enumerate(get_mondays(year=year)):
+        if i % 13 == 0:
+            mondays.append(monday)
+    return mondays
+
+
+def get_month_mondays(*, year: int = -1) -> list[dt.date]:
+    """Returns a list of Mondays that begin a month.
+
+    By month here, we are referring to a "greatday month", which is either the
+    first day of the quarter, 4 weeks from that day, or 8 weeks from that day.
+
+    Examples:
+        >>> month_mondays = get_month_mondays(year=2020)
+        >>> len(month_mondays)
+        13
+
+        >>> month_mondays[0]
+        datetime.date(2020, 1, 6)
+
+        >>> month_mondays[1]
+        datetime.date(2020, 2, 3)
+
+        >>> month_mondays[2]
+        datetime.date(2020, 3, 2)
+
+        >>> month_mondays[3]
+        datetime.date(2020, 4, 6)
+
+        >>> month_mondays[4]
+        datetime.date(2020, 5, 4)
+
+        >>> month_mondays[5]
+        datetime.date(2020, 6, 1)
+
+        >>> month_mondays[6]
+        datetime.date(2020, 7, 6)
+
+        >>> month_mondays[7]
+        datetime.date(2020, 8, 3)
+
+        >>> month_mondays[8]
+        datetime.date(2020, 8, 31)
+
+        >>> month_mondays[9]
+        datetime.date(2020, 10, 5)
+
+        >>> month_mondays[10]
+        datetime.date(2020, 11, 2)
+
+        >>> month_mondays[11]
+        datetime.date(2020, 11, 30)
+
+        >>> month_mondays = get_month_mondays(year=2021)
+        >>> len(month_mondays)
+        13
+
+        >>> month_mondays[0]
+        datetime.date(2021, 1, 4)
+
+        >>> month_mondays[1]
+        datetime.date(2021, 2, 1)
+
+        >>> month_mondays[2]
+        datetime.date(2021, 3, 1)
+
+        >>> month_mondays[3]
+        datetime.date(2021, 4, 5)
+
+        >>> month_mondays[4]
+        datetime.date(2021, 5, 3)
+
+        >>> month_mondays[5]
+        datetime.date(2021, 5, 31)
+
+        >>> month_mondays[6]
+        datetime.date(2021, 7, 5)
+
+        >>> month_mondays[7]
+        datetime.date(2021, 8, 2)
+
+        >>> month_mondays[8]
+        datetime.date(2021, 8, 30)
+
+        >>> month_mondays[9]
+        datetime.date(2021, 10, 4)
+
+        >>> month_mondays[10]
+        datetime.date(2021, 11, 1)
+
+        >>> month_mondays[11]
+        datetime.date(2021, 11, 29)
+    """
+    month_indices = [0, 4, 8, 13, 17, 21, 26, 30, 34, 39, 43, 47, 52]
+    mondays = []
+    for i, monday in enumerate(get_mondays(year=year)):
+        if any(i == n for n in month_indices):
+            mondays.append(monday)
+    return mondays
+
+
+def get_next_monday(
+    date: dt.date | None = None, *, monday_maker: MondayMaker = get_mondays
+) -> dt.date:
+    """Returns next Monday relative to `date`.
+
+    Examples:
+        >>> get_next_monday(dt.date(2020, 1, 1))
+        datetime.date(2020, 1, 6)
+
+        >>> get_next_monday(dt.date(2020, 1, 2))
+        datetime.date(2020, 1, 6)
+
+        >>> get_next_monday(dt.date(2020, 1, 3))
+        datetime.date(2020, 1, 6)
+
+        >>> get_next_monday(dt.date(2020, 1, 4))
+        datetime.date(2020, 1, 6)
+
+        >>> get_next_monday(dt.date(2020, 1, 5))
+        datetime.date(2020, 1, 6)
+
+        >>> get_next_monday(dt.date(2020, 1, 6))
+        datetime.date(2020, 1, 13)
+
+        >>> get_next_monday(dt.date(2020, 1, 1), monday_maker=get_quarter_mondays)
+        datetime.date(2020, 1, 6)
+
+        >>> get_next_monday(dt.date(2020, 2, 1), monday_maker=get_quarter_mondays)
+        datetime.date(2020, 4, 6)
+
+        >>> get_next_monday(dt.date(2020, 3, 1), monday_maker=get_quarter_mondays)
+        datetime.date(2020, 4, 6)
+
+        >>> get_next_monday(dt.date(2020, 4, 1), monday_maker=get_quarter_mondays)
+        datetime.date(2020, 4, 6)
+
+        >>> get_next_monday(dt.date(2020, 5, 1), monday_maker=get_quarter_mondays)
+        datetime.date(2020, 7, 6)
+
+        >>> get_next_monday(dt.date(2020, 6, 1), monday_maker=get_quarter_mondays)
+        datetime.date(2020, 7, 6)
+    """
+    if date is None:
+        date = dt.date.today()
+
+    for d in monday_maker(year=date.year):
+        if d > date:
+            return d
+    else:
+        raise RuntimeError(
+            "No next Monday found! This should not be possible!"
+        )
 
 
 def get_relative_date(

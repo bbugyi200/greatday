@@ -14,7 +14,11 @@ from .common import drop_word_if_startswith, drop_words, todo_prefixes
 from .dates import (
     RELATIVE_DATE_METATAGS,
     dt_from_date_and_hhmm,
+    get_mondays,
+    get_month_mondays,
+    get_next_monday,
     get_relative_date,
+    get_quarter_mondays,
     matches_date_fmt,
     matches_relative_date_fmt,
 )
@@ -195,20 +199,49 @@ def appt_todos(todo: T) -> T:
 @todo_spell
 def scope_tags(todo: T) -> T:
     """Converts @w/@m/@q/@y/@o into appropriate 'scope' metatag."""
+
+    def get_w_due() -> dt.date:
+        return get_next_monday()
+
+    def get_m_due() -> dt.date:
+        return get_next_monday(monday_maker=get_month_mondays)
+
+    def get_q_due() -> dt.date:
+        return get_next_monday(monday_maker=get_quarter_mondays)
+
+    def get_y_due() -> dt.date:
+        return get_mondays()[-1]
+
+    def get_o_due() -> dt.date:
+        d = dt.date.today()
+        y = d.year + 1
+        while y % 4 != 0:
+            y += 1
+        return get_mondays(year=y)[0]
+
     scope_contexts = ["w", "m", "q", "y", "o"]
 
     scope: int | None = None
-    for i, ctx in enumerate(scope_contexts):
+    due: dt.date | None = None
+    for i, (ctx, get_due) in enumerate(
+        zip(
+            scope_contexts,
+            [get_w_due, get_m_due, get_q_due, get_y_due, get_o_due],
+        )
+    ):
         if ctx in todo.contexts:
             scope = i + 1
+            due = get_due()
             break
     else:
         return todo
 
     assert scope is not None
+    assert due is not None
     contexts = [ctx for ctx in todo.contexts if ctx not in scope_contexts]
     metadata = dict(todo.metadata.items())
     metadata["scope"] = str(scope)
+    metadata["due"] = magodo.dates.from_date(due)
     return todo.new(contexts=contexts, metadata=metadata)
 
 

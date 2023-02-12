@@ -72,15 +72,23 @@ params = mark.parametrize
         # --- scope spell
         (
             "o foo @w",
-            f"o {c.TODAY} foo | ctime:{c.hhmm} scope:1",
+            f"o {c.TODAY} foo | ctime:{c.hhmm} due:2000-01-10 scope:1",
         ),
         (
             "o foo scope:1 @m",
-            f"o {c.TODAY} foo | ctime:{c.hhmm} scope:2",
+            f"o {c.TODAY} foo | ctime:{c.hhmm} due:2000-01-31 scope:2",
         ),
         (
             "o foo scope:4 @q",
-            f"o {c.TODAY} foo | ctime:{c.hhmm} scope:3",
+            f"o {c.TODAY} foo | ctime:{c.hhmm} due:2000-04-03 scope:3",
+        ),
+        (
+            "o foo @y",
+            f"o {c.TODAY} foo | ctime:{c.hhmm} due:2001-01-01 scope:4",
+        ),
+        (
+            "o foo scope:4 @o",
+            f"o {c.TODAY} foo | ctime:{c.hhmm} due:2004-01-05 scope:5",
         ),
     ],
 )

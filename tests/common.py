@@ -12,10 +12,10 @@ hhmm: Final = f"{hh}{mm}"
 
 YYYY: Final = "2000"
 MM: Final = "01"
-DD: Final = "01"
+DD: Final = "03"
 TODAY: Final = f"{YYYY}-{MM}-{DD}"
 
-TOMORROW: Final = f"{YYYY}-{MM}-02"
+TOMORROW: Final = f"{YYYY}-{MM}-04"
 
 # dummy todo lines.. used as test data
 TODO_LINES = (
