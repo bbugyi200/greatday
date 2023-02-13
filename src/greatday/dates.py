@@ -47,29 +47,26 @@ class MondayMaker(Protocol):
 def get_mondays(*, year: int = -1) -> list[dt.date]:
     """Returns all mondays of a given year.
 
-    The final date in the returned list will be the first Monday of the next
-    year relative to `year`.
+    Examples:
+        >>> mondays = get_mondays(year=2020)
+        >>> len(mondays)
+        52
 
-        Examples:
-                >>> mondays = get_mondays(year=2020)
-                >>> len(mondays)
-                53
+        >>> mondays[0]
+        datetime.date(2020, 1, 6)
 
-                >>> mondays[0]
-                datetime.date(2020, 1, 6)
+        >>> mondays[-1]
+        datetime.date(2020, 12, 28)
 
-                >>> mondays[-1]
-                datetime.date(2021, 1, 4)
+        >>> mondays = get_mondays(year=2021)
+        >>> len(mondays)
+        52
 
-                >>> mondays = get_mondays(year=2021)
-                >>> len(mondays)
-                53
+        >>> mondays[0]
+        datetime.date(2021, 1, 4)
 
-                >>> mondays[0]
-                datetime.date(2021, 1, 4)
-
-                >>> mondays[-1]
-                datetime.date(2022, 1, 3)
+        >>> mondays[-1]
+        datetime.date(2021, 12, 27)
     """
     if year == -1:
         year = dt.date.today().year
@@ -78,10 +75,10 @@ def get_mondays(*, year: int = -1) -> list[dt.date]:
     while d.weekday() != 0:
         d += dt.timedelta(days=1)
 
-    mondays = [d]
+    mondays = []
     while d.year == year:
-        d += dt.timedelta(weeks=1)
         mondays.append(d)
+        d += dt.timedelta(weeks=1)
     return mondays
 
 
@@ -91,7 +88,7 @@ def get_quarter_mondays(*, year: int = -1) -> list[dt.date]:
     Examples:
         >>> quarter_mondays = get_quarter_mondays(year=2020)
         >>> len(quarter_mondays)
-        5
+        4
         >>> quarter_mondays[0]
         datetime.date(2020, 1, 6)
         >>> quarter_mondays[1]
@@ -103,7 +100,7 @@ def get_quarter_mondays(*, year: int = -1) -> list[dt.date]:
 
         >>> quarter_mondays = get_quarter_mondays(year=2021)
         >>> len(quarter_mondays)
-        5
+        4
         >>> quarter_mondays[0]
         datetime.date(2021, 1, 4)
         >>> quarter_mondays[1]
@@ -129,7 +126,7 @@ def get_month_mondays(*, year: int = -1) -> list[dt.date]:
     Examples:
         >>> month_mondays = get_month_mondays(year=2020)
         >>> len(month_mondays)
-        13
+        12
 
         >>> month_mondays[0]
         datetime.date(2020, 1, 6)
@@ -169,7 +166,7 @@ def get_month_mondays(*, year: int = -1) -> list[dt.date]:
 
         >>> month_mondays = get_month_mondays(year=2021)
         >>> len(month_mondays)
-        13
+        12
 
         >>> month_mondays[0]
         datetime.date(2021, 1, 4)
@@ -207,7 +204,7 @@ def get_month_mondays(*, year: int = -1) -> list[dt.date]:
         >>> month_mondays[11]
         datetime.date(2021, 11, 29)
     """
-    month_indices = [0, 4, 8, 13, 17, 21, 26, 30, 34, 39, 43, 47, 52]
+    month_indices = [0, 4, 8, 13, 17, 21, 26, 30, 34, 39, 43, 47]
     mondays = []
     for i, monday in enumerate(get_mondays(year=year)):
         if any(i == n for n in month_indices):

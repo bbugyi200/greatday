@@ -198,7 +198,10 @@ def appt_todos(todo: T) -> T:
 
 @todo_spell
 def scope_tags(todo: T) -> T:
-    """Converts @w/@m/@q/@y/@o into appropriate 'scope' metatag."""
+    """Spell that handles @w/@m/@q/@y/@o contexts.
+
+    Adds appropriate 'scope' metatag and 'due' date.
+    """
 
     def get_w_due() -> dt.date:
         return get_next_monday()
@@ -210,7 +213,8 @@ def scope_tags(todo: T) -> T:
         return get_next_monday(monday_maker=get_quarter_mondays)
 
     def get_y_due() -> dt.date:
-        return get_mondays()[-1]
+        year = dt.date.today().year + 1
+        return get_mondays(year=year)[0]
 
     def get_o_due() -> dt.date:
         d = dt.date.today()
