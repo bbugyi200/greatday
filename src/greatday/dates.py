@@ -210,7 +210,7 @@ def get_month_mondays(*, year: int = _DEFAULT_YEAR) -> list[dt.date]:
 
 
 def get_next_monday(
-    date: dt.date | None = None, *, monday_maker: MondayMaker = get_mondays
+    date: dt.date = None, *, monday_maker: MondayMaker = get_mondays
 ) -> dt.date:
     """Returns next Monday relative to `date`.
 
