@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
-from typing import Final, Iterable, List
+from typing import Callable, Final, Iterable, List
 
 from logrus import Logger
 import magodo
@@ -223,14 +223,30 @@ def scope_tags(todo: T) -> T:
             y += 1
         return get_mondays(year=y)[0]
 
-    scope_contexts = ["w", "m", "q", "y", "o"]
+    def get_t_due() -> dt.date:
+        d = dt.date.today()
+        y = d.year + 1
+        while y % 20 != 0:
+            y += 1
+        return get_mondays(year=y)[0]
+
+    scope_contexts = ["w", "m", "q", "y", "o", "t", "s"]
+    get_due_funcs: list[Callable[[], dt.date | None]] = [
+        get_w_due,
+        get_m_due,
+        get_q_due,
+        get_y_due,
+        get_o_due,
+        get_t_due,
+        lambda: None,
+    ]
 
     scope: int | None = None
     due: dt.date | None = None
     for i, (ctx, get_due) in enumerate(
         zip(
             scope_contexts,
-            [get_w_due, get_m_due, get_q_due, get_y_due, get_o_due],
+            get_due_funcs,
         )
     ):
         if ctx in todo.contexts:
@@ -241,13 +257,15 @@ def scope_tags(todo: T) -> T:
         return todo
 
     assert scope is not None
-    assert due is not None
 
     contexts = [ctx for ctx in todo.contexts if ctx not in scope_contexts]
 
     metadata = dict(todo.metadata.items())
     metadata["scope"] = str(scope)
-    metadata["due"] = magodo.dates.from_date(due)
+    if due is not None:
+        metadata["due"] = magodo.dates.from_date(due)
+    elif "due" in metadata:
+        del metadata["due"]
 
     return todo.new(contexts=contexts, metadata=metadata)
 

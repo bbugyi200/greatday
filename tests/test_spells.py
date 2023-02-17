@@ -90,6 +90,14 @@ params = mark.parametrize
             "o foo scope:4 @o",
             f"o {c.TODAY} foo | ctime:{c.hhmm} due:2004-01-05 scope:5",
         ),
+        (
+            "o foo scope:4 @t",
+            f"o {c.TODAY} foo | ctime:{c.hhmm} due:2020-01-06 scope:6",
+        ),
+        (
+            "o foo scope:5 due:2020-01-06 @s",
+            f"o {c.TODAY} foo | ctime:{c.hhmm} scope:7",
+        ),
     ],
 )
 def test_spells(in_line: str, out_line: str) -> None:
