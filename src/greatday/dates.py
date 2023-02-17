@@ -10,18 +10,12 @@ from dateutil.relativedelta import relativedelta
 import magodo
 
 
-MONDAY: Final = 0
-TUESDAY: Final = 1
-WEDNESDAY: Final = 2
-THURSDAY: Final = 3
-FRIDAY: Final = 4
-SATURDAY: Final = 5
-SUNDAY: Final = 6
-
 # metatags (i.e. key-value tags) that accept relative date strings (e.g. '1d')
 RELATIVE_DATE_METATAGS: Final = ["snooze", "until", "due"]
 
 _DEFAULT_YEAR: Final[int] = -1
+_FRIDAY: Final[int] = 4
+_SATURDAY: Final[int] = 5
 
 
 @dataclass(frozen=True)
@@ -343,7 +337,7 @@ def get_relative_date(
     delta: dt.timedelta | relativedelta
     if spec == "weekdays":
         weekday = start_date.weekday()
-        days = {FRIDAY: 3, SATURDAY: 2}.get(weekday, 1)
+        days = {_FRIDAY: 3, _SATURDAY: 2}.get(weekday, 1)
         delta = dt.timedelta(days=days)
     else:
         ch = spec[-1]
