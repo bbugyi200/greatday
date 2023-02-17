@@ -204,7 +204,7 @@ def get_month_mondays(*, year: int = _DEFAULT_YEAR) -> list[dt.date]:
     month_indices = [0, 4, 8, 13, 17, 21, 26, 30, 34, 39, 43, 47]
     mondays = []
     for i, monday in enumerate(get_mondays(year=year)):
-        if any(i == n for n in month_indices):
+        if i in month_indices:
             mondays.append(monday)
     return mondays
 
