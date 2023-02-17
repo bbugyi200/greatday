@@ -242,10 +242,13 @@ def scope_tags(todo: T) -> T:
 
     assert scope is not None
     assert due is not None
+
     contexts = [ctx for ctx in todo.contexts if ctx not in scope_contexts]
+
     metadata = dict(todo.metadata.items())
     metadata["scope"] = str(scope)
     metadata["due"] = magodo.dates.from_date(due)
+
     return todo.new(contexts=contexts, metadata=metadata)
 
 
