@@ -21,6 +21,8 @@ SUNDAY: Final = 6
 # metatags (i.e. key-value tags) that accept relative date strings (e.g. '1d')
 RELATIVE_DATE_METATAGS: Final = ["snooze", "until", "due"]
 
+_DEFAULT_YEAR: Final[int] = -1
+
 
 @dataclass(frozen=True)
 class DateRange:
@@ -40,11 +42,11 @@ class DateRange:
 class MondayMaker(Protocol):
     """Signature for a function that returns Mondays."""
 
-    def __call__(self, *, year: int = -1) -> list[dt.date]:
+    def __call__(self, *, year: int = _DEFAULT_YEAR) -> list[dt.date]:
         """The function's call signature."""
 
 
-def get_mondays(*, year: int = -1) -> list[dt.date]:
+def get_mondays(*, year: int = _DEFAULT_YEAR) -> list[dt.date]:
     """Returns all mondays of a given year.
 
     Examples:
@@ -68,7 +70,7 @@ def get_mondays(*, year: int = -1) -> list[dt.date]:
         >>> mondays[-1]
         datetime.date(2021, 12, 27)
     """
-    if year == -1:
+    if year == _DEFAULT_YEAR:
         year = dt.date.today().year
 
     d = dt.date(year, 1, 1)
@@ -82,7 +84,7 @@ def get_mondays(*, year: int = -1) -> list[dt.date]:
     return mondays
 
 
-def get_quarter_mondays(*, year: int = -1) -> list[dt.date]:
+def get_quarter_mondays(*, year: int = _DEFAULT_YEAR) -> list[dt.date]:
     """Returns every first Monday of every quarter from `year`.
 
     Examples:
@@ -117,7 +119,7 @@ def get_quarter_mondays(*, year: int = -1) -> list[dt.date]:
     return mondays
 
 
-def get_month_mondays(*, year: int = -1) -> list[dt.date]:
+def get_month_mondays(*, year: int = _DEFAULT_YEAR) -> list[dt.date]:
     """Returns a list of Mondays that begin a month.
 
     By month here, we are referring to a "greatday month", which is either the
