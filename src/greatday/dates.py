@@ -116,8 +116,9 @@ def get_quarter_mondays(*, year: int = _DEFAULT_YEAR) -> list[dt.date]:
 def get_month_mondays(*, year: int = _DEFAULT_YEAR) -> list[dt.date]:
     """Returns a list of Mondays that begin a month.
 
-    By month here, we are referring to a "greatday month", which is either the
-    first day of the quarter, 4 weeks from that day, or 8 weeks from that day.
+    By month here, we are referring to a "greatday month", which begins on
+    either the first Monday of the quarter, 4 weeks from that day, or 8 weeks
+    from that day.
 
     Examples:
         >>> month_mondays = get_month_mondays(year=2020)
