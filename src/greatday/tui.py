@@ -396,9 +396,10 @@ class GreatApp(App[str]):
             todo = GreatTodo.from_line(f" o {value}").unwrap()
             self.repo.add(todo)
             await self.action_refresh()
+        else:
+            self.stats_widget.refresh()
 
         self.ctx.query = self.query_widget.value
-        self.stats_widget.refresh()
         text = _todo_lines_from_query(self.repo, self.ctx.query)
         self.todo_widget.update(Panel(text, title="Todo List"))
         await self.action_change_mode("normal")
