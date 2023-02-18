@@ -88,13 +88,13 @@ class GreatTodo(MagicTodoMixin):
             key = id_metatag
 
         desc = drop_word_if_startswith(self.desc, "id:")
-        mtodo_kwargs: dict[str, Any] = dict(
-            create_date=self.create_date,
-            desc=desc,
-            done=self.done,
-            done_date=self.done_date,
-            priority=self.priority,
-        )
+        mtodo_kwargs: dict[str, Any] = {
+            "create_date": self.create_date,
+            "desc": desc,
+            "done": self.done,
+            "done_date": self.done_date,
+            "priority": self.priority,
+        }
 
         stmt: Any
         if key is None:
