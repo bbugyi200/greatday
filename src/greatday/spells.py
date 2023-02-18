@@ -217,16 +217,15 @@ def scope_tags(todo: T) -> T:
         return get_mondays(year=year)[0]
 
     def get_o_due() -> dt.date:
-        d = dt.date.today()
-        y = d.year + 1
-        while y % 4 != 0:
-            y += 1
-        return get_mondays(year=y)[0]
+        return get_every_nth_year(4)
 
     def get_t_due() -> dt.date:
+        return get_every_nth_year(20)
+
+    def get_every_nth_year(n: int) -> dt.date:
         d = dt.date.today()
         y = d.year + 1
-        while y % 20 != 0:
+        while y % n != 0:
             y += 1
         return get_mondays(year=y)[0]
 
