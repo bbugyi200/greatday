@@ -6,19 +6,19 @@
 #
 -e file:.#egg=greatday>=0.dev
     # via -r requirements-dev.in
-alabaster==0.7.12
+alabaster==0.7.13
     # via sphinx
 arrow==1.2.3
     # via jinja2-time
-astroid==2.12.12
+astroid==2.14.2
     # via pylint
-attrs==22.1.0
+attrs==22.2.0
     # via pytest
 babel==2.11.0
     # via sphinx
 binaryornot==0.4.4
     # via cookiecutter
-black==22.10.0
+black==23.1.0
     # via -r requirements-dev.in
 bolton-clack==0.3.4
     # via
@@ -56,15 +56,19 @@ bolton-typist==0.2.0
     #   greatday
     #   magodo
     #   vimala
-build==0.9.0
+build==0.10.0
     # via pip-tools
 bump2version==1.0.1
     # via -r requirements-dev.in
-certifi==2022.9.24
+cachetools==5.3.0
+    # via tox
+certifi==2022.12.7
     # via requests
-chardet==5.0.0
-    # via binaryornot
-charset-normalizer==2.1.1
+chardet==5.1.0
+    # via
+    #   binaryornot
+    #   tox
+charset-normalizer==3.0.1
     # via requests
 click==8.1.3
     # via
@@ -75,15 +79,17 @@ click==8.1.3
     #   typer
 cogapp==3.3.0
     # via -r requirements-dev.in
+colorama==0.4.6
+    # via tox
 colored==1.4.4
     # via syrupy
 commonmark==0.9.1
     # via rich
 cookiecutter==2.1.1
     # via cruft
-coverage[toml]==6.5.0
+coverage[toml]==7.1.0
     # via pytest-cov
-cruft[pyproject]==2.11.1
+cruft[pyproject]==2.12.0
     # via -r requirements-dev.in
 dill==0.3.6
     # via pylint
@@ -94,29 +100,29 @@ docutils==0.17.1
     #   m2r2
     #   sphinx
     #   sphinx-rtd-theme
-exceptiongroup==1.0.1
+exceptiongroup==1.1.0
     # via pytest
-filelock==3.8.0
+filelock==3.9.0
     # via
     #   tox
     #   virtualenv
-flake8==5.0.4
+flake8==6.0.0
     # via -r requirements-dev.in
 freezegun==1.2.2
     # via -r requirements-dev.in
-gitdb==4.0.9
+gitdb==4.0.10
     # via gitpython
-gitpython==3.1.29
+gitpython==3.1.31
     # via cruft
-greenlet==2.0.1
+greenlet==2.0.2
     # via sqlalchemy
 idna==3.4
     # via requests
 imagesize==1.4.1
     # via sphinx
-iniconfig==1.1.1
+iniconfig==2.0.0
     # via pytest
-isort==5.10.1
+isort==5.12.0
     # via
     #   -r requirements-dev.in
     #   pylint
@@ -127,7 +133,7 @@ jinja2==3.1.2
     #   sphinx
 jinja2-time==0.2.0
     # via cookiecutter
-lazy-object-proxy==1.8.0
+lazy-object-proxy==1.9.0
     # via astroid
 m2r2==0.3.2
     # via -r requirements-dev.in
@@ -135,7 +141,7 @@ magodo==1.1.1
     # via
     #   -r requirements.in
     #   greatday
-markupsafe==2.1.1
+markupsafe==2.1.2
     # via jinja2
 mccabe==0.7.0
     # via
@@ -143,29 +149,30 @@ mccabe==0.7.0
     #   pylint
 mistune==0.8.4
     # via m2r2
-mypy==0.990
+mypy==1.0.1
     # via -r requirements-dev.in
-mypy-extensions==0.4.3
+mypy-extensions==1.0.0
     # via
     #   black
     #   mypy
-packaging==21.3
+packaging==23.0
     # via
+    #   black
     #   build
+    #   pyproject-api
     #   pytest
     #   setuptools-scm
     #   sphinx
     #   tox
-pathspec==0.10.1
+pathspec==0.11.0
     # via black
-pep517==0.13.0
-    # via build
-pip-tools==6.9.0
+pip-tools==6.12.2
     # via -r requirements-dev.in
-platformdirs==2.5.3
+platformdirs==3.0.0
     # via
     #   black
     #   pylint
+    #   tox
     #   virtualenv
 pluggy==1.0.0
     # via
@@ -175,27 +182,27 @@ potoroo==0.4.1
     # via
     #   -r requirements.in
     #   greatday
-py==1.11.0
-    # via tox
-pycodestyle==2.9.1
+pycodestyle==2.10.0
     # via flake8
-pydantic==1.10.2
+pydantic==1.10.5
     # via
     #   bolton-clack
     #   sqlmodel
-pydocstyle[toml]==6.1.1
+pydocstyle[toml]==6.3.0
     # via -r requirements-dev.in
-pyflakes==2.5.0
+pyflakes==3.0.1
     # via flake8
-pygments==2.13.0
+pygments==2.14.0
     # via
     #   rich
     #   sphinx
-pylint==2.15.5
+pylint==2.16.2
     # via -r requirements-dev.in
-pyparsing==3.0.9
-    # via packaging
-pytest==7.2.0
+pyproject-api==1.5.0
+    # via tox
+pyproject-hooks==1.0.0
+    # via build
+pytest==7.2.1
     # via
     #   -r requirements-dev.in
     #   pytest-cov
@@ -210,15 +217,15 @@ python-dateutil==2.8.2
     #   -r requirements.in
     #   freezegun
     #   greatday
-python-slugify==6.1.2
+python-slugify==8.0.0
     # via cookiecutter
-pytz==2022.6
+pytz==2022.7.1
     # via babel
 pyyaml==6.0
     # via
     #   bolton-clack
     #   cookiecutter
-requests==2.28.1
+requests==2.28.2
     # via
     #   cookiecutter
     #   sphinx
@@ -227,12 +234,10 @@ rich==12.6.0
     #   -r requirements.in
     #   greatday
     #   textual
-setuptools-scm==7.0.5
+setuptools-scm==7.1.0
     # via -r requirements-dev.in
 six==1.16.0
-    # via
-    #   python-dateutil
-    #   tox
+    # via python-dateutil
 smmap==5.0.0
     # via gitdb
 snowballstemmer==2.2.0
@@ -246,14 +251,16 @@ sphinx==4.3.2
     #   sphinx-rtd-theme
 sphinx-autodoc-typehints==1.17.1
     # via -r requirements-dev.in
-sphinx-rtd-theme==1.1.1
+sphinx-rtd-theme==1.2.0
     # via -r requirements-dev.in
-sphinxcontrib-applehelp==1.0.2
+sphinxcontrib-applehelp==1.0.4
     # via sphinx
 sphinxcontrib-devhelp==1.0.2
     # via sphinx
-sphinxcontrib-htmlhelp==2.0.0
+sphinxcontrib-htmlhelp==2.0.1
     # via sphinx
+sphinxcontrib-jquery==2.0.0
+    # via sphinx-rtd-theme
 sphinxcontrib-jsmath==1.0.1
     # via sphinx
 sphinxcontrib-qthelp==1.0.3
@@ -265,15 +272,15 @@ sqlalchemy==1.4.35
     #   -r requirements.in
     #   greatday
     #   sqlmodel
-sqlalchemy2-stubs==0.0.2a29
+sqlalchemy2-stubs==0.0.2a32
     # via sqlmodel
 sqlmodel==0.0.8
     # via
     #   -r requirements.in
     #   greatday
-structlog==22.1.0
+structlog==22.3.0
     # via bolton-logrus
-syrupy==3.0.5
+syrupy==4.0.0
     # via -r requirements-dev.in
 text-unidecode==1.3
     # via python-slugify
@@ -287,33 +294,33 @@ textual-inputs==0.2.6
     #   -r requirements.in
     #   greatday
 toml==0.10.2
-    # via
-    #   cruft
-    #   pydocstyle
+    # via cruft
 tomli==2.0.1
     # via
     #   black
     #   build
     #   coverage
     #   mypy
-    #   pep517
+    #   pydocstyle
     #   pylint
+    #   pyproject-api
+    #   pyproject-hooks
     #   pytest
     #   setuptools-scm
     #   tox
 tomlkit==0.11.6
     # via pylint
-tox==3.27.0
+tox==4.4.5
     # via
     #   -r requirements-dev.in
     #   tox-pyenv
 tox-pyenv==1.1.0
     # via -r requirements-dev.in
-typer==0.6.1
+typer==0.7.0
     # via cruft
-types-python-dateutil==2.8.19.3
+types-python-dateutil==2.8.19.7
     # via -r requirements-dev.in
-typing-extensions==4.4.0
+typing-extensions==4.5.0
     # via
     #   astroid
     #   black
@@ -324,13 +331,13 @@ typing-extensions==4.4.0
     #   setuptools-scm
     #   sqlalchemy2-stubs
     #   textual
-urllib3==1.26.12
+urllib3==1.26.14
     # via requests
 vimala==0.1.2
     # via
     #   -r requirements.in
     #   greatday
-virtualenv==20.16.6
+virtualenv==20.19.0
     # via tox
 wheel==0.38.4
     # via pip-tools
@@ -338,10 +345,11 @@ wrapt==1.14.1
     # via astroid
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==22.3.1
+pip==23.0.1
     # via pip-tools
-setuptools==65.5.1
+setuptools==67.3.2
     # via
     #   pip-tools
     #   setuptools-scm
     #   sphinx
+    #   sphinxcontrib-jquery

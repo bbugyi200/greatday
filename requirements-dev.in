@@ -21,7 +21,7 @@ pylint
 types-python-dateutil
 
 ### Docs
-m2r2 != 0.3.3  # since this version requires docutils>=0.19 (see https://github.com/CrossNox/m2r2/compare/v0.3.2...v0.3.3)
+m2r2 != 0.3.3.*  # since this version requires docutils>=0.19 (see https://github.com/CrossNox/m2r2/compare/v0.3.2...v0.3.3)
 sphinx ~= 4.3.1  # ATTOW, 'sphinx>=4.4.0' requires a 'importlib-metadata' version that conflicts with what 'cruft' requires.
 sphinx-rtd-theme
 sphinx-autodoc-typehints ~= 1.17.1  # since >=1.18 requires sphinx >=4.5
