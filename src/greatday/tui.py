@@ -290,7 +290,7 @@ class GreatApp(App[str]):
         )
 
     def compose(self) -> ComposeResult:
-        # configure header and footer...
+        """Yields great widgets."""
         yield GreatHeader()
         yield self.stats_widget
         yield Vertical(self.query_widget, self.todo_widget, id="main")
