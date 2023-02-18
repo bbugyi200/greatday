@@ -256,6 +256,16 @@ class GreatApp(App[str]):
         Binding(
             "enter", "submit", description="Submit", priority=True, show=False
         ),
+        Binding("!", "change_query_group(0)", description="Change to 1st query group.", show=False),
+        Binding("@", "change_query_group(1)", description="Change to 2nd query group.", show=False),
+        Binding("#", "change_query_group(2)", description="Change to 3rd query group.", show=False),
+        Binding("$", "change_query_group(3)", description="Change to 4th query group.", show=False),
+        Binding("%", "change_query_group(4)", description="Change to 5th query group.", show=False),
+        Binding("^", "change_query_group(5)", description="Change to 6th query group.", show=False),
+        Binding("&", "change_query_group(6)", description="Change to 7th query group.", show=False),
+        Binding("*", "change_query_group(7)", description="Change to 8th query group.", show=False),
+        Binding("(", "change_query_group(8)", description="Change to 9th query group.", show=False),
+        Binding(")", "change_query_group(9)", description="Change to 10th query group.", show=False),
     ]
 
     def __init__(
@@ -300,11 +310,6 @@ class GreatApp(App[str]):
     async def on_load(self) -> None:
         """Configure key bindings."""
         await self.bind_saved_queries(self.ctx.group_name)
-        for ch, group_name in zip(
-            "!@#$%^&*()", self.saved_query_group_map.keys()
-        ):
-            self.bind(ch, f"change_query_group('{group_name}')", show=False)
-
         self.bind("a", "add_todo", description="Add Todo")
         self.bind("e", "edit", description="Edit Todos")
         self.bind("i", "change_mode('insert')", description="Insert Mode")
@@ -350,9 +355,10 @@ class GreatApp(App[str]):
         else:
             raise AssertionError(f"Bad mode: {mode!r}")
 
-    async def action_change_query_group(self, group_name: str) -> None:
+    async def action_change_query_group(self, group_idx: int) -> None:
         """Changes the saved query group that is being used."""
         # abort early if no query group change is required
+        group_name = list(self.saved_query_group_map.keys())[group_idx]
         if self.ctx.group_name == group_name:
             return
 
