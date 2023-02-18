@@ -11,7 +11,7 @@ from rich.style import Style
 from rich.text import Text
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Container, Vertical
+from textual.containers import Vertical
 from textual.widgets import Footer, Header, Input, Static
 
 from .tag import GreatTag

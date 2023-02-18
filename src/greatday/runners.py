@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from functools import partial
 from typing import Final, List
 
 from clack.types import ClackRunner
