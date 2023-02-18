@@ -117,8 +117,10 @@ class Tag:
                 prop_list.append(f"-{word[2:]}")
             else:
                 return Err(
-                    "First word of query does not match required tag prefix."
-                    f" | prefix={ch} word={word}",
+                    (
+                        "First word of query does not match required tag"
+                        f" prefix. | prefix={ch} word={word}"
+                    ),
                 )
 
             return Ok(" ".join(rest))
