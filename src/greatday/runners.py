@@ -88,14 +88,13 @@ def run_tui(cfg: TUIConfig) -> int:
     )
 
     ctx = tui.Context(query, cfg.default_query_group)
-    run_app = partial(
-        tui.GreatApp.run,
-        repo=repo,
-        ctx=ctx,
-        saved_query_group_map=cfg.saved_query_groups,
-        title="Greatday TUI",
-        log="greatday_textual.log",
-    )
+
+    def run_app() -> None:
+        app = tui.GreatApp(
+            repo=repo, ctx=ctx, saved_query_group_map=cfg.saved_query_groups
+        )
+        app.run()
+
     run_app()
 
     while ctx.edit_todos:

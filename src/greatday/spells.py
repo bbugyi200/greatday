@@ -197,6 +197,16 @@ def appt_todos(todo: T) -> T:
 
 
 @todo_spell
+def inbox_tag(todo: T) -> T:
+    """Converts @i into @INBOX."""
+    if "i" not in todo.contexts:
+        return todo
+    contexts = [ctx for ctx in todo.contexts if ctx != "i"]
+    contexts.append("INBOX")
+    return todo.new(contexts=contexts)
+
+
+@todo_spell
 def scope_tags(todo: T) -> T:
     """Spell that handles @w/@m/@q/@y/@o contexts.
 

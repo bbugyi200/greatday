@@ -8,11 +8,11 @@ from typing import Any, Final, Sequence
 from potoroo import TaggedRepo
 from rich.panel import Panel
 from rich.style import Style
-from rich.table import Table
 from rich.text import Text
-from textual.app import App
-from textual.widgets import Footer, Header, Static
-from textual_inputs import TextInput
+from textual.app import App, ComposeResult
+from textual.binding import Binding
+from textual.containers import Container, Vertical
+from textual.widgets import Footer, Header, Input, Static
 
 from .tag import GreatTag
 from .todo import GreatTodo
@@ -36,57 +36,16 @@ class GreatHeader(Header):
     """Override the default Header for Styling"""
 
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__(show_clock=True)
         self.tall = False
         self.style = Style(color="white", bgcolor="rgb(98,98,98)")
-
-    def render(self) -> Table:
-        """Returns renderable header."""
-        header_table = Table.grid(padding=(0, 1), expand=True)
-        header_table.add_column(justify="left", ratio=0, width=8)
-        header_table.add_column("title", justify="center", ratio=1)
-        header_table.add_column("clock", justify="right", width=8)
-        header_table.add_row(
-            "🔤", self.full_title, self.get_clock() if self.clock else ""
-        )
-        return header_table
 
 
 class GreatFooter(Footer):
     """Override the default Footer for Styling"""
 
-    def make_key_text(self) -> Text:
-        """Create text containing all the keys."""
-        text = Text(
-            style="white on rgb(98,98,98)",
-            no_wrap=True,
-            overflow="ellipsis",
-            justify="left",
-            end="",
-        )
-        for binding in self.app.bindings.shown_keys:
-            key = binding.key.upper() if len(binding.key) > 1 else binding.key
-            key_display = (
-                key if binding.key_display is None else binding.key_display
-            )
-            hovered = self.highlight_key == binding.key
-            description = binding.description
-            key_text = Text.assemble(
-                (
-                    f" {key_display} ",
-                    "reverse" if hovered else "default on default",
-                ),
-                f" {description} ",
-                meta={
-                    "@click": f"app.press('{binding.key}')",
-                    "key": binding.key,
-                },
-            )
-            text.append_text(key_text)
-        return text
 
-
-class StatsWidget(Static):
+class StatsWidget(Static, can_focus=True):
     """Widget that shows Todo statistics."""
 
     def __init__(
@@ -261,8 +220,43 @@ class Context:
     edit_todos: bool = False
 
 
-class GreatApp(App):
+class GreatApp(App[str]):
     """Textual TUI Application Class."""
+
+    CSS = """
+    Screen {
+        layout: grid;
+        grid-size: 10;
+        grid-gutter: 2;
+        padding: 2;
+    }
+    #stats {
+        height: 100%;
+        column-span: 3;
+        row-span: 9;
+    }
+    #main {
+        height: 100%;
+        column-span: 7;
+        row-span: 9;
+    }
+    #command {
+        column-span: 10;
+        row-span: 1;
+    }
+    """
+
+    BINDINGS = [
+        Binding(
+            "escape",
+            "change_mode('normal')",
+            description="Normal Mode",
+            priority=True,
+        ),
+        Binding(
+            "enter", "submit", description="Submit", priority=True, show=False
+        ),
+    ]
 
     def __init__(
         self,
@@ -278,26 +272,30 @@ class GreatApp(App):
         self.ctx = ctx
         self.saved_query_group_map = saved_query_group_map
 
-        self.input_widget = TextInput(name="input", value=self.ctx.query)
-        self.input_widget.cursor = (
-            "|",
-            Style(
-                color="black",
-                blink=True,
-                bold=True,
-            ),
+        self.query_widget = Input(
+            name="query", id="query", value=self.ctx.query
         )
+        self.command_widget = Input(name="command", id="command")
 
-        self.main_widget = Static(
+        self.todo_widget = Static(
             Panel(
                 _todo_lines_from_query(self.repo, self.ctx.query),
-                title="Main",
+                title="Todos",
             ),
-            name="main",
+            name="todo",
+            id="todo",
         )
         self.stats_widget = StatsWidget(
-            self.repo, self.ctx, self.saved_query_group_map
+            self.repo, self.ctx, self.saved_query_group_map, id="stats"
         )
+
+    def compose(self) -> ComposeResult:
+        # configure header and footer...
+        yield GreatHeader()
+        yield self.stats_widget
+        yield Vertical(self.query_widget, self.todo_widget, id="main")
+        yield self.command_widget
+        yield GreatFooter()
 
     async def on_load(self) -> None:
         """Configure key bindings."""
@@ -305,24 +303,17 @@ class GreatApp(App):
         for ch, group_name in zip(
             "!@#$%^&*()", self.saved_query_group_map.keys()
         ):
-            await self.bind(
-                ch, f"change_query_group('{group_name}')", show=False
-            )
+            self.bind(ch, f"change_query_group('{group_name}')", show=False)
 
-        await self.bind("escape", "change_mode('normal')", "Normal Mode")
-        await self.bind("enter", "submit", "Submit")
-        await self.bind("e", "edit", "Edit Todos")
-        await self.bind("i", "change_mode('insert')", "Insert Mode")
-        await self.bind("I", "clear_and_insert", "Clear and Insert")
-        await self.bind("r", "refresh", "Refresh")
-        await self.bind("q", "quit", "Quit")
+        self.bind("a", "add_todo", description="Add Todo")
+        self.bind("e", "edit", description="Edit Todos")
+        self.bind("i", "change_mode('insert')", description="Insert Mode")
+        self.bind("I", "clear_and_insert", description="Clear and Insert")
+        self.bind("r", "refresh", description="Refresh")
+        self.bind("q", "quit", description="Quit")
 
     async def bind_saved_queries(self, group_name: str) -> None:
         """Binds saved queries in `group_name` to digits (i.e. 0-9)."""
-        for i in range(10):
-            if str(i) in self.bindings.keys:
-                del self.bindings.keys[str(i)]
-
         for i, (name, query) in enumerate(
             self.saved_query_group_map.get(group_name, _DEFAULT_QUERY_GROUP)[
                 "queries"
@@ -333,8 +324,11 @@ class GreatApp(App):
 
             query = query.replace(")", _FAKE_RIGHT_PAREN)
             description = f"{name.upper()} Query"
-            await self.bind(
-                str(i), f"new_query('{query}')", description, show=False
+            self.bind(
+                str(i),
+                f"new_query('{query}')",
+                description=description,
+                show=False,
             )
 
     async def on_mount(self) -> None:
@@ -342,25 +336,17 @@ class GreatApp(App):
         # do a full refresh of this widget every _REFRESH_INTERVAL seconds
         self.set_interval(_REFRESH_INTERVAL, self.action_refresh)
 
-        # configure header and footer...
-        await self.view.dock(GreatHeader(), edge="top")
-        await self.view.dock(GreatFooter(), edge="bottom")
-
-        # configure other widgets...
-        await self.view.dock(self.input_widget, edge="bottom", size=5)
-        await self.view.dock(self.stats_widget, edge="left", size=50)
-        await self.view.dock(self.main_widget, edge="top")
+    async def action_add_todo(self) -> None:
+        """Action to add a new todo to the inbox."""
+        self.command_widget.focus()
 
     async def action_change_mode(self, mode: str) -> None:
         """Action to toggle to/from insert mode and other modes."""
+        self.query_widget.refresh()
         if mode == "insert":
-            self.input_widget.title = "INSERT"
-            self.input_widget.refresh()
-            await self.input_widget.focus()
+            self.query_widget.focus()
         elif mode == "normal":
-            self.input_widget.title = ""
-            self.input_widget.refresh()
-            await self.main_widget.focus()
+            self.stats_widget.focus()
         else:
             raise AssertionError(f"Bad mode: {mode!r}")
 
@@ -378,8 +364,7 @@ class GreatApp(App):
 
     async def action_clear_and_insert(self) -> None:
         """Clears input bar and enters Insert mode."""
-        self.input_widget.value = ""
-        self.input_widget._cursor_position = 0
+        self.query_widget.value = ""
         await self.action_change_mode("insert")
 
     async def action_edit(self) -> None:
@@ -390,8 +375,7 @@ class GreatApp(App):
     async def action_new_query(self, query: str) -> None:
         """Execute a new todo query."""
         query = query.replace(_FAKE_RIGHT_PAREN, ")")
-        self.input_widget.value = query
-        self.input_widget._cursor_position = len(query)
+        self.query_widget.value = query
         await self.action_submit()
 
     async def action_refresh(self) -> None:
@@ -402,14 +386,21 @@ class GreatApp(App):
 
         # refresh main panel
         text = _todo_lines_from_query(self.repo, self.ctx.query)
-        await self.main_widget.update(Panel(text, title="Todo List"))
+        self.todo_widget.update(Panel(text, title="Todo List"))
 
     async def action_submit(self) -> None:
         """Executes the current todo query shown in the input bar."""
-        self.ctx.query = self.input_widget.value
+        value = self.command_widget.value
+        self.command_widget.value = ""
+        if value != "":
+            todo = GreatTodo.from_line(f" o {value}").unwrap()
+            self.repo.add(todo)
+            pass
+
+        self.ctx.query = self.query_widget.value
         self.stats_widget.refresh()
         text = _todo_lines_from_query(self.repo, self.ctx.query)
-        await self.main_widget.update(Panel(text, title="Todo List"))
+        self.todo_widget.update(Panel(text, title="Todo List"))
         await self.action_change_mode("normal")
 
 

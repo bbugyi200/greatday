@@ -6,10 +6,8 @@ bolton-typist ~= 0.2.0
 magodo ~= 1.1
 potoroo ~= 0.4.1
 python-dateutil ~= 2.8
-rich
 sqlmodel ~= 0.0.6
-textual[dev] < 1.0.0
-textual-inputs ~= 0.2.5
+textual[dev] ~= 0.11
 vimala ~= 0.1.2
 
 # constraints
