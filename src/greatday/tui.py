@@ -395,7 +395,7 @@ class GreatApp(App[str]):
         if value != "":
             todo = GreatTodo.from_line(f" o {value}").unwrap()
             self.repo.add(todo)
-            pass
+            await self.action_refresh()
 
         self.ctx.query = self.query_widget.value
         self.stats_widget.refresh()
