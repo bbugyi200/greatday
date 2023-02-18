@@ -256,16 +256,66 @@ class GreatApp(App[str]):
         Binding(
             "enter", "submit", description="Submit", priority=True, show=False
         ),
-        Binding("!", "change_query_group(0)", description="Change to 1st query group.", show=False),
-        Binding("@", "change_query_group(1)", description="Change to 2nd query group.", show=False),
-        Binding("#", "change_query_group(2)", description="Change to 3rd query group.", show=False),
-        Binding("$", "change_query_group(3)", description="Change to 4th query group.", show=False),
-        Binding("%", "change_query_group(4)", description="Change to 5th query group.", show=False),
-        Binding("^", "change_query_group(5)", description="Change to 6th query group.", show=False),
-        Binding("&", "change_query_group(6)", description="Change to 7th query group.", show=False),
-        Binding("*", "change_query_group(7)", description="Change to 8th query group.", show=False),
-        Binding("(", "change_query_group(8)", description="Change to 9th query group.", show=False),
-        Binding(")", "change_query_group(9)", description="Change to 10th query group.", show=False),
+        Binding(
+            "!",
+            "change_query_group(0)",
+            description="Change to 1st query group.",
+            show=False,
+        ),
+        Binding(
+            "@",
+            "change_query_group(1)",
+            description="Change to 2nd query group.",
+            show=False,
+        ),
+        Binding(
+            "#",
+            "change_query_group(2)",
+            description="Change to 3rd query group.",
+            show=False,
+        ),
+        Binding(
+            "$",
+            "change_query_group(3)",
+            description="Change to 4th query group.",
+            show=False,
+        ),
+        Binding(
+            "%",
+            "change_query_group(4)",
+            description="Change to 5th query group.",
+            show=False,
+        ),
+        Binding(
+            "^",
+            "change_query_group(5)",
+            description="Change to 6th query group.",
+            show=False,
+        ),
+        Binding(
+            "&",
+            "change_query_group(6)",
+            description="Change to 7th query group.",
+            show=False,
+        ),
+        Binding(
+            "*",
+            "change_query_group(7)",
+            description="Change to 8th query group.",
+            show=False,
+        ),
+        Binding(
+            "(",
+            "change_query_group(8)",
+            description="Change to 9th query group.",
+            show=False,
+        ),
+        Binding(
+            ")",
+            "change_query_group(9)",
+            description="Change to 10th query group.",
+            show=False,
+        ),
     ]
 
     def __init__(
