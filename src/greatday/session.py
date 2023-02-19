@@ -80,11 +80,7 @@ class GreatSession(UnitOfWork[FileRepo]):
         os.unlink(self.path)
 
     def commit(self) -> None:
-        """Commit our changes.
-
-        We achieve this by copying the contents of the backup file created on
-        instantiation back to the original.
-        """
+        """Commit our changes."""
         removed_todo_keys = list(self._key_to_old_todo.keys())
         new_todos = {}
         for todo in self.repo.all().unwrap():
