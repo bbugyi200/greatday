@@ -180,7 +180,7 @@ mccabe==0.7.0
     # via
     #   flake8
     #   pylint
-mdit-py-plugins==0.3.3
+mdit-py-plugins==0.3.4
     # via markdown-it-py
 mdurl==0.1.2
     # via markdown-it-py
