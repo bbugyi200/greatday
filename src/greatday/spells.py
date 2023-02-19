@@ -197,7 +197,7 @@ def appt_todos(todo: T) -> T:
 
 
 @todo_spell
-def inbox_tag(todo: T) -> T:
+def inbox_spell(todo: T) -> T:
     """Converts @i into @INBOX."""
     if "i" not in todo.contexts:
         return todo
@@ -207,8 +207,8 @@ def inbox_tag(todo: T) -> T:
 
 
 @todo_spell
-def scope_tags(todo: T) -> T:
-    """Spell that handles @w/@m/@q/@y/@o contexts.
+def scope_spell(todo: T) -> T:
+    """Spell that handles @w/@m/@q/@y/@o/@t/@s contexts.
 
     Adds appropriate 'scope' metatag and 'due' date.
     """
