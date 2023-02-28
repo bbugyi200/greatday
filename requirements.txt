@@ -141,7 +141,7 @@ uc-micro-py==1.0.1
     # via linkify-it-py
 vimala==0.1.2
     # via -r requirements.in
-watchdog==2.3.0
+watchdog==2.3.1
     # via mkdocs
 yarl==1.8.2
     # via aiohttp
