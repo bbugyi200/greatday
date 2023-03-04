@@ -180,7 +180,7 @@ mccabe==0.7.0
     # via
     #   flake8
     #   pylint
-mdit-py-plugins==0.3.4
+mdit-py-plugins==0.3.5
     # via markdown-it-py
 mdurl==0.1.2
     # via markdown-it-py
@@ -218,7 +218,7 @@ pathspec==0.11.0
     # via black
 pip-tools==6.12.3
     # via -r requirements-dev.in
-platformdirs==3.0.0
+platformdirs==3.1.0
     # via
     #   black
     #   pylint
@@ -246,13 +246,13 @@ pygments==2.14.0
     # via
     #   rich
     #   sphinx
-pylint==2.16.2
+pylint==2.16.3
     # via -r requirements-dev.in
 pyproject-api==1.5.0
     # via tox
 pyproject-hooks==1.0.0
     # via build
-pytest==7.2.1
+pytest==7.2.2
     # via
     #   -r requirements-dev.in
     #   pytest-cov
@@ -337,7 +337,7 @@ syrupy==4.0.1
     # via -r requirements-dev.in
 text-unidecode==1.3
     # via python-slugify
-textual[dev]==0.12.1
+textual[dev]==0.13.0
     # via
     #   -r requirements.in
     #   greatday
