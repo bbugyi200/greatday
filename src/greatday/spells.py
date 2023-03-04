@@ -267,6 +267,7 @@ def scope_spell(todo: T) -> T:
 
     assert scope is not None
 
+    todo = reopen_todo(todo)
     contexts = [ctx for ctx in todo.contexts if ctx not in scope_contexts]
 
     metadata = dict(todo.metadata.items())
@@ -277,6 +278,29 @@ def scope_spell(todo: T) -> T:
         del metadata["due"]
 
     return todo.new(contexts=contexts, metadata=metadata)
+
+
+@todo_spell
+def reopen_todo_spell(todo: T) -> T:
+    """Spell that re-opens todos when the '@x' context is found."""
+    if "x" not in todo.contexts or not todo.done:
+        return todo
+
+    todo = reopen_todo(todo)
+    contexts = [ctx for ctx in todo.contexts if ctx != "x"]
+    return todo.new(contexts=contexts)
+
+
+def reopen_todo(todo: T) -> T:
+    """Re-opens a closed todo."""
+    if not todo.done:
+        return todo
+
+    metadata = dict(todo.metadata.items())
+    if "dtime" in metadata:
+        del metadata["dtime"]
+
+    return todo.new(done=False, done_date=None, metadata=metadata)
 
 
 ###############################################################################

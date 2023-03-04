@@ -98,8 +98,17 @@ params = mark.parametrize
             "o foo scope:5 due:2020-01-06 @s",
             f"o {c.TODAY} foo | ctime:{c.hhmm} scope:7",
         ),
+        (
+            f"x {c.TODAY} 2023-03-04 foo @w",
+            f"o 2023-03-04 foo | ctime:{c.hhmm} due:2000-01-10 scope:1",
+        ),
         # --- inbox spell
         ("o foo @i", f"o {c.TODAY} foo | @INBOX ctime:{c.hhmm}"),
+        # --- reopen spell
+        (
+            f"x:1234 {c.TODAY} 2023-03-04 foo @x",
+            f"o 2023-03-04 foo | ctime:{c.hhmm}",
+        ),
     ],
 )
 def test_spells(in_line: str, out_line: str) -> None:
