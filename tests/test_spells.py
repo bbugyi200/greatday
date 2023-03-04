@@ -109,6 +109,10 @@ params = mark.parametrize
             f"x:1234 {c.TODAY} 2023-03-04 foo @x",
             f"o 2023-03-04 foo | ctime:{c.hhmm}",
         ),
+        (
+            "o 2023-03-04 foo @x",
+            f"o 2023-03-04 foo | ctime:{c.hhmm}",
+        ),
     ],
 )
 def test_spells(in_line: str, out_line: str) -> None:

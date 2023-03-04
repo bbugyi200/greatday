@@ -283,7 +283,7 @@ def scope_spell(todo: T) -> T:
 @todo_spell
 def reopen_todo_spell(todo: T) -> T:
     """Spell that re-opens todos when the '@x' context is found."""
-    if "x" not in todo.contexts or not todo.done:
+    if "x" not in todo.contexts:
         return todo
 
     todo = reopen_todo(todo)
