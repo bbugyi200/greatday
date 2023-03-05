@@ -285,7 +285,7 @@ requests==2.28.2
     # via
     #   cookiecutter
     #   sphinx
-rich==13.3.1
+rich==13.3.2
     # via textual
 setuptools-scm==7.1.0
     # via -r requirements-dev.in
