@@ -103,7 +103,7 @@ params = mark.parametrize
             f"o 2023-03-04 foo | ctime:{c.hhmm} due:2000-01-10 scope:1",
         ),
         (
-            f"o 2023-03-04 foo @INBOX @w",
+            "o 2023-03-04 foo @INBOX @w",
             f"o 2023-03-04 foo | ctime:{c.hhmm} due:2000-01-10 scope:1",
         ),
         # --- inbox spell
