@@ -102,6 +102,10 @@ params = mark.parametrize
             f"x {c.TODAY} 2023-03-04 foo @w",
             f"o 2023-03-04 foo | ctime:{c.hhmm} due:2000-01-10 scope:1",
         ),
+        (
+            f"o 2023-03-04 foo @INBOX @w",
+            f"o 2023-03-04 foo | ctime:{c.hhmm} due:2000-01-10 scope:1",
+        ),
         # --- inbox spell
         ("o foo @i", f"o {c.TODAY} foo | @INBOX ctime:{c.hhmm}"),
         # --- reopen spell

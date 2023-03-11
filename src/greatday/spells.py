@@ -268,7 +268,8 @@ def scope_spell(todo: T) -> T:
     assert scope is not None
 
     todo = reopen_if_closed(todo)
-    contexts = [ctx for ctx in todo.contexts if ctx not in scope_contexts]
+    bad_contexts = scope_contexts + ["INBOX"]
+    contexts = [ctx for ctx in todo.contexts if ctx not in bad_contexts]
 
     metadata = dict(todo.metadata.items())
     metadata["scope"] = str(scope)
