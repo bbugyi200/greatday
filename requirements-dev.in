@@ -5,7 +5,6 @@ pytest-cov
 pytest-mock
 syrupy
 tox
-tox-pyenv
 -e file:.#egg=greatday>=0.dev
 
 ### Lint
