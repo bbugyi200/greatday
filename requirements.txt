@@ -98,7 +98,7 @@ packaging==23.0
     # via mkdocs
 potoroo==0.4.1
     # via -r requirements.in
-pydantic==1.10.6
+pydantic==1.10.7
     # via
     #   bolton-clack
     #   sqlmodel
@@ -129,7 +129,7 @@ sqlmodel==0.0.8
     # via -r requirements.in
 structlog==22.3.0
     # via bolton-logrus
-textual[dev]==0.15.1
+textual[dev]==0.16.0
     # via -r requirements.in
 typing-extensions==4.5.0
     # via
@@ -141,7 +141,7 @@ uc-micro-py==1.0.1
     # via linkify-it-py
 vimala==0.1.2
     # via -r requirements.in
-watchdog==2.3.1
+watchdog==3.0.0
     # via mkdocs
 yarl==1.8.2
     # via aiohttp
