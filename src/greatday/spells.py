@@ -13,11 +13,12 @@ from metaman import register_function_factory
 from .common import drop_word_if_startswith, drop_words, todo_prefixes
 from .dates import (
     RELATIVE_DATE_METATAGS,
+    SUNDAY,
     dt_from_date_and_hhmm,
-    get_mondays,
-    get_month_mondays,
-    get_next_monday,
-    get_quarter_mondays,
+    get_all_days,
+    get_month_days,
+    get_next_day,
+    get_quarter_days,
     get_relative_date,
     matches_date_fmt,
     matches_relative_date_fmt,
@@ -212,32 +213,35 @@ def scope_spell(todo: T) -> T:
 
     Adds appropriate 'scope' metatag and 'due' date.
     """
+    day_of_week = SUNDAY
 
     def get_w_due() -> dt.date:
-        return get_next_monday()
+        return get_next_day(day_of_week=day_of_week)
 
     def get_m_due() -> dt.date:
-        return get_next_monday(monday_maker=get_month_mondays)
+        return get_next_day(day_of_week=day_of_week, day_maker=get_month_days)
 
     def get_q_due() -> dt.date:
-        return get_next_monday(monday_maker=get_quarter_mondays)
+        return get_next_day(
+            day_of_week=day_of_week, day_maker=get_quarter_days
+        )
 
     def get_y_due() -> dt.date:
         year = dt.date.today().year + 1
-        return get_mondays(year=year)[0]
+        return get_all_days(day_of_week=day_of_week, year=year)[0]
 
     def get_o_due() -> dt.date:
-        return get_next_nth_year_monday(4)
+        return get_next_nth_year_day(4)
 
     def get_t_due() -> dt.date:
-        return get_next_nth_year_monday(20)
+        return get_next_nth_year_day(20)
 
-    def get_next_nth_year_monday(n: int) -> dt.date:
+    def get_next_nth_year_day(n: int) -> dt.date:
         d = dt.date.today()
         y = d.year + 1
         while y % n != 0:
             y += 1
-        return get_mondays(year=y)[0]
+        return get_all_days(day_of_week=day_of_week, year=y)[0]
 
     scope_contexts = ["w", "m", "q", "y", "o", "t", "s"]
     get_due_funcs: list[Callable[[], dt.date | None]] = [

@@ -13,6 +13,10 @@ import magodo
 # metatags (i.e. key-value tags) that accept relative date strings (e.g. '1d')
 RELATIVE_DATE_METATAGS: Final = ["snooze", "until", "due"]
 
+# days of the week
+MONDAY: Final[int] = 0
+SUNDAY: Final[int] = 6
+
 _DEFAULT_YEAR: Final[int] = -1
 _FRIDAY: Final[int] = 4
 _SATURDAY: Final[int] = 5
@@ -33,18 +37,22 @@ class DateRange:
         return cls(start, end)
 
 
-class MondayMaker(Protocol):
+class DayMaker(Protocol):
     """Signature for a function that returns Mondays."""
 
-    def __call__(self, *, year: int = _DEFAULT_YEAR) -> list[dt.date]:
+    def __call__(
+        self, *, day_of_week: int = MONDAY, year: int = _DEFAULT_YEAR
+    ) -> list[dt.date]:
         """The function's call signature."""
 
 
-def get_mondays(*, year: int = _DEFAULT_YEAR) -> list[dt.date]:
-    """Returns all mondays of a given year.
+def get_all_days(
+    *, day_of_week: int = MONDAY, year: int = _DEFAULT_YEAR
+) -> list[dt.date]:
+    """Returns all days of a particular name (i.e. Monday) of a given year.
 
     Examples:
-        >>> mondays = get_mondays(year=2020)
+        >>> mondays = get_all_days(year=2020)
         >>> len(mondays)
         52
 
@@ -54,7 +62,7 @@ def get_mondays(*, year: int = _DEFAULT_YEAR) -> list[dt.date]:
         >>> mondays[-1]
         datetime.date(2020, 12, 28)
 
-        >>> mondays = get_mondays(year=2021)
+        >>> mondays = get_all_days(year=2021)
         >>> len(mondays)
         52
 
@@ -68,21 +76,23 @@ def get_mondays(*, year: int = _DEFAULT_YEAR) -> list[dt.date]:
         year = dt.date.today().year
 
     d = dt.date(year, 1, 1)
-    while d.weekday() != 0:
+    while d.weekday() != day_of_week:
         d += dt.timedelta(days=1)
 
-    mondays = []
+    days = []
     while d.year == year:
-        mondays.append(d)
+        days.append(d)
         d += dt.timedelta(weeks=1)
-    return mondays
+    return days
 
 
-def get_quarter_mondays(*, year: int = _DEFAULT_YEAR) -> list[dt.date]:
+def get_quarter_days(
+    *, day_of_week: int = MONDAY, year: int = _DEFAULT_YEAR
+) -> list[dt.date]:
     """Returns every first Monday of every quarter from `year`.
 
     Examples:
-        >>> quarter_mondays = get_quarter_mondays(year=2020)
+        >>> quarter_mondays = get_quarter_days(year=2020)
         >>> len(quarter_mondays)
         4
         >>> quarter_mondays[0]
@@ -94,7 +104,7 @@ def get_quarter_mondays(*, year: int = _DEFAULT_YEAR) -> list[dt.date]:
         >>> quarter_mondays[3]
         datetime.date(2020, 10, 5)
 
-        >>> quarter_mondays = get_quarter_mondays(year=2021)
+        >>> quarter_mondays = get_quarter_days(year=2021)
         >>> len(quarter_mondays)
         4
         >>> quarter_mondays[0]
@@ -106,14 +116,18 @@ def get_quarter_mondays(*, year: int = _DEFAULT_YEAR) -> list[dt.date]:
         >>> quarter_mondays[3]
         datetime.date(2021, 10, 4)
     """
-    mondays = []
-    for i, monday in enumerate(get_mondays(year=year)):
+    days = []
+    for i, monday in enumerate(
+        get_all_days(day_of_week=day_of_week, year=year)
+    ):
         if i % 13 == 0:
-            mondays.append(monday)
-    return mondays
+            days.append(monday)
+    return days
 
 
-def get_month_mondays(*, year: int = _DEFAULT_YEAR) -> list[dt.date]:
+def get_month_days(
+    *, day_of_week: int = MONDAY, year: int = _DEFAULT_YEAR
+) -> list[dt.date]:
     """Returns a list of Mondays that begin a month.
 
     By month here, we are referring to a "greatday month", which begins on
@@ -121,7 +135,7 @@ def get_month_mondays(*, year: int = _DEFAULT_YEAR) -> list[dt.date]:
     from that day.
 
     Examples:
-        >>> month_mondays = get_month_mondays(year=2020)
+        >>> month_mondays = get_month_days(year=2020)
         >>> len(month_mondays)
         12
 
@@ -161,7 +175,7 @@ def get_month_mondays(*, year: int = _DEFAULT_YEAR) -> list[dt.date]:
         >>> month_mondays[11]
         datetime.date(2020, 11, 30)
 
-        >>> month_mondays = get_month_mondays(year=2021)
+        >>> month_mondays = get_month_days(year=2021)
         >>> len(month_mondays)
         12
 
@@ -202,79 +216,82 @@ def get_month_mondays(*, year: int = _DEFAULT_YEAR) -> list[dt.date]:
         datetime.date(2021, 11, 29)
     """
     month_indices = [0, 4, 8, 13, 17, 21, 26, 30, 34, 39, 43, 47]
-    mondays = []
-    for i, monday in enumerate(get_mondays(year=year)):
+    days = []
+    for i, day in enumerate(get_all_days(day_of_week=day_of_week, year=year)):
         if i in month_indices:
-            mondays.append(monday)
-    return mondays
+            days.append(day)
+    return days
 
 
-def get_next_monday(
-    date: dt.date = None, *, monday_maker: MondayMaker = get_mondays
+def get_next_day(
+    date: dt.date = None,
+    *,
+    day_of_week: int = MONDAY,
+    day_maker: DayMaker = get_all_days,
 ) -> dt.date:
     """Returns next Monday relative to `date`.
 
     Examples:
-        >>> get_next_monday(dt.date(2020, 1, 1))
+        >>> get_next_day(dt.date(2020, 1, 1))
         datetime.date(2020, 1, 6)
 
-        >>> get_next_monday(dt.date(2020, 1, 2))
+        >>> get_next_day(dt.date(2020, 1, 2))
         datetime.date(2020, 1, 6)
 
-        >>> get_next_monday(dt.date(2020, 1, 3))
+        >>> get_next_day(dt.date(2020, 1, 3))
         datetime.date(2020, 1, 6)
 
-        >>> get_next_monday(dt.date(2020, 1, 4))
+        >>> get_next_day(dt.date(2020, 1, 4))
         datetime.date(2020, 1, 6)
 
-        >>> get_next_monday(dt.date(2020, 1, 5))
+        >>> get_next_day(dt.date(2020, 1, 5))
         datetime.date(2020, 1, 6)
 
-        >>> get_next_monday(dt.date(2020, 1, 6))
+        >>> get_next_day(dt.date(2020, 1, 6))
         datetime.date(2020, 1, 13)
 
-        >>> get_next_monday(dt.date(2020, 12, 28))
+        >>> get_next_day(dt.date(2020, 12, 28))
         datetime.date(2021, 1, 4)
 
-        >>> get_next_monday(
+        >>> get_next_day(
         ...     dt.date(2020, 1, 1),
-        ...     monday_maker=get_quarter_mondays)
+        ...     day_maker=get_quarter_days)
         datetime.date(2020, 1, 6)
 
-        >>> get_next_monday(
+        >>> get_next_day(
         ...     dt.date(2020, 2, 1),
-        ...     monday_maker=get_quarter_mondays)
+        ...     day_maker=get_quarter_days)
         datetime.date(2020, 4, 6)
 
-        >>> get_next_monday(
+        >>> get_next_day(
         ...     dt.date(2020, 3, 1),
-        ...     monday_maker=get_quarter_mondays)
+        ...     day_maker=get_quarter_days)
         datetime.date(2020, 4, 6)
 
-        >>> get_next_monday(
+        >>> get_next_day(
         ...     dt.date(2020, 4, 1),
-        ...     monday_maker=get_quarter_mondays)
+        ...     day_maker=get_quarter_days)
         datetime.date(2020, 4, 6)
 
-        >>> get_next_monday(
+        >>> get_next_day(
         ...     dt.date(2020, 5, 1),
-        ...     monday_maker=get_quarter_mondays)
+        ...     day_maker=get_quarter_days)
         datetime.date(2020, 7, 6)
 
-        >>> get_next_monday(
+        >>> get_next_day(
         ...     dt.date(2020, 6, 1),
-        ...     monday_maker=get_quarter_mondays)
+        ...     day_maker=get_quarter_days)
         datetime.date(2020, 7, 6)
     """
     if date is None:
         date = dt.date.today()
 
-    for d in monday_maker(year=date.year):
+    for d in day_maker(day_of_week=day_of_week, year=date.year):
         if d > date:
             return d
 
     # If no Monday in this year works, the first Monday of next year MUST work.
-    monday = monday_maker(year=date.year + 1)[0]
+    monday = day_maker(day_of_week=day_of_week, year=date.year + 1)[0]
     assert monday > date, (
         "No next Monday found! This should not be possible!"
         f" (monday={monday} > date={date})"

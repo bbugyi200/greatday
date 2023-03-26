@@ -72,27 +72,27 @@ params = mark.parametrize
         # --- scope spell
         (
             "o foo @w",
-            f"o {c.TODAY} foo | ctime:{c.hhmm} due:2000-01-10 scope:1",
+            f"o {c.TODAY} foo | ctime:{c.hhmm} due:2000-01-09 scope:1",
         ),
         (
             "o foo scope:1 @m",
-            f"o {c.TODAY} foo | ctime:{c.hhmm} due:2000-01-31 scope:2",
+            f"o {c.TODAY} foo | ctime:{c.hhmm} due:2000-01-30 scope:2",
         ),
         (
             "o foo scope:4 @q",
-            f"o {c.TODAY} foo | ctime:{c.hhmm} due:2000-04-03 scope:3",
+            f"o {c.TODAY} foo | ctime:{c.hhmm} due:2000-04-02 scope:3",
         ),
         (
             "o foo @y",
-            f"o {c.TODAY} foo | ctime:{c.hhmm} due:2001-01-01 scope:4",
+            f"o {c.TODAY} foo | ctime:{c.hhmm} due:2001-01-07 scope:4",
         ),
         (
             "o foo scope:4 @o",
-            f"o {c.TODAY} foo | ctime:{c.hhmm} due:2004-01-05 scope:5",
+            f"o {c.TODAY} foo | ctime:{c.hhmm} due:2004-01-04 scope:5",
         ),
         (
             "o foo scope:4 @t",
-            f"o {c.TODAY} foo | ctime:{c.hhmm} due:2020-01-06 scope:6",
+            f"o {c.TODAY} foo | ctime:{c.hhmm} due:2020-01-05 scope:6",
         ),
         (
             "o foo scope:5 due:2020-01-06 @s",
@@ -100,11 +100,11 @@ params = mark.parametrize
         ),
         (
             f"x {c.TODAY} 2023-03-04 foo @w",
-            f"o 2023-03-04 foo | ctime:{c.hhmm} due:2000-01-10 scope:1",
+            f"o 2023-03-04 foo | ctime:{c.hhmm} due:2000-01-09 scope:1",
         ),
         (
             "o 2023-03-04 foo @INBOX @w",
-            f"o 2023-03-04 foo | ctime:{c.hhmm} due:2000-01-10 scope:1",
+            f"o 2023-03-04 foo | ctime:{c.hhmm} due:2000-01-09 scope:1",
         ),
         # --- inbox spell
         ("o foo @i", f"o {c.TODAY} foo | @INBOX ctime:{c.hhmm}"),
