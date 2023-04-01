@@ -45,57 +45,36 @@ bolton-typist==0.2.0
 charset-normalizer==3.1.0
     # via aiohttp
 click==8.1.3
-    # via
-    #   mkdocs
-    #   textual
+    # via textual
 frozenlist==1.3.3
     # via
     #   aiohttp
     #   aiosignal
-ghp-import==2.1.0
-    # via mkdocs
 greenlet==2.0.2
     # via sqlalchemy
 idna==3.4
     # via yarl
-importlib-metadata==4.13.0
-    # via
-    #   markdown
-    #   mkdocs
-    #   textual
-jinja2==3.1.2
-    # via mkdocs
+importlib-metadata==6.1.0
+    # via textual
 linkify-it-py==2.0.0
     # via markdown-it-py
 magodo==1.1.1
     # via -r requirements.in
-markdown==3.3.7
-    # via mkdocs
 markdown-it-py[linkify,plugins]==2.2.0
     # via
     #   mdit-py-plugins
     #   rich
     #   textual
-markupsafe==2.1.2
-    # via jinja2
 mdit-py-plugins==0.3.5
     # via markdown-it-py
 mdurl==0.1.2
     # via markdown-it-py
-mergedeep==1.3.4
-    # via mkdocs
-mkdocs==1.4.2
-    # via mkdocs-exclude
-mkdocs-exclude==1.0.2
-    # via textual
 msgpack==1.0.5
     # via textual
 multidict==6.0.4
     # via
     #   aiohttp
     #   yarl
-packaging==23.0
-    # via mkdocs
 potoroo==0.4.1
     # via -r requirements.in
 pydantic==1.10.7
@@ -105,17 +84,10 @@ pydantic==1.10.7
 pygments==2.14.0
     # via rich
 python-dateutil==2.8.2
-    # via
-    #   -r requirements.in
-    #   ghp-import
+    # via -r requirements.in
 pyyaml==6.0
-    # via
-    #   bolton-clack
-    #   mkdocs
-    #   pyyaml-env-tag
-pyyaml-env-tag==0.1
-    # via mkdocs
-rich==13.3.2
+    # via bolton-clack
+rich==13.3.3
     # via textual
 six==1.16.0
     # via python-dateutil
@@ -129,7 +101,7 @@ sqlmodel==0.0.8
     # via -r requirements.in
 structlog==22.3.0
     # via bolton-logrus
-textual[dev]==0.16.0
+textual[dev]==0.17.1
     # via -r requirements.in
 typing-extensions==4.5.0
     # via
@@ -141,8 +113,6 @@ uc-micro-py==1.0.1
     # via linkify-it-py
 vimala==0.1.2
     # via -r requirements.in
-watchdog==3.0.0
-    # via mkdocs
 yarl==1.8.2
     # via aiohttp
 zipp==3.15.0
