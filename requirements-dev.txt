@@ -19,9 +19,7 @@ astroid==2.15.2
 async-timeout==4.0.2
     # via aiohttp
 attrs==22.2.0
-    # via
-    #   aiohttp
-    #   pytest
+    # via aiohttp
 babel==2.12.1
     # via sphinx
 binaryornot==0.4.4
@@ -129,7 +127,7 @@ idna==3.4
     #   yarl
 imagesize==1.4.1
     # via sphinx
-importlib-metadata==6.1.0
+importlib-metadata==6.3.0
     # via textual
 iniconfig==2.0.0
     # via pytest
@@ -193,7 +191,7 @@ packaging==23.0
     #   tox
 pathspec==0.11.1
     # via black
-pip-tools==6.12.3
+pip-tools==6.13.0
     # via -r requirements-dev.in
 platformdirs==3.2.0
     # via
@@ -220,7 +218,7 @@ pydocstyle[toml]==6.3.0
     # via -r requirements-dev.in
 pyflakes==3.0.1
     # via flake8
-pygments==2.14.0
+pygments==2.15.0
     # via
     #   rich
     #   sphinx
@@ -228,7 +226,7 @@ pylint==2.17.2
     # via -r requirements-dev.in
 pyproject-hooks==1.0.0
     # via build
-pytest==7.2.2
+pytest==7.3.0
     # via
     #   -r requirements-dev.in
     #   pytest-cov
