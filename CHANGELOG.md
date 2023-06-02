@@ -8,12 +8,19 @@ The format is based on [Keep a Changelog], and this project adheres to
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
 [Semantic Versioning]: https://semver.org/
 
+## [Unreleased](https://github.com/bbugyi200/greatday/compare/1.1.0...HEAD)
 
-## [Unreleased](https://github.com/bbugyi200/greatday/compare/1.0.0...HEAD)
+Not much to talk about yet...
+
+## [1.1.0](https://github.com/bbugyi200/greatday/compare/1.1.0...1.0.0)
 
 ### Added
 
 * New `default_query_group` configuration option for 'tui` CLI command.
+
+### Miscellaneous
+
+* Lots of other stuff probably...
 
 
 ## [1.0.0](https://github.com/bbugyi200/greatday/compare/0.4.0...1.0.0) - 2022-06-08
